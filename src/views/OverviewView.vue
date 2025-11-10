@@ -1,13 +1,11 @@
 <template>
-    <div class="mt-16 w-full h-full">
-        <UPageGrid>
-            <NumberCard v-for="(item, idx) in items" :key="idx" :title="item.title" :value="item.value"
-                :direction="item.direction" :percent-change="item.percentChange" />
-            <CardBarChart title="Total Sales" :data="salesData" />
-            <CardDoughnutChart title="Sales by Category" :data="salesByCategoryData" />
-            <CardBarChart title="Top Performing Products" :data="topPerformingProducts" index-axis="y" />
-        </UPageGrid>
-    </div>
+    <UPageGrid>
+        <NumberCard v-for="(item, idx) in items" :key="idx" :title="item.title" :value="item.value"
+            :direction="item.direction" :percent-change="item.percentChange" />
+        <CardBarChart title="Total Sales" :data="salesData" />
+        <CardDoughnutChart title="Sales by Category" :data="salesByCategoryData" />
+        <CardBarChart title="Top Performing Products" :data="topPerformingProducts" index-axis="y" />
+    </UPageGrid>
 </template>
 
 <script setup lang="ts">

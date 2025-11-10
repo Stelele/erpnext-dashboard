@@ -8,6 +8,4 @@ export const navItems: NavigationMenuItem[] = [
     { label: 'Customers', icon: 'i-lucide-users', route: '/customers' },
     { label: 'Reports', icon: 'i-lucide-bar-chart-2', route: '/reports' },
     { label: 'Notifications', icon: 'i-lucide-bell', route: '/notifications' },
-    { label: 'Settings', icon: 'i-lucide-settings', route: '/settings' },
-    { label: 'Profile', icon: 'i-lucide-user', route: '/profile' },
 ]

@@ -12,7 +12,7 @@ export const router = createRouter({
       path: '/overview',
       name: 'Overview',
       component: OverviewView,
-    }
+    },
   ],
   history: createWebHistory()
 })

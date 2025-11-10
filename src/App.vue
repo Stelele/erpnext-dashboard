@@ -6,7 +6,7 @@
           <img src="/logo.png" class="object-contain h-20" alt="Njeremoto Logo">
         </div>
       </template>
-      <UPageHeader title="Njeremoto Enterprise Dashboard" />
+      <UPageHeader :title="`${authStore.company} Dashboard`" />
       <template #right>
         <UColorModeButton class="hover:cursor-pointer" />
       </template>
@@ -17,12 +17,19 @@
     <UMain>
       <UDashboardGroup>
         <SideBar />
-        <RouterView class="p-2" />
+        <BasePage>
+          <RouterView class="p-2" />
+        </BasePage>
       </UDashboardGroup>
     </UMain>
   </UApp>
 </template>
 
 <script setup lang="ts">
+import BasePage from './layouts/BasePage.vue';
+import { useAuthStore } from './stores/AuthStore';
 import { navItems } from './utils/NavItems';
+
+const authStore = useAuthStore()
+
 </script>
