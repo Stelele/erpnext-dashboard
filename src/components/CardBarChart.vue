@@ -21,6 +21,8 @@ import {
 import type { ChartData, ChartOptions } from 'chart.js'
 import { computed } from 'vue'
 import { Bar } from 'vue-chartjs'
+import { getChartJsColor } from '../utils/ChartJsColors'
+import { useColorMode } from '@vueuse/core'
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, Colors)
 
@@ -43,6 +45,7 @@ export interface BarChartDataSet {
 const props = withDefaults(defineProps<CardBarChartProps>(), {
     indexAxis: 'x'
 })
+const colorMode = useColorMode()
 
 const chartData = computed<ChartData<'bar'>>(() => {
     const data: ChartData<'bar'> = {
@@ -58,6 +61,8 @@ const chartData = computed<ChartData<'bar'>>(() => {
         data.datasets.push({
             label: dataSet.label,
             data: dataSet.data,
+            backgroundColor: getChartJsColor(i),
+            borderColor: colorMode.value === 'dark' ? '#0f172b' : undefined,
         })
     }
 
@@ -77,6 +82,13 @@ const chartOptions = computed<ChartOptions<'bar'>>(() => ({
         y: {
             grid: {
                 display: false
+            }
+        }
+    },
+    plugins: {
+        legend: {
+            labels: {
+                color: colorMode.value === 'dark' ? '#fff' : '#000'
             }
         }
     }

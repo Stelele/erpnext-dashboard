@@ -11,7 +11,7 @@
         <UColorModeButton class="hover:cursor-pointer" />
       </template>
       <template #body>
-        <UNavigationMenu :items="navItems" orientation="vertical" class="-mx-2.5" />
+        <UNavigationMenu :items="navStore.navItems" orientation="vertical" class="-mx-2.5" />
       </template>
     </UHeader>
     <UMain>
@@ -26,10 +26,26 @@
 </template>
 
 <script setup lang="ts">
+import { onBeforeMount } from 'vue';
 import BasePage from './layouts/BasePage.vue';
 import { useAuthStore } from './stores/AuthStore';
-import { navItems } from './utils/NavItems';
+import { useDataStore } from './stores/DataStore';
+import { useNavStore } from './stores/NavStore';
+import moment from 'moment';
 
 const authStore = useAuthStore()
+const navStore = useNavStore()
+const dataStore = useDataStore()
+
+moment.updateLocale('en', {
+  week: {
+    dow: 1, // Monday is the first day of the week.
+  }
+})
+
+onBeforeMount(() => {
+  dataStore.getData('This Week')
+})
+
 
 </script>

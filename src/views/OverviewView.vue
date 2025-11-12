@@ -3,7 +3,7 @@
         <NumberCard v-for="(item, idx) in items" :key="idx" :title="item.title" :value="item.value"
             :direction="item.direction" :percent-change="item.percentChange" />
         <CardBarChart title="Total Sales" :data="salesData" />
-        <CardDoughnutChart title="Sales by Category" :data="salesByCategoryData" />
+        <CardDoughnutChart title="Sales by Category" :data="overViewDataStore.salesByCategory" />
         <CardBarChart title="Top Performing Products" :data="topPerformingProducts" index-axis="y" />
     </UPageGrid>
 </template>
@@ -14,20 +14,22 @@ import NumberCard from '../components/NumberCard.vue';
 import CardBarChart, { type BarChartData } from '../components/CardBarChart.vue';
 import CardDoughnutChart, { type DoughnutChartData } from '../components/CardDoughnutChart.vue';
 import type { NumberCardProps } from '../components/NumberCard.vue';
+import { useOverViewDataStore } from '../stores/OverViewDataStore';
 
+const overViewDataStore = useOverViewDataStore()
 const items = computed<NumberCardProps[]>(() => [
-    { title: 'No. Sales', value: 1000, direction: 'up', percentChange: 10 },
-    { title: 'Total Sales', value: 1000, direction: 'down', percentChange: 10 },
-    { title: 'Avg. Sales', value: 1000, direction: 'flat', percentChange: 10 },
-    { title: 'No. Purchases', value: 1000, direction: 'up', percentChange: 10 },
-    { title: 'Total Purchases', value: 1000, direction: 'up', percentChange: 10 },
-    { title: 'Avg. Purchases', value: 1000, direction: 'down', percentChange: 10 },
-    { title: 'Gross Profit', value: 1000, direction: 'up', percentChange: 10 },
-    { title: 'Gross Margin', value: 1000, direction: 'up', percentChange: 10 },
-    { title: 'Total Expenses', value: 1000, direction: 'up', percentChange: 10 },
-    { title: 'Avg. Expenses', value: 1000, direction: 'down', percentChange: 10 },
-    { title: 'Net Profit', value: 1000, direction: 'down', percentChange: 10 },
-    { title: 'Net Margin', value: 1000, direction: 'down', percentChange: 10 },
+    { title: 'No. Sales', value: overViewDataStore.nrSales.value, direction: overViewDataStore.nrSales.direction, percentChange: overViewDataStore.nrSales.percentChange },
+    { title: 'Total Sales ($)', value: overViewDataStore.totalSales.value, direction: overViewDataStore.totalSales.direction, percentChange: overViewDataStore.totalSales.percentChange },
+    { title: 'Avg. Sales ($)', value: overViewDataStore.avgSales.value, direction: overViewDataStore.avgSales.direction, percentChange: overViewDataStore.avgSales.percentChange },
+    { title: 'No. Orders', value: 1000, direction: 'up', percentChange: 10 },
+    { title: 'Total Orders ($)', value: 1000, direction: 'up', percentChange: 10 },
+    { title: 'Avg. Orders ($)', value: 1000, direction: 'down', percentChange: 10 },
+    { title: 'Gross Profit ($)', value: 1000, direction: 'up', percentChange: 10 },
+    { title: 'Gross Margin (%)', value: 1000, direction: 'up', percentChange: 10 },
+    { title: 'Total Exp ($)', value: 1000, direction: 'up', percentChange: 10 },
+    { title: 'Avg. Exp ($)', value: 1000, direction: 'flat', percentChange: 10 },
+    { title: 'Net Profit ($)', value: 1000, direction: 'down', percentChange: 10 },
+    { title: 'Net Margin (%)', value: 1000, direction: 'down', percentChange: 10 },
 ])
 
 const salesData = ref<BarChartData>({
@@ -36,16 +38,6 @@ const salesData = ref<BarChartData>({
         {
             label: 'Sales',
             data: [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100, 1200]
-        },
-    ]
-})
-
-const salesByCategoryData = ref<DoughnutChartData>({
-    labels: ['Jan', 'Feb', 'Mar', 'Apr'],
-    datasets: [
-        {
-            label: 'Sales',
-            data: [100, 200, 300, 400]
         },
     ]
 })

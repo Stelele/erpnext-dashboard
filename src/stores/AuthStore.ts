@@ -1,5 +1,5 @@
 import { defineStore } from "pinia";
-import { computed, ref } from "vue";
+import { computed } from "vue";
 
 export const useAuthStore = defineStore('authStore', () => {
     const token = computed(() => import.meta.env.VITE_ERPNEXT_TOKEN)

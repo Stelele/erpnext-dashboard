@@ -2,10 +2,9 @@
     <UPageCard class=" h-24">
         <CartTitle class="font-bold text-lg -mt-4">{{ props.title }}</CartTitle>
         <div class="w-full flex justify-between items-center -mt-4">
-            <CartTitle class="text-4xl">{{ props.value }}</CartTitle>
-            <div class="flex items-center gap-1 h-full" :class="{
-                'text-green-500': props.direction === 'up',
-                'text-red-500': props.direction === 'down'
+            <CartTitle class="text-4xl">{{ formatedValue }}</CartTitle>
+            <div v-if="props.direction" class="flex items-center gap-1 h-full" :style="{
+                color: trendColor
             }">
                 <UIcon :name="icon" class="size-8" />
                 <CartTitle class="text-lg">{{ props.percentChange }}%</CartTitle>
@@ -16,13 +15,29 @@
 
 <script setup lang="ts">
 import { computed } from 'vue';
+import { useColorMode } from '@vueuse/core'
 
+export type ChangeDirection = 'up' | 'down' | 'flat'
 export interface NumberCardProps {
     title: string
     value: number
-    direction?: 'up' | 'down' | 'flat'
+    direction?: ChangeDirection
     percentChange: number
 }
+const props = defineProps<NumberCardProps>()
+const colorMode = useColorMode()
+
+const formatedValue = computed(() => {
+    if (Number.isNaN(props.value)) {
+        return '-'
+    }
+
+    if (Math.abs(props.value) - Math.floor(Math.abs(props.value)) === 0) {
+        return props.value
+    }
+
+    return props.value.toFixed(2)
+})
 
 const icon = computed(() => {
     if (props.direction === 'up') {
@@ -36,5 +51,16 @@ const icon = computed(() => {
     return 'i-lucide-arrow-right'
 })
 
-const props = defineProps<NumberCardProps>()
+const trendColor = computed(() => {
+    if (props.direction === 'up') {
+        return colorMode.value === 'dark' ? '#00DC82' : '#00DC82'
+    }
+
+    if (props.direction === 'down') {
+        return colorMode.value === 'dark' ? '#F43F5E' : '#F87171'
+    }
+
+    return colorMode.value === 'dark' ? '#64748B' : '#94A3B8'
+})
+
 </script>
