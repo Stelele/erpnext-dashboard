@@ -54,8 +54,6 @@ const chartData = computed<ChartData<'doughnut'>>(() => {
         })
     }
 
-    console.log(colorMode)
-
     return data
 })
 

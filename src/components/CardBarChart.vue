@@ -2,7 +2,7 @@
     <UPageCard class="col-span-2 h-96">
         <CartTitle class="font-bold text-lg">{{ props.title }}</CartTitle>
         <div class="w-full h-full flex items-center justify-center">
-            <Bar :data="chartData" :options="chartOptions" />
+            <Bar v-if="chartData" :data="chartData" :options="chartOptions" />
         </div>
     </UPageCard>
 </template>
@@ -75,14 +75,21 @@ const chartOptions = computed<ChartOptions<'bar'>>(() => ({
     maintainAspectRatio: false,
     scales: {
         x: {
+            ticks: {
+                color: colorMode.value === 'dark' ? '#fff' : '#000',
+            },
             grid: {
-                display: false
-            }
+                display: false,
+            },
         },
         y: {
+            ticks: {
+                color: colorMode.value === 'dark' ? '#fff' : '#000',
+            },
             grid: {
-                display: false
-            }
+                display: false,
+            },
+
         }
     },
     plugins: {

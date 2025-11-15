@@ -44,8 +44,10 @@ moment.updateLocale('en', {
 })
 
 onBeforeMount(() => {
-  dataStore.getData('This Week')
+  dataStore.getData(dataStore.currentPeriod)
+  setInterval(() => {
+    dataStore.getData(dataStore.currentPeriod)
+  }, 1000 * 60 * 5)
 })
-
 
 </script>

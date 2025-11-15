@@ -1,13 +1,13 @@
 <template>
     <UPageCard class=" h-24">
-        <CartTitle class="font-bold text-lg -mt-4">{{ props.title }}</CartTitle>
+        <CartTitle class="font-bold text-md -mt-4">{{ props.title }}</CartTitle>
         <div class="w-full flex justify-between items-center -mt-4">
-            <CartTitle class="text-4xl">{{ formatedValue }}</CartTitle>
-            <div v-if="props.direction" class="flex items-center gap-1 h-full" :style="{
+            <CartTitle class="text-3xl">{{ formatedValue }}</CartTitle>
+            <div v-if="props.direction && !isNaN(props.percentChange)" class="flex items-center gap-1 h-full" :style="{
                 color: trendColor
             }">
                 <UIcon :name="icon" class="size-8" />
-                <CartTitle class="text-lg">{{ props.percentChange }}%</CartTitle>
+                <CartTitle class="text-md">{{ props.percentChange }}%</CartTitle>
             </div>
         </div>
     </UPageCard>
