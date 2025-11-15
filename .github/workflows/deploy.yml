@@ -1,0 +1,43 @@
+name: Build and Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "22"
+
+      - name: Building Front End
+        run: |
+          sed -e 's|{{erpnext_token}}|$API_KEY|' -e 's|{{erpnext_url}}|https://njeremoto.jh.erpnext.com|' -e 's|{{erpnext_company}}|Njeremoto Enterprises|' .env > .env.production
+          npm install
+          npm run build
+          git clone https://$PAT@github.com/Stelele/njeremoto-dashboard-build.git out
+          rm -r out/*
+          cp -R dist/* out/
+          cd out
+          cp index.html 404.html
+          git config --global user.email "giftmugweni@gmail.com"
+          git config --global user.name "stelele"
+          git add .
+          git commit -m "Deploy build files"
+          git push origin $DEPLOY_BRANCH
+        env:
+          API_KEY: ${{ secrets.ERPNEXT_API_KEY }}
+          DEPLOY_BRANCH: main
+          PAT: ${{ secrets.PAT }}
