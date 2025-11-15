@@ -6,6 +6,8 @@ import { calculatePercentChange } from "../utils/ChangeCalculations";
 import type { DoughnutChartData } from "../components/CardDoughnutChart.vue";
 import type { BarChartData } from "../components/CardBarChart.vue";
 import moment from "moment";
+import type { Period } from "../utils/PeriodUtilities";
+import type { GroupSummary } from "../types/MonthSales";
 
 export const useOverViewDataStore = defineStore('overViewDataStore', () => {
     const dataStore = useDataStore()
@@ -213,33 +215,38 @@ export const useOverViewDataStore = defineStore('overViewDataStore', () => {
         }
     })
 
-    const prev12MonthsSales = computed<BarChartData>(() => {
+    const prevXGroupingSales = computed<{ data: BarChartData; title: string }>(() => {
         const labels: string[] = []
         const data: number[] = []
-        for (const monthSale of dataStore.prev12MonthsSales) {
-            const date = moment(monthSale.grouping_name, 'YYYY-MM')
-            labels.push(date.format('MMM YYYY'))
+        for (const monthSale of dataStore.prev6MonthsSales) {
+            labels.push(getLabelDate(dataStore.currentPeriod, monthSale))
             data.push(monthSale.total)
         }
 
         return {
-            labels,
-            datasets: [
-                {
-                    label: 'Sales',
-                    data,
-                },
-            ]
+            title: getTitle(dataStore.currentPeriod) as string,
+            data: {
+                labels,
+                datasets: [
+                    {
+                        label: 'Sales',
+                        data,
+                    },
+                ]
+            }
         }
     })
 
-    const prev14DaysSales = computed<BarChartData>(() => {
+    const prev6MonthsSales = computed<BarChartData>(() => {
         const labels: string[] = []
         const data: number[] = []
-        for (const monthSale of dataStore.prev14DaysSales) {
-            const date = moment(monthSale.grouping_name, 'YYYY-MM-DD')
-            labels.push(date.format('DD-MMM'))
-            data.push(monthSale.total)
+
+        for (let i = 5; i >= 0; i--) {
+            const month = moment().subtract(i, 'months').format('YYYY-MM')
+            const formattedMonth = moment(month, 'YYYY-MM').format('MMM YYYY')
+            labels.push(formattedMonth)
+            const monthSales = dataStore.prev6MonthsSales.find(monthSale => monthSale.grouping_name === month)
+            data.push(monthSales?.total ?? 0)
         }
 
         return {
@@ -268,7 +275,63 @@ export const useOverViewDataStore = defineStore('overViewDataStore', () => {
         netProfit,
         netMargin,
         salesByCategory,
-        prev12MonthsSales,
-        prev14DaysSales,
+        prev6MonthsSales,
+        prevXGroupingSales,
     }
 })
+
+function getLabelDate(period: Period, groupSale: GroupSummary) {
+    switch (period) {
+        case 'Today':
+            return moment(groupSale.grouping_name, 'YYYY-MM-DD').format('DD MMM')
+        case 'Yesterday':
+            return moment(groupSale.grouping_name, 'YYYY-MM-DD').format('DD MMM')
+        case 'This Week':
+            const weekStart = moment(groupSale.grouping_name, 'YYYY-MM-DD').startOf('week')
+            const weekEnd = moment(groupSale.grouping_name, 'YYYY-MM-DD').endOf('week')
+            return `${weekStart.format('DD MMM')} - ${weekEnd.format('DD MMM')}`
+        case 'Last Week':
+            const weekStart2 = moment(groupSale.grouping_name, 'YYYY-MM-DD').startOf('week')
+            const weekEnd2 = moment(groupSale.grouping_name, 'YYYY-MM-DD').endOf('week')
+            return `${weekStart2.format('DD MMM')} - ${weekEnd2.format('DD MMM')}`
+        case 'This Month':
+            return moment(groupSale.grouping_name, 'YYYY-MM').format('MMM YY')
+        case 'Last Month':
+            return moment(groupSale.grouping_name, 'YYYY-MM').format('MMM YY')
+        case 'This Quarter':
+            return moment(groupSale.grouping_name, 'YYYY-MM').format('MMM YY')
+        case 'Last Quarter':
+            return moment(groupSale.grouping_name, 'YYYY-MM').format('MMM YY')
+        case 'This Year':
+            return moment(groupSale.grouping_name, 'YYYY-MM').format('YYYY')
+        case 'Last Year':
+            return moment(groupSale.grouping_name, 'YYYY-MM').format('YYYY')
+        default:
+            return ''
+    }
+}
+
+function getTitle(period: Period) {
+    switch (period) {
+        case 'Today':
+            return 'Sales from last 7 days'
+        case 'Yesterday':
+            return 'Sales from last 7 days'
+        case 'This Week':
+            return 'Sales from last 7 days'
+        case 'Last Week':
+            return 'Sales from last 7 days'
+        case 'This Month':
+            return `Sales from last 30 days`
+        case 'Last Month':
+            return `Sales from last 30 days`
+        case 'This Quarter':
+            return `Sales from last 3 months`
+        case 'Last Quarter':
+            return `Sales from last 3 months`
+        case 'This Year':
+            return `Sales from last 12 months`
+        case 'Last Year':
+            return `Sales from last 12 months`
+    }
+}

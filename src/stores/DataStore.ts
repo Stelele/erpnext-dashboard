@@ -4,29 +4,32 @@ import type { PosInvoice } from "../types/PosInvoice";
 import { computed, ref } from "vue";
 import { getPeriodDateRange, getPreviousPeriod, type Period } from "../utils/PeriodUtilities";
 import type { GroupSummary, ItemGroupSummary } from "../types/MonthSales";
+import moment from "moment";
 
 export const useDataStore = defineStore('dataStore', () => {
     const salesSummary = ref<GroupSummary[]>([])
     const prevSalesSummary = ref<GroupSummary[] | undefined>(undefined)
-    const prev12MonthsSales = ref<GroupSummary[]>([])
-    const prev14DaysSales = ref<GroupSummary[]>([])
+    const prev6MonthsSales = ref<GroupSummary[]>([])
+    const prevXGroupingSales = ref<GroupSummary[]>([])
     const itemGroupSalesSummary = ref<ItemGroupSummary[]>([])
     const purchaseGroupSummary = ref<GroupSummary[]>([])
     const prevPurchaseGroupSummary = ref<GroupSummary[] | undefined>(undefined)
     const expensesSummary = ref<GroupSummary[]>([])
     const prevExpensesSummary = ref<GroupSummary[] | undefined>(undefined)
 
-    const currentPeriod = ref<Period>('This Month')
+    const currentPeriod = ref<Period>('Today')
+    const lastRefresh = ref('')
     const dateRange = computed(() => getPeriodDateRange(currentPeriod.value))
 
     async function getData(period: Period) {
         const erpNextService = new ErpNextService()
         const prevPeriod = getPreviousPeriod(period)
 
+        lastRefresh.value = moment().format('DD-MMM-YY HH:mm')
         const erpNextServicePromises: Promise<any>[] = [
             erpNextService.getSalesSummary(period),
             prevPeriod ? erpNextService.getSalesSummary(prevPeriod) : new Promise<PosInvoice[] | undefined>(resolve => resolve(undefined)),
-            erpNextService.getPrevGroupedSales('months', 12),
+            erpNextService.getPrevGroupedSales('months', 6),
             erpNextService.getPrevGroupedSales('days', 14),
             erpNextService.getItemGroupSalesSummary(period),
             erpNextService.getPurchaseGroupSummary(period),
@@ -38,8 +41,8 @@ export const useDataStore = defineStore('dataStore', () => {
         const result = await Promise.all(erpNextServicePromises)
         salesSummary.value = result[0] ?? []
         prevSalesSummary.value = result[1]
-        prev12MonthsSales.value = result[2] ?? []
-        prev14DaysSales.value = result[3] ?? []
+        prev6MonthsSales.value = result[2] ?? []
+        prevXGroupingSales.value = result[3] ?? []
         itemGroupSalesSummary.value = result[4] ?? []
         purchaseGroupSummary.value = result[5] ?? []
         prevPurchaseGroupSummary.value = result[6]
@@ -49,11 +52,12 @@ export const useDataStore = defineStore('dataStore', () => {
 
     return {
         currentPeriod,
+        lastRefresh,
         dateRange,
         salesSummary,
         prevSalesSummary,
-        prev12MonthsSales,
-        prev14DaysSales,
+        prev6MonthsSales,
+        prevXGroupingSales,
         itemGroupSalesSummary,
         purchaseGroupSummary,
         prevPurchaseGroupSummary,

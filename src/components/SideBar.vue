@@ -4,15 +4,18 @@
             <UNavigationMenu :collapsed="collapsed" :items="navStore.navItems" orientation="vertical" />
         </template>
         <template #footer="{ collapsed }">
-            <UDropdownMenu :collapsed="collapsed" :items="filterItems" class="w-full">
-                <UButton variant="subtle" color="neutral" class="w-full">
-                    <div class="flex flex-col w-full">
-                        <CartTitle class="text-lg font-bold">{{ dataStore.currentPeriod }}</CartTitle>
-                        <CartTitle class="text-sm">{{ dateRange }}
-                        </CartTitle>
-                    </div>
-                </UButton>
-            </UDropdownMenu>
+            <div class="flex flex-col gap-1">
+                <UDropdownMenu :collapsed="collapsed" :items="filterItems" class="w-full">
+                    <UButton variant="subtle" color="neutral" class="w-full">
+                        <div class="flex flex-col w-full">
+                            <CartTitle class="text-lg font-bold">{{ dataStore.currentPeriod }}</CartTitle>
+                            <CartTitle class="text-sm">{{ dateRange }}
+                            </CartTitle>
+                        </div>
+                    </UButton>
+                </UDropdownMenu>
+                <CartTitle class="text-sm">Last Refresh: {{ dataStore.lastRefresh }}</CartTitle>
+            </div>
         </template>
     </UDashboardSidebar>
 </template>
@@ -36,23 +39,21 @@ const dateRange = computed(() => {
     return `${moment(dataStore.dateRange.start).format('DD MMM YY')} - ${moment(dataStore.dateRange.end).format('DD MMM YY')}`
 })
 
-const filterItems = computed<DropdownMenuItem[]>(() => {
-    return [
-        { label: 'Today', onSelect: () => onFilterChange('Today') },
-        { label: 'Yesterday', onSelect: () => onFilterChange('Yesterday') },
-        { label: 'This Week', onSelect: () => onFilterChange('This Week') },
-        { label: 'Last Week', onSelect: () => onFilterChange('Last Week') },
-        { label: 'This Month', onSelect: () => onFilterChange('This Month') },
-        { label: 'Last Month', onSelect: () => onFilterChange('Last Month') },
-        { label: 'This Quarter', onSelect: () => onFilterChange('This Quarter') },
-        { label: 'Last Quarter', onSelect: () => onFilterChange('Last Quarter') },
-        { label: 'This Year', onSelect: () => onFilterChange('This Year') },
-        { label: 'Last Year', onSelect: () => onFilterChange('Last Year') },
-    ]
-})
+const filterItems = computed<DropdownMenuItem[]>(() => [
+    { label: 'Today', onSelect: () => onFilterChange('Today') },
+    { label: 'Yesterday', onSelect: () => onFilterChange('Yesterday') },
+    { label: 'This Week', onSelect: () => onFilterChange('This Week') },
+    { label: 'Last Week', onSelect: () => onFilterChange('Last Week') },
+    { label: 'This Month', onSelect: () => onFilterChange('This Month') },
+    { label: 'Last Month', onSelect: () => onFilterChange('Last Month') },
+    { label: 'This Quarter', onSelect: () => onFilterChange('This Quarter') },
+    { label: 'Last Quarter', onSelect: () => onFilterChange('Last Quarter') },
+    { label: 'This Year', onSelect: () => onFilterChange('This Year') },
+    { label: 'Last Year', onSelect: () => onFilterChange('Last Year') },
+])
 
-function onFilterChange(value: string) {
-    dataStore.currentPeriod = value as Period
-    dataStore.getData(value as Period)
+function onFilterChange(value: Period) {
+    dataStore.currentPeriod = value
+    dataStore.getData(value)
 }
 </script>

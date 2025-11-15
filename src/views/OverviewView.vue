@@ -2,9 +2,10 @@
     <UPageGrid>
         <NumberCard v-for="(item, idx) in items" :key="idx" :title="item.title" :value="item.value"
             :direction="item.direction" :percent-change="item.percentChange" />
-        <CardBarChart title="Sales from last 12 months" :data="overViewDataStore.prev12MonthsSales" />
+        <CardBarChart title="Sales from last 6 months" :data="overViewDataStore.prev6MonthsSales" />
         <CardDoughnutChart title="Sales by Category" :data="overViewDataStore.salesByCategory" />
-        <CardBarChart title="Sales for last 14 days" :data="overViewDataStore.prev14DaysSales" />
+        <CardBarChart :title="overViewDataStore.prevXGroupingSales.title"
+            :data="overViewDataStore.prevXGroupingSales.data" />
     </UPageGrid>
 </template>
 

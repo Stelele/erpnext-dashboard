@@ -60,6 +60,9 @@ const chartData = computed<ChartData<'doughnut'>>(() => {
 const chartOptions = computed<ChartOptions<'doughnut'>>(() => ({
     responsive: true,
     maintainAspectRatio: false,
+    layout: {
+        autoPadding: true,
+    },
     plugins: {
         legend: {
             labels: {
