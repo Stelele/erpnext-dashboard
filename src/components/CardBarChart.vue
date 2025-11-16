@@ -1,9 +1,12 @@
 <template>
-    <UPageCard class="col-span-2 h-96">
-        <CartTitle class="font-bold text-lg">{{ props.title }}</CartTitle>
-        <div class="w-full h-full flex items-center justify-center">
-            <Bar v-if="chartData" :data="chartData" :options="chartOptions" />
+    <UPageCard class="col-span-2">
+        <div v-if="!props.isLoading" class="w-full h-full max-h-80">
+            <CartTitle class="font-bold text-lg">{{ props.title }}</CartTitle>
+            <div class="w-full h-full flex items-center justify-center chart-container">
+                <Bar v-if="chartData" :data="chartData" :options="chartOptions" />
+            </div>
         </div>
+        <USkeleton v-else class="w-full h-full" />
     </UPageCard>
 </template>
 
@@ -30,6 +33,7 @@ export interface CardBarChartProps {
     title: string
     indexAxis?: 'x' | 'y'
     data: BarChartData
+    isLoading?: boolean
 }
 
 export interface BarChartData {
@@ -102,3 +106,17 @@ const chartOptions = computed<ChartOptions<'bar'>>(() => ({
 }))
 
 </script>
+
+<style scoped>
+.chart-container {
+    width: 100%;
+    /* Or a fixed width if desired */
+    height: 100%;
+    /* Or a percentage height if its parent has a defined height */
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+</style>

@@ -1,9 +1,12 @@
 <template>
     <UPageCard class="col-span-2 h-96">
-        <CartTitle class="font-bold text-lg">{{ props.title }}</CartTitle>
-        <div class="w-full h-full flex items-center justify-center">
-            <Doughnut v-if="props.data.datasets.length" :data="chartData" :options="chartOptions" />
+        <div v-if="!props.isLoading" class="w-full h-full max-h-80">
+            <CartTitle class="font-bold text-lg">{{ props.title }}</CartTitle>
+            <div class="w-full h-80 relative items-center justify-center chart-container">
+                <Doughnut v-if="props.data.datasets.length" :data="chartData" :options="chartOptions" />
+            </div>
         </div>
+        <USkeleton v-else class="w-full h-full" />
     </UPageCard>
 </template>
 
@@ -20,6 +23,7 @@ ChartJS.register(ArcElement, Tooltip, Legend, Colors)
 export interface DoughnutChartProps {
     title: string
     data: DoughnutChartData
+    isLoading?: boolean
 }
 
 export interface DoughnutChartData {
@@ -73,3 +77,17 @@ const chartOptions = computed<ChartOptions<'doughnut'>>(() => ({
 }))
 
 </script>
+
+<style scoped>
+.chart-container {
+    width: 100%;
+    /* Or a fixed width if desired */
+    height: 100%;
+    /* Or a percentage height if its parent has a defined height */
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: 100% !important;
+}
+</style>
