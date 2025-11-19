@@ -41,15 +41,10 @@ const dateRange = computed(() => {
 
 const filterItems = computed<DropdownMenuItem[]>(() => [
     { label: 'Today', onSelect: () => onFilterChange('Today') },
-    { label: 'Yesterday', onSelect: () => onFilterChange('Yesterday') },
     { label: 'This Week', onSelect: () => onFilterChange('This Week') },
-    { label: 'Last Week', onSelect: () => onFilterChange('Last Week') },
     { label: 'This Month', onSelect: () => onFilterChange('This Month') },
-    { label: 'Last Month', onSelect: () => onFilterChange('Last Month') },
     { label: 'This Quarter', onSelect: () => onFilterChange('This Quarter') },
-    { label: 'Last Quarter', onSelect: () => onFilterChange('Last Quarter') },
     { label: 'This Year', onSelect: () => onFilterChange('This Year') },
-    { label: 'Last Year', onSelect: () => onFilterChange('Last Year') },
 ])
 
 function onFilterChange(value: Period) {
