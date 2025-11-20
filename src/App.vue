@@ -39,9 +39,8 @@ import BasePage from './layouts/BasePage.vue';
 import { useAuthStore } from './stores/AuthStore';
 import { useDataStore } from './stores/DataStore';
 import { useNavStore } from './stores/NavStore';
+import { filterItems } from './utils/MenuItems';
 import moment from 'moment';
-import type { DropdownMenuItem } from '@nuxt/ui';
-import type { Period } from './utils/PeriodUtilities';
 
 const authStore = useAuthStore()
 const navStore = useNavStore()
@@ -54,24 +53,6 @@ const dateRange = computed(() => {
 
   return `${moment(dataStore.dateRange.start).format('DD MMM YY')} - ${moment(dataStore.dateRange.end).format('DD MMM YY')}`
 })
-
-const filterItems = computed<DropdownMenuItem[]>(() => [
-  { label: 'Today', onSelect: () => onFilterChange('Today') },
-  { label: 'Yesterday', onSelect: () => onFilterChange('Yesterday') },
-  { label: 'This Week', onSelect: () => onFilterChange('This Week') },
-  { label: 'Last Week', onSelect: () => onFilterChange('Last Week') },
-  { label: 'This Month', onSelect: () => onFilterChange('This Month') },
-  { label: 'Last Month', onSelect: () => onFilterChange('Last Month') },
-  { label: 'This Quarter', onSelect: () => onFilterChange('This Quarter') },
-  { label: 'Last Quarter', onSelect: () => onFilterChange('Last Quarter') },
-  { label: 'This Year', onSelect: () => onFilterChange('This Year') },
-  { label: 'Last Year', onSelect: () => onFilterChange('Last Year') },
-])
-
-function onFilterChange(value: Period) {
-  dataStore.currentPeriod = value
-  dataStore.getData(value)
-}
 
 moment.updateLocale('en', {
   week: {

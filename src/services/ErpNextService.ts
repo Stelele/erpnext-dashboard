@@ -21,7 +21,7 @@ export class ErpNextService {
         })
     }
 
-    public async getExpensesSummary(period: Period = 'Today') {
+    public getExpensesSummary(period: Period = 'Today') {
         const authStore = useAuthStore()
         const dateRange = getPeriodDateRange(period)
 
@@ -35,7 +35,7 @@ export class ErpNextService {
         }).then(resp => resp?.data.data)
     }
 
-    public async getPurchaseGroupSummary(period: Period = 'Today') {
+    public getPurchaseGroupSummary(period: Period = 'Today') {
         const authStore = useAuthStore()
         const dateRange = getPeriodDateRange(period)
 
@@ -49,7 +49,7 @@ export class ErpNextService {
         }).then(resp => resp?.data.data)
     }
 
-    public async getSalesSummary(period: Period = 'Today') {
+    public getSalesSummary(period: Period = 'Today') {
         const authStore = useAuthStore()
         const dateRange = getPeriodDateRange(period)
 
@@ -63,7 +63,7 @@ export class ErpNextService {
         }).then(resp => resp?.data.data)
     }
 
-    public async getItemGroupSalesSummary(period: Period = 'Today') {
+    public getItemGroupSalesSummary(period: Period = 'Today') {
         const authStore = useAuthStore()
         const dateRange = getPeriodDateRange(period)
 
@@ -77,7 +77,7 @@ export class ErpNextService {
         }).then(resp => resp?.data.data)
     }
 
-    public async getPrevGroupedSales(grouping: SalesGrouping, diff: number) {
+    public getPrevGroupedSales(grouping: SalesGrouping, diff: number) {
         const authStore = useAuthStore()
         const groupingTemplate = this.getDateGrouping(grouping)
 
