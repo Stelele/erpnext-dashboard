@@ -26,11 +26,11 @@ export const useDataStore = defineStore('dataStore', () => {
         const prevPeriod = getPreviousPeriod(period)
 
         lastRefresh.value = moment().format('DD-MMM-YY HH:mm')
-        const erpNextServicePromises: Promise<any>[] = [
+        const erpNextServicePromises = [
             erpNextService.getSalesSummary(period),
             prevPeriod ? erpNextService.getSalesSummary(prevPeriod) : new Promise<PosInvoice[] | undefined>(resolve => resolve(undefined)),
             erpNextService.getPrevGroupedSales('months', 6),
-            erpNextService.getPrevGroupedSales('days', 14),
+            erpNextService.getPrevGroupSalesFromCurrent(period),
             erpNextService.getItemGroupSalesSummary(period),
             erpNextService.getPurchaseGroupSummary(period),
             prevPeriod ? erpNextService.getPurchaseGroupSummary(prevPeriod) : new Promise<PosInvoice[] | undefined>(resolve => resolve(undefined)),
@@ -39,15 +39,15 @@ export const useDataStore = defineStore('dataStore', () => {
         ]
 
         const result = await Promise.all(erpNextServicePromises)
-        salesSummary.value = result[0] ?? []
-        prevSalesSummary.value = result[1]
-        prev6MonthsSales.value = result[2] ?? []
-        prevXGroupingSales.value = result[3] ?? []
-        itemGroupSalesSummary.value = result[4] ?? []
-        purchaseGroupSummary.value = result[5] ?? []
-        prevPurchaseGroupSummary.value = result[6]
-        expensesSummary.value = result[7] ?? []
-        prevExpensesSummary.value = result[8]
+        salesSummary.value = (result[0] ?? []) as GroupSummary[]
+        prevSalesSummary.value = result[1] as GroupSummary[] | undefined
+        prev6MonthsSales.value = (result[2] ?? []) as GroupSummary[]
+        prevXGroupingSales.value = (result[3] ?? []) as GroupSummary[]
+        itemGroupSalesSummary.value = (result[4] ?? []) as ItemGroupSummary[]
+        purchaseGroupSummary.value = (result[5] ?? []) as GroupSummary[]
+        prevPurchaseGroupSummary.value = (result[6] ?? []) as GroupSummary[] | undefined
+        expensesSummary.value = (result[7] ?? []) as GroupSummary[]
+        prevExpensesSummary.value = result[8] as GroupSummary[] | undefined
     }
 
     return {

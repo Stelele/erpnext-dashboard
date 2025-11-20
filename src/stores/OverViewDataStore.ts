@@ -6,7 +6,7 @@ import { calculatePercentChange } from "../utils/ChangeCalculations";
 import type { DoughnutChartData } from "../components/CardDoughnutChart.vue";
 import type { BarChartData } from "../components/CardBarChart.vue";
 import moment from "moment";
-import type { Period } from "../utils/PeriodUtilities";
+import { getPeriodDateRangeFromCurrent, type Period } from "../utils/PeriodUtilities";
 import type { GroupSummary } from "../types/MonthSales";
 
 export const useOverViewDataStore = defineStore('overViewDataStore', () => {
@@ -216,12 +216,7 @@ export const useOverViewDataStore = defineStore('overViewDataStore', () => {
     })
 
     const prevXGroupingSales = computed<{ data: BarChartData; title: string }>(() => {
-        const labels: string[] = []
-        const data: number[] = []
-        for (const monthSale of dataStore.prev6MonthsSales) {
-            labels.push(getLabelDate(dataStore.currentPeriod, monthSale))
-            data.push(monthSale.total)
-        }
+        const { labels, data } = getPrevXYData(dataStore.currentPeriod, dataStore.prevXGroupingSales)
 
         return {
             title: getTitle(dataStore.currentPeriod) as string,
@@ -280,34 +275,85 @@ export const useOverViewDataStore = defineStore('overViewDataStore', () => {
     }
 })
 
-function getLabelDate(period: Period, groupSale: GroupSummary) {
-    switch (period) {
-        case 'Today':
-            return moment(groupSale.grouping_name, 'YYYY-MM-DD').format('DD MMM')
-        case 'Yesterday':
-            return moment(groupSale.grouping_name, 'YYYY-MM-DD').format('DD MMM')
-        case 'This Week':
-            const weekStart = moment(groupSale.grouping_name, 'YYYY-MM-DD').startOf('week')
-            const weekEnd = moment(groupSale.grouping_name, 'YYYY-MM-DD').endOf('week')
-            return `${weekStart.format('DD MMM')} - ${weekEnd.format('DD MMM')}`
-        case 'Last Week':
-            const weekStart2 = moment(groupSale.grouping_name, 'YYYY-MM-DD').startOf('week')
-            const weekEnd2 = moment(groupSale.grouping_name, 'YYYY-MM-DD').endOf('week')
-            return `${weekStart2.format('DD MMM')} - ${weekEnd2.format('DD MMM')}`
-        case 'This Month':
-            return moment(groupSale.grouping_name, 'YYYY-MM').format('MMM YY')
-        case 'Last Month':
-            return moment(groupSale.grouping_name, 'YYYY-MM').format('MMM YY')
-        case 'This Quarter':
-            return moment(groupSale.grouping_name, 'YYYY-MM').format('MMM YY')
-        case 'Last Quarter':
-            return moment(groupSale.grouping_name, 'YYYY-MM').format('MMM YY')
-        case 'This Year':
-            return moment(groupSale.grouping_name, 'YYYY-MM').format('YYYY')
-        case 'Last Year':
-            return moment(groupSale.grouping_name, 'YYYY-MM').format('YYYY')
-        default:
-            return ''
+function getPrevXYData(period: Period, groupSales: GroupSummary[]) {
+    if (period === 'This Week' || period === 'Last Week') {
+        const dateRange = getPeriodDateRangeFromCurrent(period)
+        let start = moment(dateRange.start, 'YYYY-MM-DD')
+        let end = moment(dateRange.end, 'YYYY-MM-DD')
+        let cur = start
+
+        const labels: string[] = []
+        const data: number[] = []
+        while (cur.isBefore(end, 'day')) {
+            const weekEnd = moment(cur).endOf('week')
+            const label = `${cur.format('DD MMM')} - ${weekEnd.format('DD MMM')}`
+            labels.push(label)
+
+            const sales = groupSales.filter(groupSale => moment(groupSale.grouping_name, 'YYYY-MM-DD').isBetween(cur, weekEnd, 'day', '[]'))
+            data.push(sales.reduce((acc, curr) => acc + curr.total, 0))
+
+            cur = weekEnd.add(1, 'days')
+        }
+
+        return {
+            labels,
+            data,
+        }
+    }
+
+    if (period === 'This Month' || period === 'Last Month') {
+        const dateRange = getPeriodDateRangeFromCurrent(period)
+        let start = moment(dateRange.start, 'YYYY-MM-DD')
+        let end = moment(dateRange.end, 'YYYY-MM-DD')
+        let cur = start
+
+        const labels: string[] = []
+        const data: number[] = []
+        while (cur.isBefore(end, 'day')) {
+            const monthEnd = moment(cur).endOf('month')
+            const label = cur.format('MMM YY')
+            labels.push(label)
+
+            const sales = groupSales.filter(groupSale => moment(groupSale.grouping_name, 'YYYY-MM-DD').isBetween(cur, monthEnd, 'day', '[]'))
+            data.push(sales.reduce((acc, curr) => acc + curr.total, 0))
+
+            cur = monthEnd.add(1, 'days')
+        }
+
+        return {
+            labels,
+            data,
+        }
+    }
+
+    if (['This Quarter', 'Last Quarter', 'This Year', 'Last Year'].includes(period)) {
+        const dateRange = getPeriodDateRangeFromCurrent(period)
+        let start = moment(dateRange.start, 'YYYY-MM-DD')
+        let end = moment(dateRange.end, 'YYYY-MM-DD')
+        let cur = start
+
+        const labels: string[] = []
+        const data: number[] = []
+        while (cur.isBefore(end, 'day')) {
+            const quarterEnd = moment(cur).endOf('quarter')
+            const label = `${cur.format('MMM YY')} - ${quarterEnd.format('MMM YY')}`
+            labels.push(label)
+
+            const sales = groupSales.filter(groupSale => moment(groupSale.grouping_name, 'YYYY-MM-DD').isBetween(cur, quarterEnd, 'day', '[]'))
+            data.push(sales.reduce((acc, curr) => acc + curr.total, 0))
+
+            cur = quarterEnd.add(1, 'days')
+        }
+
+        return {
+            labels,
+            data,
+        }
+    }
+
+    return {
+        labels: groupSales.map(groupSale => moment(groupSale.grouping_name, 'YYYY-MM-DD').format('DD MMM')),
+        data: groupSales.map(groupSale => groupSale.total),
     }
 }
 
@@ -318,20 +364,20 @@ function getTitle(period: Period) {
         case 'Yesterday':
             return 'Sales from last 7 days'
         case 'This Week':
-            return 'Sales from last 7 days'
+            return 'Sales from last 4 weeks'
         case 'Last Week':
-            return 'Sales from last 7 days'
+            return 'Sales from last 4 weeks'
         case 'This Month':
-            return `Sales from last 30 days`
+            return `Sales from last 3 months`
         case 'Last Month':
-            return `Sales from last 30 days`
+            return `Sales from last 3 months`
         case 'This Quarter':
-            return `Sales from last 3 months`
+            return `Sales from last quarter`
         case 'Last Quarter':
-            return `Sales from last 3 months`
+            return `Sales from last quarter`
         case 'This Year':
-            return `Sales from last 12 months`
+            return `Sales from last 4 quarters`
         case 'Last Year':
-            return `Sales from last 12 months`
+            return `Sales from last 4 quarters`
     }
 }

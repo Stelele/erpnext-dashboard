@@ -1,7 +1,7 @@
 import type { Axios } from "axios";
 import { useAuthStore } from "../stores/AuthStore";
 import axios from "axios";
-import { getPeriodDateRange, type Period } from "../utils/PeriodUtilities";
+import { getPeriodDateRange, getPeriodDateRangeFromCurrent, type Period } from "../utils/PeriodUtilities";
 import moment from "moment";
 import type { GroupSummary, ItemGroupSummary } from "../types/MonthSales";
 
@@ -87,6 +87,20 @@ export class ErpNextService {
                 to_date: moment().endOf('month').format('YYYY-MM-DD'),
                 company: authStore.company,
                 time_grouping: groupingTemplate,
+            }
+        }).then(resp => resp?.data.data)
+    }
+
+    public getPrevGroupSalesFromCurrent(period: Period) {
+        const authStore = useAuthStore()
+        const dateRange = getPeriodDateRangeFromCurrent(period)
+
+        return this.instance.get<ErpNextResponse<GroupSummary>>('/api/v2/method/grouped_sales_summary', {
+            params: {
+                from_date: dateRange.start,
+                to_date: dateRange.end,
+                company: authStore.company,
+                time_grouping: this.getDateGrouping('days'),
             }
         }).then(resp => resp?.data.data)
     }

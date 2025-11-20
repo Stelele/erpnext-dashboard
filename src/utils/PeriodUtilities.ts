@@ -1,7 +1,11 @@
 import moment from "moment"
 
 export type Period = 'Today' | 'Yesterday' | 'This Week' | 'Last Week' | 'This Month' | 'Last Month' | 'This Quarter' | 'Last Quarter' | 'This Semester' | 'Last Semester' | 'This Year' | 'Last Year'
-export function getPeriodDateRange(period: Period) {
+export type PeriodDateRange = {
+    start: string
+    end: string
+}
+export function getPeriodDateRange(period: Period): PeriodDateRange {
     const curSemesterStartQuarter = moment().quarter() % 2 === 0 ? moment().quarter() - 1 : moment().quarter()
 
     switch (period) {
@@ -84,5 +88,65 @@ export function getPreviousPeriod(period: Period) {
             return 'Last Year'
         default:
             return undefined
+    }
+}
+
+export function getPeriodDateRangeFromCurrent(period: Period): PeriodDateRange {
+    switch (period) {
+        case 'Today':
+            return {
+                start: moment().subtract(7, 'days').format('YYYY-MM-DD'),
+                end: moment().format('YYYY-MM-DD')
+            }
+        case 'Yesterday':
+            return {
+                start: moment().subtract(7, 'days').format('YYYY-MM-DD'),
+                end: moment().format('YYYY-MM-DD')
+            }
+        case 'This Week':
+            return {
+                start: moment().subtract(4, 'weeks').startOf('week').format('YYYY-MM-DD'),
+                end: moment().endOf('week').format('YYYY-MM-DD')
+            }
+        case 'Last Week':
+            return {
+                start: moment().subtract(4, 'weeks').startOf('week').format('YYYY-MM-DD'),
+                end: moment().endOf('week').format('YYYY-MM-DD')
+            }
+        case 'This Month':
+            return {
+                start: moment().subtract(3, 'months').startOf('month').format('YYYY-MM-DD'),
+                end: moment().endOf('month').format('YYYY-MM-DD')
+            }
+        case 'Last Month':
+            return {
+                start: moment().subtract(3, 'months').startOf('month').format('YYYY-MM-DD'),
+                end: moment().endOf('month').format('YYYY-MM-DD')
+            }
+        case 'This Quarter':
+            return {
+                start: moment().subtract(1, 'quarters').startOf('quarter').format('YYYY-MM-DD'),
+                end: moment().endOf('quarter').format('YYYY-MM-DD')
+            }
+        case 'Last Quarter':
+            return {
+                start: moment().subtract(1, 'quarters').startOf('quarter').format('YYYY-MM-DD'),
+                end: moment().endOf('quarter').format('YYYY-MM-DD')
+            }
+        case 'This Year':
+            return {
+                start: moment().subtract(4, 'quarters').startOf('quarter').format('YYYY-MM-DD'),
+                end: moment().endOf('quarter').format('YYYY-MM-DD')
+            }
+        case 'Last Year':
+            return {
+                start: moment().subtract(4, 'quarters').startOf('quarter').format('YYYY-MM-DD'),
+                end: moment().endOf('quarter').format('YYYY-MM-DD')
+            }
+    }
+
+    return {
+        start: moment().startOf('month').format('YYYY-MM-DD'),
+        end: moment().endOf('month').format('YYYY-MM-DD')
     }
 }
