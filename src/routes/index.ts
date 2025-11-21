@@ -1,5 +1,4 @@
 import { createRouter, createWebHistory } from "vue-router";
-import OverviewView from "../views/OverviewView.vue";
 
 export const router = createRouter({
   routes: [
@@ -11,8 +10,13 @@ export const router = createRouter({
     {
       path: '/overview',
       name: 'Overview',
-      component: OverviewView,
+      component: () => import('../views/OverviewView.vue'),
     },
+    {
+      path: '/expenses',
+      name: 'Expenses',
+      component: () => import('../views/ExpensesView.vue'),
+    }
   ],
   history: createWebHistory()
 })

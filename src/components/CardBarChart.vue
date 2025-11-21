@@ -1,12 +1,11 @@
 <template>
     <UPageCard class="col-span-2">
-        <div v-if="!props.isLoading" class="w-full h-full max-h-80">
+        <div class="w-full h-full max-h-80">
             <CartTitle class="font-bold text-lg">{{ props.title }}</CartTitle>
             <div class="w-full h-full flex items-center justify-center chart-container">
                 <Bar v-if="chartData" :data="chartData" :options="chartOptions" />
             </div>
         </div>
-        <USkeleton v-else class="w-full h-full" />
     </UPageCard>
 </template>
 
@@ -33,7 +32,6 @@ export interface CardBarChartProps {
     title: string
     indexAxis?: 'x' | 'y'
     data: BarChartData
-    isLoading?: boolean
 }
 
 export interface BarChartData {

@@ -15,6 +15,8 @@
               <CartTitle class="text-sm">{{ dateRange }}</CartTitle>
             </UButton>
           </UDropdownMenu>
+          <UButton @click="refreshData" icon="i-lucide-refresh-ccw" size="md" color="neutral" variant="ghost"
+            class="hover:cursor-pointer" />
           <UColorModeButton class="hover:cursor-pointer" />
         </div>
       </template>
@@ -66,5 +68,9 @@ onBeforeMount(() => {
     dataStore.getData(dataStore.currentPeriod)
   }, 1000 * 60 * 5)
 })
+
+function refreshData() {
+  dataStore.getData(dataStore.currentPeriod)
+}
 
 </script>
