@@ -20,6 +20,7 @@ import { useDataStore } from '../stores/DataStore';
 
 const open = ref(false)
 
+//@ts-ignore
 const toast = useToast()
 const dataStore = useDataStore()
 
