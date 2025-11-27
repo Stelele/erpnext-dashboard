@@ -1,10 +1,10 @@
 import { defineStore } from "pinia";
-import { ErpNextService } from "../services/ErpNextService";
-import type { PosInvoice } from "../types/PosInvoice";
+import { ErpNextService, type AccountMappings } from "../services/ErpNextService";
 import { computed, ref } from "vue";
 import { getPeriodDateRange, getPreviousPeriod, type Period } from "../utils/PeriodUtilities";
 import type { GroupSummary, ItemGroupSummary } from "../types/MonthSales";
 import moment from "moment";
+import type { Expense } from "../types/Expenses";
 
 export const useDataStore = defineStore('dataStore', () => {
     const salesSummary = ref<GroupSummary[]>([])
@@ -16,6 +16,7 @@ export const useDataStore = defineStore('dataStore', () => {
     const prevPurchaseGroupSummary = ref<GroupSummary[] | undefined>(undefined)
     const expensesSummary = ref<GroupSummary[]>([])
     const prevExpensesSummary = ref<GroupSummary[] | undefined>(undefined)
+    const accountMappings = ref<AccountMappings>({ incomes: {}, expenses: {} } as AccountMappings)
 
     const currentPeriod = ref<Period>('Today')
     const lastRefresh = ref('')
@@ -26,28 +27,48 @@ export const useDataStore = defineStore('dataStore', () => {
         const prevPeriod = getPreviousPeriod(period)
 
         lastRefresh.value = moment().format('DD-MMM-YY HH:mm')
-        const erpNextServicePromises = [
-            erpNextService.getSalesSummary(period),
-            prevPeriod ? erpNextService.getSalesSummary(prevPeriod) : new Promise<PosInvoice[] | undefined>(resolve => resolve(undefined)),
-            erpNextService.getPrevGroupedSales('months', 6),
-            erpNextService.getPrevGroupSalesFromCurrent(period),
-            erpNextService.getItemGroupSalesSummary(period),
-            erpNextService.getPurchaseGroupSummary(period),
-            prevPeriod ? erpNextService.getPurchaseGroupSummary(prevPeriod) : new Promise<PosInvoice[] | undefined>(resolve => resolve(undefined)),
-            erpNextService.getExpensesSummary(period),
-            prevPeriod ? erpNextService.getExpensesSummary(prevPeriod) : new Promise<PosInvoice[] | undefined>(resolve => resolve(undefined)),
-        ]
+        const erpNextServicePromises: [
+            Promise<GroupSummary[]>,
+            Promise<GroupSummary[] | undefined>,
+            Promise<GroupSummary[]>,
+            Promise<GroupSummary[]>,
+            Promise<ItemGroupSummary[]>,
+            Promise<GroupSummary[]>,
+            Promise<GroupSummary[] | undefined>,
+            Promise<GroupSummary[]>,
+            Promise<GroupSummary[] | undefined>,
+            Promise<AccountMappings>,
+        ] = [
+                erpNextService.getSalesSummary(period),
+                prevPeriod ? erpNextService.getSalesSummary(prevPeriod) : new Promise(resolve => resolve(undefined)),
+                erpNextService.getPrevGroupedSales('months', 6),
+                erpNextService.getPrevGroupSalesFromCurrent(period),
+                erpNextService.getItemGroupSalesSummary(period),
+                erpNextService.getPurchaseGroupSummary(period),
+                prevPeriod ? erpNextService.getPurchaseGroupSummary(prevPeriod) : new Promise(resolve => resolve(undefined)),
+                erpNextService.getExpensesSummary(period),
+                prevPeriod ? erpNextService.getExpensesSummary(prevPeriod) : new Promise(resolve => resolve(undefined)),
+                erpNextService.getAccountMappings(),
+            ]
 
         const result = await Promise.all(erpNextServicePromises)
-        salesSummary.value = (result[0] ?? []) as GroupSummary[]
-        prevSalesSummary.value = result[1] as GroupSummary[] | undefined
-        prev6MonthsSales.value = (result[2] ?? []) as GroupSummary[]
-        prevXGroupingSales.value = (result[3] ?? []) as GroupSummary[]
-        itemGroupSalesSummary.value = (result[4] ?? []) as ItemGroupSummary[]
-        purchaseGroupSummary.value = (result[5] ?? []) as GroupSummary[]
-        prevPurchaseGroupSummary.value = (result[6] ?? []) as GroupSummary[] | undefined
-        expensesSummary.value = (result[7] ?? []) as GroupSummary[]
-        prevExpensesSummary.value = result[8] as GroupSummary[] | undefined
+        salesSummary.value = result[0]
+        prevSalesSummary.value = result[1]
+        prev6MonthsSales.value = result[2]
+        prevXGroupingSales.value = result[3]
+        itemGroupSalesSummary.value = result[4]
+        purchaseGroupSummary.value = result[5]
+        prevPurchaseGroupSummary.value = result[6]
+        expensesSummary.value = result[7]
+        prevExpensesSummary.value = result[8]
+        accountMappings.value = result[9]
+    }
+
+    function addDraftExpense(expense: Expense) {
+        const erpNextService = new ErpNextService()
+        const incomeAccount = accountMappings.value.incomes["Cash"]
+        const expenseAccount = accountMappings.value.expenses[expense.expenseType]
+        return erpNextService.addDraftExpenseJournalEntry(expense, incomeAccount, expenseAccount)
     }
 
     return {
@@ -63,6 +84,8 @@ export const useDataStore = defineStore('dataStore', () => {
         prevPurchaseGroupSummary,
         expensesSummary,
         prevExpensesSummary,
+        accountMappings,
         getData,
+        addDraftExpense,
     }
 })

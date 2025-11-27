@@ -2,11 +2,23 @@ import type { Axios } from "axios";
 import { useAuthStore } from "../stores/AuthStore";
 import axios from "axios";
 import { getPeriodDateRange, getPeriodDateRangeFromCurrent, type Period } from "../utils/PeriodUtilities";
+import { ExpenseAccountMapping, IncomeAccountMapping } from "../types/Expenses";
 import moment from "moment";
 import type { GroupSummary, ItemGroupSummary } from "../types/MonthSales";
+import type { Expense, ExpenseType, IncomeType } from "../types/Expenses";
+import type { JournalEntry } from "../types/JournalEntry";
 
 type ErpNextResponse<T> = { data: T[] }
 export type SalesGrouping = 'years' | 'months' | 'days'
+export type AccountResponse = { account_name: string, name: string }
+export type AllAccountsResponse = {
+    data: {
+        expense: AccountResponse[]
+        income: AccountResponse[]
+    }
+}
+export type AccountMappings = { expenses: Record<ExpenseType, AccountResponse>; incomes: Record<IncomeType, AccountResponse>; }
+
 export class ErpNextService {
     private instance: Axios
 
@@ -103,6 +115,59 @@ export class ErpNextService {
                 time_grouping: this.getDateGrouping('days'),
             }
         }).then(resp => resp?.data.data)
+    }
+
+    public async getAccountMappings() {
+        const authStore = useAuthStore()
+
+        const accounts = await this.instance.get<AllAccountsResponse>('/api/v2/method/account_names', {
+            params: {
+                company: authStore.company,
+            }
+        }).then(resp => resp?.data.data)
+
+        const expenses: Record<ExpenseType, AccountResponse> = {} as Record<ExpenseType, AccountResponse>
+        Object.keys(ExpenseAccountMapping).forEach((expenseType) => {
+            const account = accounts.expense
+                .find(account => ExpenseAccountMapping[expenseType as ExpenseType] === account.account_name)
+            expenses[expenseType as ExpenseType] = account!
+        })
+
+        const incomes: Record<IncomeType, AccountResponse> = {} as Record<IncomeType, AccountResponse>
+        Object.keys(IncomeAccountMapping).forEach((incomeType) => {
+            const account = accounts.income
+                .find(account => IncomeAccountMapping[incomeType as IncomeType] === account.account_name)
+            incomes[incomeType as IncomeType] = account!
+        })
+
+        return { expenses, incomes } as AccountMappings
+    }
+
+    public async addDraftExpenseJournalEntry(expense: Expense, incomeAccount: AccountResponse, expenseAccount: AccountResponse) {
+        const authStore = useAuthStore()
+        const entry = {
+            "voucher_type": "Journal Entry",
+            "company": authStore.company,
+            "posting_date": expense.date,
+            "user_remark": expense.description,
+            "accounts": [
+                {
+                    "account": expenseAccount.name,
+                    "debit_in_account_currency": expense.amount
+                },
+                {
+                    "account": incomeAccount.name,
+                    "credit_in_account_currency": expense.amount
+                }
+            ]
+        }
+
+        return this.instance.post('/api/resource/Journal Entry', entry)
+            .then(resp => resp?.data.data as JournalEntry)
+            .catch(error => {
+                console.error(error)
+                return undefined
+            })
     }
 
     private getDateGrouping(grouping: SalesGrouping) {
