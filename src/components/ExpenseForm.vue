@@ -47,7 +47,7 @@ const emit = defineEmits<{
     onSubmit: [Expense]
 }>()
 
-const expenseTypes: ExpenseType[] = ['Sekuru', 'Canteen', 'Spoiled Meat', 'Utilities', 'Consumables', 'Variance', 'Other']
+const expenseTypes: ExpenseType[] = ['Sekuru', 'Canteen', 'Spoiled Meat', 'Utilities', 'Consumables', 'Other']
 const schema = z.object({
     date: z.object({
         year: z.number(),
