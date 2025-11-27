@@ -27,10 +27,10 @@ async function onSubmit(expense: Expense) {
     toast.add({
         id: 'expense-submit',
         title: 'Submitting expense...',
+        duration: 1000
     })
     open.value = false
     const response = await dataStore.addDraftExpense(expense)
-    toast.remove('expense-submit')
 
     if (response) {
         toast.add({
