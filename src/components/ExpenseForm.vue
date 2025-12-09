@@ -5,7 +5,7 @@
                 description="Please select the date the expense occured.">
                 <UPopover>
                     <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" class="w-full">
-                        {{ moment(state.date.toDate(getLocalTimeZone())).format('dddd, DD MMM YYYY') }}
+                        {{ displayDate }}
                     </UButton>
 
                     <template #content>
@@ -40,7 +40,7 @@
 import { CalendarDate, getLocalTimeZone } from '@internationalized/date'
 import * as z from 'zod'
 import moment from 'moment'
-import { reactive, shallowRef } from 'vue'
+import { computed, reactive, shallowRef } from 'vue'
 import type { Expense, ExpenseType } from '../types/Expenses'
 
 const emit = defineEmits<{
@@ -66,6 +66,10 @@ const state = reactive<Schema>({
     amount: 0,
     description: '',
 })
+
+const displayDate = computed(() =>
+    moment(state.date.toDate(getLocalTimeZone())).format('dddd, DD MMM YYYY')
+)
 
 function onSubmit() {
     const expense: Expense = {
