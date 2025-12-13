@@ -1,8 +1,8 @@
 <template>
     <UPageCard class="h-24 col-span-2 md:col-span-1">
         <div class="w-full h-full">
-            <CartTitle class="font-bold text-md -mt-4">{{ props.title }}</CartTitle>
-            <div class="w-full flex justify-between items-center -mt-4">
+            <CartTitle class="font-bold text-md">{{ props.title }}</CartTitle>
+            <div class="w-full flex justify-between items-center">
                 <CartTitle class="text-3xl">{{ formatedValue }}</CartTitle>
                 <div v-if="props.direction && !isNaN(props.percentChange)" class="flex items-center gap-1 h-full"
                     :style="{
