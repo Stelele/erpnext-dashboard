@@ -26,10 +26,10 @@ export default defineConfig(({ mode }) => ({
         name: 'Njeremoto Dashboard',
         short_name: 'Njeremoto',
         start_url: '/',
+        scope: '/',
         display: 'standalone',
-        background_color: '#0f172b',
-        theme_color: '#0f172b',
-        description: 'Understand the current state of the Njeremoto estate',
+        theme_color: '#111827',
+        background_color: '#111827',
         icons: [
           {
             src: '/favicon/android-icon-36x36.png',
