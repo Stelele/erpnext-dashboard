@@ -11,8 +11,10 @@
         <div class="flex gap-1 m-1">
           <UDropdownMenu :items="filterItems" class="w-full visible lg:hidden">
             <UButton variant="subtle" color="neutral" class="w-full">
-              <CartTitle class="text-md font-bold">{{ dataStore.currentPeriod }}: </CartTitle>
-              <CartTitle class="text-sm">{{ dateRange }}</CartTitle>
+              <div class="flex flex-col">
+                <CartTitle class="text-md font-bold">{{ dataStore.currentPeriod }}</CartTitle>
+                <CartTitle class="text-sm">{{ dateRange }}</CartTitle>
+              </div>
             </UButton>
           </UDropdownMenu>
           <UButton @click="refreshData" icon="i-lucide-refresh-ccw" size="md" color="neutral" variant="ghost"
