@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@iconify-json/lucide": "^1.2.80",
     "@nuxt/ui": "^4.1.0",
     "axios": "^1.13.2",
     "chart.js": "^4.5.1",
