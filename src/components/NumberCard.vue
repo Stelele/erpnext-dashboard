@@ -1,5 +1,5 @@
 <template>
-    <UPageCard class="h-24">
+    <UPageCard class="h-24 col-span-2 md:col-span-1">
         <div class="w-full h-full">
             <CartTitle class="font-bold text-md -mt-4">{{ props.title }}</CartTitle>
             <div class="w-full flex justify-between items-center -mt-4">
