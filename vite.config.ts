@@ -25,6 +25,10 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: 'Njeremoto Dashboard',
         short_name: 'Njeremoto',
+        start_url: '/',
+        display: 'standalone',
+        background_color: '#0f172b',
+        theme_color: '#0f172b',
         description: 'Understand the current state of the Njeremoto estate',
         icons: [
           {
