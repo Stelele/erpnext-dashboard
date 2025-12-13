@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => ({
       manifest: {
         name: 'Njeremoto Dashboard',
         short_name: 'Njeremoto',
-        start_url: '/',
+        start_url: '/overview',
         scope: '/',
         display: 'standalone',
         theme_color: '#111827',
