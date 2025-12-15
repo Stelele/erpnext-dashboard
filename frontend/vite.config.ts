@@ -80,7 +80,7 @@ export default defineConfig(({ mode }) => ({
         navigateFallback: '/index.html',
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.startsWith('/api/') || url.hostname === 'njeremoto.jh.erpnext.com',
+            urlPattern: ({ url }) => url.pathname.startsWith('/api'),
             handler: 'NetworkFirst',
             options: {
               cacheName: 'api-cache',
