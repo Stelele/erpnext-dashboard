@@ -21,6 +21,7 @@ jobs:
 
       - name: Building Front End
         run: |
+          cd frontend
           sed -e 's|{{erpnext_token}}|$API_KEY|' -e 's|{{erpnext_url}}|https://njeremoto.jh.erpnext.com|' -e 's|{{erpnext_company}}|Njeremoto Enterprises|' .env > .env.production
           npm install
           npm run build
