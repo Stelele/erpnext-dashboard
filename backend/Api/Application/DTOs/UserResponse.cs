@@ -1,4 +1,4 @@
-﻿using Domain;
+﻿using Domain.Users;
 using System.Text.Json.Serialization;
 
 namespace Application.DTOs;

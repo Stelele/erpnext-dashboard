@@ -4,5 +4,5 @@ using Application.DTOs;
 namespace Application.Users;
 
 public record GetUserByIdQuery(
-    Guid UserId
+    Guid Id
 ) : IQuery<UserResponse?>;

@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Domain.Exceptions;
+using FluentValidation;
 using System.Text.Json;
 
 namespace Host.Middleware;
@@ -72,6 +73,16 @@ public sealed class GlobalExceptionMiddleware
                 }
             ),
 
+            DuplicateDomainMemberException ddme => (
+                StatusCodes.Status409Conflict,
+                new Problem
+                {
+                    Title = "Duplicate domain member",
+                    Status = 409,
+                    Detail = ddme.Message
+                }
+            ),
+
             KeyNotFoundException knf => (
                 StatusCodes.Status404NotFound,
                 new Problem
@@ -109,6 +120,5 @@ public sealed class Problem
     public string Title { get; set; } = string.Empty;
     public int Status { get; set; }
     public string? Detail { get; set; }
-
     public Dictionary<string, object>? Errors { get; set; }
 }

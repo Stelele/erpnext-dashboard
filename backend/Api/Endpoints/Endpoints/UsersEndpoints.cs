@@ -8,7 +8,7 @@ namespace Api.Endpoints;
 
 public static class UsersEndpoints
 {
-    public static void MapUsersEndpoints(this WebApplication app)
+    public static WebApplication MapUsersEndpoints(this WebApplication app)
     {
         app.MapGet("/users/{id}", async (Guid id, ISender mediator) =>
         {
@@ -19,7 +19,8 @@ public static class UsersEndpoints
          .WithDisplayName("GetUserById")
          .Produces<UserResponse>(StatusCodes.Status200OK)
          .Produces(StatusCodes.Status404NotFound)
-         .WithTags(Tags.Users);
+         .WithTags(Tags.Users)
+         .RequireAuthorization(Permissions.ReadUsers);
 
         app.MapGet("/users", async (Guid[]? ids, ISender mediator) =>
         {
@@ -29,7 +30,8 @@ public static class UsersEndpoints
          .WithName("GetUsers")
          .WithName("GetUsers")
          .Produces<List<UserResponse>>(StatusCodes.Status200OK)
-         .WithTags(Tags.Users);
+         .WithTags(Tags.Users)
+         .RequireAuthorization(Permissions.ReadUsers);
 
         app.MapPost("/users", async (CreateUserCommand command, ISender mediator) =>
         {
@@ -40,6 +42,21 @@ public static class UsersEndpoints
          .WithDisplayName("CreateUser")
          .Accepts<CreateUserCommand>("application/json")
          .Produces<Guid>(StatusCodes.Status201Created)
-         .WithTags(Tags.Users);
+         .WithTags(Tags.Users)
+         .RequireAuthorization(Permissions.UpdateUsers);
+
+        app.MapDelete("/users/{id}", async (Guid id, ISender mediator) =>
+        {
+            await mediator.Send(new DeleteUserCommand(id));
+            return Results.NoContent();
+        })
+         .WithName("DeleteUser")
+         .WithDisplayName("DeleteUser")
+         .Produces(StatusCodes.Status204NoContent)
+         .Produces(StatusCodes.Status404NotFound)
+         .WithTags(Tags.Users)
+         .RequireAuthorization(Permissions.DeleteUsers);
+
+        return app;
     }
 }

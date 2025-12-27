@@ -1,6 +1,7 @@
 ﻿using Application.Abstractions;
 using Application.DTOs;
 using Infrastructure.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Users;
 
@@ -9,9 +10,9 @@ public class GetUsersQueryHandler(DashboardDbContext db) : IQueryHandler<GetUser
     public async Task<List<UserResponse>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
     {
         var users = request.UserIds != null && request.UserIds.Length > 0
-            ? db.Users.Where(u => request.UserIds.Contains(u.Id)).ToList()
-            : db.Users.ToList();
+            ? await db.Users.Where(u => request.UserIds.Contains(u.Id)).ToListAsync(cancellationToken)
+            : await db.Users.ToListAsync(cancellationToken);
 
-        return users.Select(UserResponse.FromDomain).ToList();
+        return [.. users.Select(UserResponse.FromDomain)];
     }
 }

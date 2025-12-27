@@ -1,4 +1,4 @@
-﻿using Domain;
+﻿using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -22,6 +22,10 @@ public class UserEntity : IEntityTypeConfiguration<User>
         builder
             .HasIndex(b => b.Email)
             .IsUnique();
+
+        builder
+            .Property(b => b.Auth0UserId)
+            .IsRequired(false);
 
         builder
             .HasMany(b => b.Sites)

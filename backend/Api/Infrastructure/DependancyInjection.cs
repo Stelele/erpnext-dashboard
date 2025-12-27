@@ -1,4 +1,5 @@
-﻿using Infrastructure.Models;
+﻿using Infrastructure.Auth0;
+using Infrastructure.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -28,6 +29,19 @@ public static class DependancyInjection
             options
                 .UseNpgsql(connectionString)
                 .UseSnakeCaseNamingConvention();
+        });
+
+
+        builder.Services.AddSingleton(sp =>
+        {
+            var logger = sp.GetRequiredService<ILogger<Auth0UserProvisioner>>();
+            return new Auth0UserProvisioner(
+                domain: builder.Configuration["Auth0:Domain"] ?? throw new InvalidOperationException("Auth0:Domain is null"),
+                clientId: builder.Configuration["Identity:ClientId"] ?? throw new InvalidOperationException("Identity:ClientId is null"),
+                clientSecret: builder.Configuration["Identity:ClientSecret"] ?? throw new InvalidOperationException("Identity:ClientSecret is null"),
+                auth0AppClientId: builder.Configuration["Auth0:Apps:ERP-Dashboard"] ?? throw new InvalidOperationException("Auth0:Apps:ERP-Dashboard is null"),
+                logger: logger);
+
         });
 
         return builder;

@@ -8,7 +8,7 @@ public class GetUserByIdQueryHandler(DashboardDbContext db) : IQueryHandler<GetU
 {
     public async Task<UserResponse?> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
-        var user = await db.Users.FindAsync([new { Id = request.UserId }, cancellationToken], cancellationToken: cancellationToken);
+        var user = await db.Users.FindAsync([request.Id], cancellationToken);
         if (user == null) return null;
         return UserResponse.FromDomain(user);
     }
