@@ -31,11 +31,6 @@ public class SiteEntity : IEntityTypeConfiguration<Site>
             .Property(b => b.ApiToken)
             .IsRequired();
 
-
-        builder
-            .HasMany(b => b.Users)
-            .WithMany(b => b.Sites);
-
         builder
             .HasMany(b => b.Companies)
             .WithOne(b => b.Site);

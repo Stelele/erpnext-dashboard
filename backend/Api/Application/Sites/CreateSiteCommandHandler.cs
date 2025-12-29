@@ -16,21 +16,11 @@ public class CreateSiteCommandHandler(
         if (siteExists)
             throw new DuplicateDomainMemberException($"A site with the url already exists: {request.Url}");
 
-        var users = await db.Users
-            .Where(u => request.Users.Contains(u.Id))
-            .ToListAsync(cancellationToken);
-
-        var companies = await db.Companies
-            .Where(c => request.Companies.Contains(c.Id))
-            .ToListAsync(cancellationToken);
-
         var site = Site.Create(
             name: request.Name,
             url: request.Url,
             description: request.Description,
-            apiToken: request.ApiToken,
-            users: users,
-            companies: companies
+            apiToken: request.ApiToken
         );
 
         await db.Sites.AddAsync(site, cancellationToken);

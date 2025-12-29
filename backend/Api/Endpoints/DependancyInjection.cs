@@ -16,6 +16,7 @@ public static class DependancyInjection
         app.UseAuthorization();
 
         app
+            .MapCompanyEndpoints()
             .MapSitesEndpoints()
             .MapUsersEndpoints();
 

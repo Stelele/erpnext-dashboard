@@ -5,4 +5,4 @@ namespace Application.Users;
 
 public record GetUserByIdQuery(
     Guid Id
-) : IQuery<UserResponse?>;
+) : IQuery<ExtendedUserResponse?>;

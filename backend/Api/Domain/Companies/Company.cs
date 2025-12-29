@@ -12,4 +12,20 @@ public class Company : Base
 
     public required Site Site { get; set; }
     public List<User> Users { get; set; } = [];
+
+    public static Company Create(
+        Site site,
+        string name,
+        string description = "",
+        List<User>? users = default)
+    {
+        return new Company
+        {
+            SiteId = site.Id,
+            Name = name,
+            Description = description,
+            Users = users ?? [],
+            Site = site,
+        };
+    }
 }

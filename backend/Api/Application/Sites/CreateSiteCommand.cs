@@ -7,9 +7,7 @@ public record CreateSiteCommand(
     string Name,
     string Url,
     string Description,
-    string ApiToken,
-    List<Guid> Users,
-    List<Guid> Companies
+    string ApiToken
     ) : ICommand<Guid>;
 
 public class CreateSiteCommandValidator : AbstractValidator<CreateSiteCommand>

@@ -1,5 +1,5 @@
-﻿using Application.Sites;
-using Domain.Sites;
+﻿using Application.DTOs;
+using Application.Sites;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -10,7 +10,7 @@ public static class SitesEndpoints
 {
     public static WebApplication MapSitesEndpoints(this WebApplication app)
     {
-        app.MapDelete("/sites/{id}", async (Guid id, ISender mediator) =>
+        app.MapDelete("/sites/{id:guid}", async (Guid id, ISender mediator) =>
         {
             await mediator.Send(new DeleteSiteCommand(id));
             return Results.NoContent();
@@ -22,14 +22,14 @@ public static class SitesEndpoints
          .WithTags(Tags.Sites)
          .RequireAuthorization(Permissions.DeleteSites);
 
-        app.MapGet("/sites/{id}", async (Guid id, ISender mediator) =>
+        app.MapGet("/sites/{id:guid}", async (Guid id, ISender mediator) =>
         {
             var site = await mediator.Send(new GetSiteByIdQuery(id));
             return site is not null ? Results.Ok(site) : Results.NotFound();
         })
          .WithName("GetSiteById")
          .WithDisplayName("GetSiteById")
-         .Produces<Site>(StatusCodes.Status200OK)
+         .Produces<ExtendedSiteResponse>(StatusCodes.Status200OK)
          .Produces(StatusCodes.Status404NotFound)
          .WithTags(Tags.Sites)
          .RequireAuthorization(Permissions.ReadSites);
@@ -41,7 +41,7 @@ public static class SitesEndpoints
         })
          .WithName("GetAllSites")
          .WithDisplayName("GetAllSites")
-         .Produces<List<Site>>(StatusCodes.Status200OK)
+         .Produces<List<SiteResponse>>(StatusCodes.Status200OK)
          .WithTags(Tags.Sites)
          .RequireAuthorization(Permissions.ReadSites);
 

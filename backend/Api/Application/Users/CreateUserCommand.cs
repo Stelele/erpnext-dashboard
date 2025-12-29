@@ -6,7 +6,6 @@ namespace Application.Users;
 public record CreateUserCommand(
     string Name,
     string Email,
-    List<Guid> Sites,
     List<Guid> Companies
 ) : ICommand<Guid>;
 

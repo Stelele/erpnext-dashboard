@@ -17,7 +17,7 @@ public static class UsersEndpoints
         })
          .WithName("GetUserById")
          .WithDisplayName("GetUserById")
-         .Produces<UserResponse>(StatusCodes.Status200OK)
+         .Produces<ExtendedUserResponse>(StatusCodes.Status200OK)
          .Produces(StatusCodes.Status404NotFound)
          .WithTags(Tags.Users)
          .RequireAuthorization(Permissions.ReadUsers);

@@ -28,10 +28,6 @@ public class UserEntity : IEntityTypeConfiguration<User>
             .IsRequired(false);
 
         builder
-            .HasMany(b => b.Sites)
-            .WithMany(b => b.Users);
-
-        builder
             .HasMany(b => b.Companies)
             .WithMany(b => b.Users);
 

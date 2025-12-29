@@ -20,15 +20,11 @@ public class CreateUserCommandHandler(
         if (userExists)
             throw new DuplicateDomainMemberException($"A user with email {request.Email} already exists.");
 
-        var sites = await db.Sites
-        .Where(s => request.Sites.Contains(s.Id))
-        .ToListAsync(cancellationToken);
-
         var companies = await db.Companies
             .Where(c => request.Companies.Contains(c.Id))
             .ToListAsync(cancellationToken);
 
-        var user = User.Create(request.Name, request.Email, sites, companies);
+        var user = User.Create(request.Name, request.Email, companies);
 
         var auth0User = await provisioner.CreateUserInConnectionAsync(
             "Email-Password",

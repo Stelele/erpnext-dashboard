@@ -12,9 +12,9 @@ public class GetSitesQueryHandler(
     public async Task<List<SiteResponse>> Handle(GetSitesQuery request, CancellationToken cancellationToken)
     {
         var sites = request.Sites != null && request.Sites.Length != 0
-            ? await db.Sites.Where(s => request.Sites.Contains(s.Id)).ToListAsync(cancellationToken)
-            : await db.Sites.ToListAsync(cancellationToken);
+            ? db.Sites.Where(s => request.Sites.Contains(s.Id))
+            : db.Sites;
 
-        return [.. sites.Select(SiteResponse.FromDomain)];
+        return [.. sites.Include(s => s.Companies).AsSplitQuery().Select(SiteResponse.FromDomain)];
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Application.Abstractions;
 using Infrastructure.Models;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Sites;
 
@@ -10,7 +11,7 @@ public class DeleteSiteCommandHandler(
 {
     public async Task<Unit> Handle(DeleteSiteCommand request, CancellationToken cancellationToken)
     {
-        var site = await db.Sites.FindAsync([request.Id], cancellationToken)
+        var site = await db.Sites.FirstOrDefaultAsync(s => s.Id == request.Id, cancellationToken)
             ?? throw new KeyNotFoundException($"No site found with matching id: {request.Id}");
 
         db.Sites.Remove(site);

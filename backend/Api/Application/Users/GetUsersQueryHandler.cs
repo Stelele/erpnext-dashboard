@@ -10,9 +10,9 @@ public class GetUsersQueryHandler(DashboardDbContext db) : IQueryHandler<GetUser
     public async Task<List<UserResponse>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
     {
         var users = request.UserIds != null && request.UserIds.Length > 0
-            ? await db.Users.Where(u => request.UserIds.Contains(u.Id)).ToListAsync(cancellationToken)
-            : await db.Users.ToListAsync(cancellationToken);
+            ? db.Users.Where(u => request.UserIds.Contains(u.Id))
+            : db.Users;
 
-        return [.. users.Select(UserResponse.FromDomain)];
+        return [.. users.Include(u => u.Companies).Select(UserResponse.FromDomain)];
     }
 }

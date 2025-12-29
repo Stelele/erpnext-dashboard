@@ -1,17 +1,22 @@
 ﻿using Application.Abstractions;
 using Application.DTOs;
 using Infrastructure.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Sites;
 
 public class GetSiteByIdQueryHandler(
     DashboardDbContext db
-) : IQueryHandler<GetSiteByIdQuery, SiteResponse?>
+) : IQueryHandler<GetSiteByIdQuery, ExtendedSiteResponse?>
 {
-    public async Task<SiteResponse?> Handle(GetSiteByIdQuery request, CancellationToken cancellationToken)
+    public async Task<ExtendedSiteResponse?> Handle(GetSiteByIdQuery request, CancellationToken cancellationToken)
     {
-        var site = await db.Sites.FindAsync([request.Id], cancellationToken);
+        var site = await db.Sites
+            .Include(s => s.Companies)
+            .FirstOrDefaultAsync(s => s.Id == request.Id, cancellationToken);
+
         if (site == null) return null;
-        return SiteResponse.FromDomain(site);
+
+        return ExtendedSiteResponse.FromDomain(site);
     }
 }
