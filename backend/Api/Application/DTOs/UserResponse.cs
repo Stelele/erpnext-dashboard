@@ -1,4 +1,5 @@
-﻿using Domain.Users;
+﻿using Domain.Companies;
+using Domain.Users;
 using System.Text.Json.Serialization;
 
 namespace Application.DTOs;
@@ -32,10 +33,32 @@ public class UserResponse : BaseUserResponse
     }
 }
 
+public class SiteCompanyResponse : BaseCompanyResponse
+{
+    public required BaseSiteResponse Site { get; init; }
+    public static SiteCompanyResponse FromDomain(Company company)
+    {
+        return new SiteCompanyResponse
+        {
+            Id = company.Id,
+            Name = company.Name,
+            Description = company.Description,
+            Site = new BaseSiteResponse
+            {
+                Id = company.Site.Id,
+                Name = company.Site.Name,
+                Description = company.Site.Description,
+                Url = company.Site.Url,
+                ApiToken = company.Site.ApiToken
+            }
+        };
+    }
+}
+
 public class ExtendedUserResponse : BaseUserResponse
 {
     [JsonPropertyName("companies")]
-    public List<CompanyResponse> Companies { get; init; } = [];
+    public List<SiteCompanyResponse> Companies { get; init; } = [];
 
     public static ExtendedUserResponse FromDomain(User user)
     {
@@ -44,7 +67,7 @@ public class ExtendedUserResponse : BaseUserResponse
             Id = user.Id,
             Name = user.Name,
             Email = user.Email,
-            Companies = [.. user.Companies.Select(CompanyResponse.FromDomain)]
+            Companies = [.. user.Companies.Select(SiteCompanyResponse.FromDomain)]
         };
     }
 }

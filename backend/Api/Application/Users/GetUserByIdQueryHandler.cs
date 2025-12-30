@@ -11,6 +11,7 @@ public class GetUserByIdQueryHandler(DashboardDbContext db) : IQueryHandler<GetU
     {
         var user = await db.Users
             .Include(u => u.Companies)
+                .ThenInclude(c => c.Site)
             .FirstOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
 
         if (user == null) return null;
