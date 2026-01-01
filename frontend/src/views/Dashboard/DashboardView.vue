@@ -1,0 +1,9 @@
+<template>
+    <DashboardLayout>
+        <RouterView />
+    </DashboardLayout>
+</template>
+
+<script setup lang="ts">
+import DashboardLayout from "@/layouts/DashboardLayout.vue";
+</script>

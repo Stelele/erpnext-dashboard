@@ -2,65 +2,77 @@
     <UPageCard class="col-span-2 h-96">
         <div class="w-full h-full max-h-80">
             <CartTitle class="font-bold text-lg">{{ props.title }}</CartTitle>
-            <div class="w-full h-80 relative items-center justify-center chart-container">
-                <Doughnut v-if="props.data.datasets.length" :data="chartData" :options="chartOptions" />
+            <div
+                class="w-full h-80 relative items-center justify-center chart-container"
+            >
+                <Doughnut
+                    v-if="props.data.datasets.length"
+                    :data="chartData"
+                    :options="chartOptions"
+                />
             </div>
         </div>
     </UPageCard>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { Doughnut } from 'vue-chartjs'
-import type { ChartData, ChartOptions } from 'chart.js'
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, Colors } from 'chart.js'
-import { getChartJsColor } from '../utils/ChartJsColors'
-import { useColorMode } from '@vueuse/core'
+import { computed } from "vue";
+import { Doughnut } from "vue-chartjs";
+import type { ChartData, ChartOptions } from "chart.js";
+import {
+    Chart as ChartJS,
+    ArcElement,
+    Tooltip,
+    Legend,
+    Colors,
+} from "chart.js";
+import { getChartJsColor } from "@/utils/ChartJsColors";
+import { useColorMode } from "@vueuse/core";
 
-ChartJS.register(ArcElement, Tooltip, Legend, Colors)
+ChartJS.register(ArcElement, Tooltip, Legend, Colors);
 
 export interface DoughnutChartProps {
-    title: string
-    data: DoughnutChartData
-    isLoading?: boolean
+    title: string;
+    data: DoughnutChartData;
+    isLoading?: boolean;
 }
 
 export interface DoughnutChartData {
-    labels: string[]
-    datasets: DoughnutChartDataSet[]
+    labels: string[];
+    datasets: DoughnutChartDataSet[];
 }
 
 export interface DoughnutChartDataSet {
-    label: string
-    data: number[]
+    label: string;
+    data: number[];
 }
 
-const props = defineProps<DoughnutChartProps>()
-const colorMode = useColorMode()
+const props = defineProps<DoughnutChartProps>();
+const colorMode = useColorMode();
 
-const chartData = computed<ChartData<'doughnut'>>(() => {
-    const data: ChartData<'doughnut'> = {
+const chartData = computed<ChartData<"doughnut">>(() => {
+    const data: ChartData<"doughnut"> = {
         labels: props.data.labels,
-        datasets: []
-    }
+        datasets: [],
+    };
 
-    const dataSets = props.data.datasets ?? []
+    const dataSets = props.data.datasets ?? [];
     for (let i = 0; i < dataSets.length; i++) {
-        const dataSet = dataSets[i]
-        if (!dataSet) continue
+        const dataSet = dataSets[i];
+        if (!dataSet) continue;
 
         data.datasets.push({
             label: dataSet.label,
             data: dataSet.data,
             backgroundColor: dataSet.data.map((_, idx) => getChartJsColor(idx)),
-            borderColor: colorMode.value === 'dark' ? '#0f172b' : undefined,
-        })
+            borderColor: colorMode.value === "dark" ? "#0f172b" : undefined,
+        });
     }
 
-    return data
-})
+    return data;
+});
 
-const chartOptions = computed<ChartOptions<'doughnut'>>(() => ({
+const chartOptions = computed<ChartOptions<"doughnut">>(() => ({
     responsive: true,
     maintainAspectRatio: false,
     layout: {
@@ -69,12 +81,11 @@ const chartOptions = computed<ChartOptions<'doughnut'>>(() => ({
     plugins: {
         legend: {
             labels: {
-                color: colorMode.value === 'dark' ? '#fff' : '#000'
-            }
-        }
-    }
-}))
-
+                color: colorMode.value === "dark" ? "#fff" : "#000",
+            },
+        },
+    },
+}));
 </script>
 
 <style scoped>

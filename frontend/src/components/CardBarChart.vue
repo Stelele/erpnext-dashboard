@@ -2,8 +2,14 @@
     <UPageCard class="col-span-2">
         <div class="w-full h-full max-h-80">
             <CartTitle class="font-bold text-lg">{{ props.title }}</CartTitle>
-            <div class="w-full h-full flex items-center justify-center chart-container">
-                <Bar v-if="chartData" :data="chartData" :options="chartOptions" />
+            <div
+                class="w-full h-full flex items-center justify-center chart-container"
+            >
+                <Bar
+                    v-if="chartData"
+                    :data="chartData"
+                    :options="chartOptions"
+                />
             </div>
         </div>
     </UPageCard>
@@ -19,66 +25,74 @@ import {
     CategoryScale,
     LinearScale,
     Colors,
-} from 'chart.js'
-import type { ChartData, ChartOptions } from 'chart.js'
-import { computed } from 'vue'
-import { Bar } from 'vue-chartjs'
-import { getChartJsColor } from '../utils/ChartJsColors'
-import { useColorMode } from '@vueuse/core'
+} from "chart.js";
+import type { ChartData, ChartOptions } from "chart.js";
+import { computed } from "vue";
+import { Bar } from "vue-chartjs";
+import { getChartJsColor } from "@/utils/ChartJsColors";
+import { useColorMode } from "@vueuse/core";
 
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend, Colors)
+ChartJS.register(
+    CategoryScale,
+    LinearScale,
+    BarElement,
+    Title,
+    Tooltip,
+    Legend,
+    Colors,
+);
 
 export interface CardBarChartProps {
-    title: string
-    indexAxis?: 'x' | 'y'
-    data: BarChartData
+    title: string;
+    indexAxis?: "x" | "y";
+    data: BarChartData;
 }
 
 export interface BarChartData {
-    labels: string[]
-    datasets: BarChartDataSet[]
+    labels: string[];
+    datasets: BarChartDataSet[];
 }
 
 export interface BarChartDataSet {
-    label: string
-    data: number[]
+    label: string;
+    data: number[];
 }
 
 const props = withDefaults(defineProps<CardBarChartProps>(), {
-    indexAxis: 'x'
-})
-const colorMode = useColorMode()
+    indexAxis: "x",
+});
+const colorMode = useColorMode();
 
-const chartData = computed<ChartData<'bar'>>(() => {
-    const data: ChartData<'bar'> = {
+const chartData = computed<ChartData<"bar">>(() => {
+    const data: ChartData<"bar"> = {
         labels: props.data.labels,
-        datasets: []
-    }
+        datasets: [],
+    };
 
-    const dataSets = props.data.datasets ?? []
+    const dataSets = props.data.datasets ?? [];
     for (let i = 0; i < dataSets.length; i++) {
-        const dataSet = dataSets[i]
-        if (!dataSet) continue
+        const dataSet = dataSets[i];
+        if (!dataSet) continue;
 
         data.datasets.push({
             label: dataSet.label,
             data: dataSet.data,
             backgroundColor: getChartJsColor(i),
-            borderColor: colorMode.value === 'dark' ? '#0f172b' : undefined,
-        })
+            borderColor: colorMode.value === "dark" ? "#0f172b" : undefined,
+        });
     }
 
-    return data
-})
+    return data;
+});
 
-const chartOptions = computed<ChartOptions<'bar'>>(() => ({
+const chartOptions = computed<ChartOptions<"bar">>(() => ({
     responsive: true,
     indexAxis: props.indexAxis,
     maintainAspectRatio: false,
     scales: {
         x: {
             ticks: {
-                color: colorMode.value === 'dark' ? '#fff' : '#000',
+                color: colorMode.value === "dark" ? "#fff" : "#000",
             },
             grid: {
                 display: false,
@@ -86,23 +100,21 @@ const chartOptions = computed<ChartOptions<'bar'>>(() => ({
         },
         y: {
             ticks: {
-                color: colorMode.value === 'dark' ? '#fff' : '#000',
+                color: colorMode.value === "dark" ? "#fff" : "#000",
             },
             grid: {
                 display: false,
             },
-
-        }
+        },
     },
     plugins: {
         legend: {
             labels: {
-                color: colorMode.value === 'dark' ? '#fff' : '#000'
-            }
-        }
-    }
-}))
-
+                color: colorMode.value === "dark" ? "#fff" : "#000",
+            },
+        },
+    },
+}));
 </script>
 
 <style scoped>

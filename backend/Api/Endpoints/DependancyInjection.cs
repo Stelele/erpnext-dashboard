@@ -20,6 +20,8 @@ public static class DependancyInjection
             .MapSitesEndpoints()
             .MapUsersEndpoints();
 
+        app.UseCors("AllowFrontend");
+
         return app;
     }
 
@@ -47,6 +49,17 @@ public static class DependancyInjection
             .AddPermission(Permissions.DeleteCompanies);
 
         builder.Services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend", policy =>
+            {
+                policy
+                    .WithOrigins("*")
+                    .AllowAnyHeader()
+                    .AllowAnyMethod();
+            });
+        });
 
         return builder;
     }

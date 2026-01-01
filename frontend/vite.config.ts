@@ -2,9 +2,15 @@ import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import ui from "@nuxt/ui/vite";
 import { VitePWA } from "vite-plugin-pwa";
+import path from "node:path";
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => ({
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "src"),
+    },
+  },
   plugins: [
     vue(),
     ui({

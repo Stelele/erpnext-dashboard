@@ -7,10 +7,10 @@
     "types": ["node"],
     "skipLibCheck": true,
 
+    "baseUrl": ".",
     "paths": {
-      "#build/ui": [
-        "./node_modules/.nuxt-ui/ui"
-      ]
+      "#build/ui": ["./node_modules/.nuxt-ui/ui"],
+      "@/*": ["src/*"],
     },
 
     /* Bundler mode */
@@ -26,7 +26,7 @@
     "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
     "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noUncheckedSideEffectImports": true,
   },
-  "include": ["vite.config.ts"]
+  "include": ["vite.config.ts"],
 }
