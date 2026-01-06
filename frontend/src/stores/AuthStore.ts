@@ -9,13 +9,21 @@ export const useAuthStore = defineStore("authStore", () => {
   const company = computed(() => "Njeremoto Enterprises");
 
   const url = computed(() => {
-    const userCompany = user.value?.companies?.find(
+    if (!user.value?.companies) {
+      return import.meta.env.VITE_API_URL;
+    }
+
+    const userCompany = user.value.companies.find(
       (c) => c.name === company.value,
     );
     return userCompany?.site.url || "";
   });
 
   const token = computed(() => {
+    if (!user.value?.companies) {
+      return import.meta.env.VITE_API_TOKEN;
+    }
+
     const userCompany = user.value?.companies?.find(
       (c) => c.name === company.value,
     );
@@ -47,11 +55,15 @@ export const useAuthStore = defineStore("authStore", () => {
     email.value = meta?.email || "";
     userId.value = meta?.user_id || "";
 
-    const api = await ApiSingleton.getInstance();
-    const { data } = await api.GET("/users/{id}", {
-      params: { path: { id: userId.value } },
-    });
-    user.value = data;
+    try {
+      const api = await ApiSingleton.getInstance();
+      const { data } = await api.GET("/users/{id}", {
+        params: { path: { id: userId.value } },
+      });
+      user.value = data;
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
   }
 
   return {
