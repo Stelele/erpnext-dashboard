@@ -27,6 +27,7 @@ app.use(
 
 app.use(router);
 app.use(ui);
+
 app.use(pinia);
 
 app.mount("#app");

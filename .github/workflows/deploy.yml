@@ -27,8 +27,8 @@ jobs:
               - 'frontend/**'
 
   frontend:
-    # needs: changes
-    # if: needs.changes.outputs.frontend == 'true'
+    needs: changes
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
 
     steps:
