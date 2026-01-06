@@ -1,26 +1,28 @@
 <template>
-    <UPageGrid>
-        <NumberCard
-            v-for="(item, idx) in items"
-            :key="idx"
-            :title="item.title"
-            :value="item.value"
-            :direction="item.direction"
-            :percent-change="item.percentChange"
-        />
-        <CardBarChart
-            :title="overViewDataStore.prevXGroupingSales.title"
-            :data="overViewDataStore.prevXGroupingSales.data"
-        />
-        <CardDoughnutChart
-            title="Sales by Category"
-            :data="overViewDataStore.salesByCategory"
-        />
-        <CardBarChart
-            title="Sales from last 6 months"
-            :data="overViewDataStore.prev6MonthsSales"
-        />
-    </UPageGrid>
+    <DashboardLayout>
+        <UPageGrid>
+            <NumberCard
+                v-for="(item, idx) in items"
+                :key="idx"
+                :title="item.title"
+                :value="item.value"
+                :direction="item.direction"
+                :percent-change="item.percentChange"
+            />
+            <CardBarChart
+                :title="overViewDataStore.prevXGroupingSales.title"
+                :data="overViewDataStore.prevXGroupingSales.data"
+            />
+            <CardDoughnutChart
+                title="Sales by Category"
+                :data="overViewDataStore.salesByCategory"
+            />
+            <CardBarChart
+                title="Sales from last 6 months"
+                :data="overViewDataStore.prev6MonthsSales"
+            />
+        </UPageGrid>
+    </DashboardLayout>
 </template>
 
 <script setup lang="ts">
@@ -29,6 +31,7 @@ import NumberCard from "@/components/NumberCard.vue";
 import CardBarChart from "@/components/CardBarChart.vue";
 import CardDoughnutChart from "@/components/CardDoughnutChart.vue";
 import type { NumberCardProps } from "@/components/NumberCard.vue";
+import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { useOverViewDataStore } from "@/stores/OverViewDataStore";
 
 const overViewDataStore = useOverViewDataStore();

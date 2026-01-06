@@ -54,7 +54,7 @@
             <UDashboardGroup>
                 <SideBar />
                 <BasePage>
-                    <RouterView class="p-2" />
+                    <slot />
                 </BasePage>
             </UDashboardGroup>
         </UMain>
@@ -64,10 +64,10 @@
 <script lang="ts" setup>
 import { computed, onBeforeMount } from "vue";
 import BasePage from "./BasePage.vue";
-import { useAuthStore } from "../stores/AuthStore";
-import { useDataStore } from "../stores/DataStore";
-import { useNavStore } from "../stores/NavStore";
-import { filterItems } from "../utils/MenuItems";
+import { useAuthStore } from "@/stores/AuthStore";
+import { useDataStore } from "@/stores/DataStore";
+import { useNavStore } from "@/stores/NavStore";
+import { filterItems } from "@/utils/MenuItems";
 import moment from "moment";
 import type { DropdownMenuItem } from "@nuxt/ui";
 import { useAuth0 } from "@auth0/auth0-vue";

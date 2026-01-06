@@ -1,5 +1,5 @@
 <template>
-    <BasePage>
+    <DashboardLayout>
         <div class="w-full h-full flex items-center justify-center">
             <UModal
                 v-model:open="open"
@@ -18,14 +18,14 @@
                 </template>
             </UModal>
         </div>
-    </BasePage>
+    </DashboardLayout>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
-import BasePage from "@/layouts/BasePage.vue";
 import type { Expense } from "@/types/Expenses";
 import { useDataStore } from "@/stores/DataStore";
+import DashboardLayout from "@/layouts/DashboardLayout.vue";
 
 const open = ref(false);
 
