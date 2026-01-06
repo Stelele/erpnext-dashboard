@@ -10,7 +10,7 @@ export const useAuthStore = defineStore("authStore", () => {
 
   const url = computed(() => {
     if (!user.value?.companies) {
-      return import.meta.env.VITE_API_URL;
+      return import.meta.env.VITE_ERP_API_URL;
     }
 
     const userCompany = user.value.companies.find(
@@ -21,7 +21,7 @@ export const useAuthStore = defineStore("authStore", () => {
 
   const token = computed(() => {
     if (!user.value?.companies) {
-      return import.meta.env.VITE_API_TOKEN;
+      return import.meta.env.VITE_ERP_API_TOKEN;
     }
 
     const userCompany = user.value?.companies?.find(
