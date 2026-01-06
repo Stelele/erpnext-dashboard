@@ -47,10 +47,10 @@ jobs:
       - name: Build
         working-directory: frontend
         run: |
-          sed -e 's|{{auth0_domain}}|$AUTH0_DOMAIN|' \
-              -e 's|{{auth0_client_id}}|$AUTH0_CLIENT_ID|' \
-              -e 's|{{auth0_audience}}|$AUTH0_AUDIENCE|' \
-              -e 's|{{api_url}}|$API_URL|' .env > .env.production
+          sed -e "s|{{auth0_domain}}|$AUTH0_DOMAIN|" \
+              -e "s|{{auth0_client_id}}|$AUTH0_CLIENT_ID|" \
+              -e "s|{{auth0_audience}}|$AUTH0_AUDIENCE|" \
+              -e "s|{{api_url}}|$API_URL|" .env > .env.production
           cat .env.production
           npm run build
         env:
