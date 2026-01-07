@@ -17,6 +17,16 @@ public static class DependancyInjection
         var canConnect = db.Database.CanConnect();
         app.Logger.LogInformation($"Can connect to database: {canConnect}");
 
+        try
+        {
+            db.Database.Migrate();
+        }
+        catch (Exception ex)
+        {
+            app.Logger.LogError(ex, "An error occurred while applying database migrations.");
+            throw;
+        }
+
         return app;
     }
 

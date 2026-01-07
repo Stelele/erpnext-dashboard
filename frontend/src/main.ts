@@ -27,7 +27,6 @@ app.use(
 
 app.use(router);
 app.use(ui);
-console.log("Hello World!");
 app.use(pinia);
 
 app.mount("#app");
