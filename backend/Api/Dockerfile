@@ -7,6 +7,8 @@ WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
+ENV ASPNETCORE_URLS=http://+:8000
+EXPOSE 8000
 
 # This stage is used to build the service project
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
@@ -27,4 +29,8 @@ RUN dotnet publish "./Host.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:Us
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
+    CMD bash -c '</dev/tcp/localhost/8000' || exit 1
+
 ENTRYPOINT ["dotnet", "Host.dll"]
