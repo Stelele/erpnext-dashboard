@@ -19,6 +19,10 @@ export const router = createRouter({
       beforeEnter: authGuard,
       component: OverviewView,
     },
+    {
+      path: "/:pathMatch(.*)*",
+      redirect: "/",
+    },
   ],
   history: createWebHistory(),
 });

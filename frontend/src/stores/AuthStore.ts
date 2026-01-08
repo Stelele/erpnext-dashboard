@@ -9,21 +9,13 @@ export const useAuthStore = defineStore("authStore", () => {
   const company = computed(() => "Njeremoto Enterprises");
 
   const url = computed(() => {
-    if (!user.value?.companies) {
-      return import.meta.env.VITE_ERP_API_URL;
-    }
-
-    const userCompany = user.value.companies.find(
+    const userCompany = user.value?.companies?.find(
       (c) => c.name === company.value,
     );
     return userCompany?.site.url || "";
   });
 
   const token = computed(() => {
-    if (!user.value?.companies) {
-      return import.meta.env.VITE_ERP_API_TOKEN;
-    }
-
     const userCompany = user.value?.companies?.find(
       (c) => c.name === company.value,
     );
