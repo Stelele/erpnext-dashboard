@@ -11,6 +11,7 @@ import moment from "moment";
 import type { GroupSummary, ItemGroupSummary } from "@/types/MonthSales";
 import type { Expense, ExpenseType, IncomeType } from "@/types/Expenses";
 import type { JournalEntry } from "@/types/JournalEntry";
+import type { Payment } from "@/components/ExpenseTable.vue";
 
 type ErpNextResponse<T> = { data: T[] };
 export type SalesGrouping = "years" | "months" | "days";
@@ -59,6 +60,65 @@ export class ErpNextService {
         },
       )
       .then((resp) => resp?.data.data);
+  }
+
+  public async getPaymentEntries(period: Period = "Today") {
+    const authStore = useAuthStore();
+    const dateRange = getPeriodDateRange(period);
+
+    const docstatusMap: Record<number, Payment["status"]> = {
+      0: "Draft",
+      1: "Submitted",
+      2: "Cancelled",
+    };
+    const commonFilters = [
+      ["company", "=", authStore.company],
+      ["posting_date", "between", [dateRange.start, dateRange.end]],
+    ];
+
+    const [jeResponse, piResponse] = await Promise.all([
+      this.instance.get(`/api/resource/Journal Entry`, {
+        params: {
+          filters: JSON.stringify(commonFilters),
+          fields:
+            '["name", "posting_date", "docstatus", "user_remark", "total_debit"]',
+          limit_page_length: 0,
+        },
+      }),
+      this.instance.get(`/api/resource/Purchase Invoice`, {
+        params: {
+          filters: JSON.stringify(commonFilters),
+          fields:
+            '["name", "posting_date", "docstatus", "supplier", "base_grand_total"]',
+          limit_page_length: 0,
+        },
+      }),
+    ]);
+
+    // Map Journal Entries
+    const journalEntries: Payment[] = jeResponse.data.data.map((je: any) => ({
+      id: je.name,
+      date: je.posting_date,
+      status: docstatusMap[je.docstatus],
+      type: "Expense",
+      description: je.user_remark || "",
+      amount: je.total_debit,
+    }));
+
+    // Map Purchase Invoices
+    const purchaseInvoices: Payment[] = piResponse.data.data.map((pi: any) => ({
+      id: pi.name,
+      date: pi.posting_date,
+      status: docstatusMap[pi.docstatus],
+      type: "Order",
+      description: pi.supplier,
+      amount: pi.base_grand_total,
+    }));
+
+    // Merge and sort by date descending
+    return [...journalEntries, ...purchaseInvoices].sort(
+      (a, b) => moment(b.date).valueOf() - moment(a.date).valueOf(),
+    );
   }
 
   public getPurchaseGroupSummary(period: Period = "Today") {

@@ -1,7 +1,16 @@
 <template>
-    <UPageCard class="col-span-2 h-96">
+    <UPageCard
+        class="col-span-2 h-96"
+        :title="props.title"
+        :ui="{
+            container: 'gap-y-1.5',
+            wrapper: 'items-start',
+            leading:
+                'p-2.5 rounded-full bg-primary/10 ring ring-inset ring-primary/25 flex-col',
+            title: 'font-bold text-xs uppercase',
+        }"
+    >
         <div class="w-full h-full max-h-80">
-            <CartTitle class="font-bold text-lg">{{ props.title }}</CartTitle>
             <div
                 class="w-full h-80 relative items-center justify-center chart-container"
             >

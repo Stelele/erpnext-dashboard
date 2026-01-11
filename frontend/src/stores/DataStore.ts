@@ -11,9 +11,10 @@ import {
 } from "../utils/PeriodUtilities";
 import type { GroupSummary, ItemGroupSummary } from "../types/MonthSales";
 import moment from "moment";
-import type { Expense } from "../types/Expenses";
+import type { Expense, Payment } from "../types/Expenses";
 
 export const useDataStore = defineStore("dataStore", () => {
+  const loading = ref(true);
   const salesSummary = ref<GroupSummary[]>([]);
   const prevSalesSummary = ref<GroupSummary[] | undefined>(undefined);
   const prev6MonthsSales = ref<GroupSummary[]>([]);
@@ -27,12 +28,15 @@ export const useDataStore = defineStore("dataStore", () => {
     incomes: {},
     expenses: {},
   } as AccountMappings);
+  const paymentEntries = ref<Payment[]>([]);
 
   const currentPeriod = ref<Period>("Today");
   const lastRefresh = ref("");
   const dateRange = computed(() => getPeriodDateRange(currentPeriod.value));
 
   async function getData(period: Period) {
+    loading.value = true;
+
     const erpNextService = new ErpNextService();
     const prevPeriod = getPreviousPeriod(period);
 
@@ -48,6 +52,7 @@ export const useDataStore = defineStore("dataStore", () => {
       Promise<GroupSummary[]>,
       Promise<GroupSummary[] | undefined>,
       Promise<AccountMappings>,
+      Promise<Payment[]>,
     ] = [
       erpNextService.getSalesSummary(period),
       prevPeriod
@@ -65,6 +70,7 @@ export const useDataStore = defineStore("dataStore", () => {
         ? erpNextService.getExpensesSummary(prevPeriod)
         : new Promise((resolve) => resolve(undefined)),
       erpNextService.getAccountMappings(),
+      erpNextService.getPaymentEntries(period),
     ];
 
     const result = await Promise.all(erpNextServicePromises);
@@ -78,7 +84,9 @@ export const useDataStore = defineStore("dataStore", () => {
     expensesSummary.value = result[7];
     prevExpensesSummary.value = result[8];
     accountMappings.value = result[9];
+    paymentEntries.value = result[10];
 
+    loading.value = false;
     setTimeout(
       async () => {
         await getData(currentPeriod.value);
@@ -112,6 +120,8 @@ export const useDataStore = defineStore("dataStore", () => {
     expensesSummary,
     prevExpensesSummary,
     accountMappings,
+    paymentEntries,
+    loading,
     getData,
     addDraftExpense,
   };

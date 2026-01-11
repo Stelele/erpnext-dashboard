@@ -54,7 +54,10 @@
             <UDashboardGroup>
                 <SideBar />
                 <BasePage>
-                    <slot />
+                    <UPageGrid>
+                        <LoadingBar :loading="dataStore.loading" />
+                        <slot />
+                    </UPageGrid>
                 </BasePage>
             </UDashboardGroup>
         </UMain>

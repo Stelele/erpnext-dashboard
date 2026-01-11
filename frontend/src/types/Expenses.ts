@@ -32,3 +32,12 @@ export const IncomeAccountMapping: Record<IncomeType, string> = {
   "Pos Variance": "Variance Surplus",
   Cash: "Njeremoto Sales",
 };
+
+export interface Payment {
+  id: string;
+  date: string;
+  status: "Draft" | "Submitted" | "Cancelled";
+  type: "Expense" | "Order";
+  description: string;
+  amount: number;
+}
