@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
     ui({
       ui: {
         pageGrid: {
-          base: "relative grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-8",
+          base: "relative grid grid-cols-6 sm:grid-cols-2 md:grid-cols-6 lg:grid-cols-6 gap-4",
         },
       },
     }),

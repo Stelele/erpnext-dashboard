@@ -1,6 +1,6 @@
 <template>
     <UPageCard
-        class="col-span-2 h-96"
+        class="col-span-6 lg:col-span-2 h-96"
         :title="props.title"
         :ui="{
             container: 'gap-y-1.5',
