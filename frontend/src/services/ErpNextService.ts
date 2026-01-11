@@ -9,9 +9,13 @@ import {
 import { ExpenseAccountMapping, IncomeAccountMapping } from "@/types/Expenses";
 import moment from "moment";
 import type { GroupSummary, ItemGroupSummary } from "@/types/MonthSales";
-import type { Expense, ExpenseType, IncomeType } from "@/types/Expenses";
+import type {
+  Expense,
+  ExpenseType,
+  IncomeType,
+  Payment,
+} from "@/types/Expenses";
 import type { JournalEntry } from "@/types/JournalEntry";
-import type { Payment } from "@/components/ExpenseTable.vue";
 
 type ErpNextResponse<T> = { data: T[] };
 export type SalesGrouping = "years" | "months" | "days";
