@@ -10,13 +10,14 @@
             title: 'font-bold text-xs uppercase',
         }"
     >
-        <UTable
-            :data="props.data"
-            :columns="columns"
-            :loading="props.loading"
-            loadingColor="primary"
-            class="flex-1"
-        />
+        <div class="overflow-x-auto">
+            <UTable
+                :data="props.data"
+                :columns="columns"
+                :loading="props.loading"
+                loadingColor="primary"
+            />
+        </div>
     </UPageCard>
 </template>
 
@@ -37,7 +38,13 @@ const columns: TableColumn<Payment>[] = [
     {
         accessorKey: "id",
         header: "#",
-        cell: ({ row }) => `#${row.getValue("id")}`,
+        meta: {
+            class: {
+                th: "hidden md:table-cell",
+                td: "hidden md:table-cell",
+            },
+        },
+        cell: ({ row }) => `${row.getValue("id")}`,
     },
     {
         accessorKey: "date",
@@ -70,6 +77,11 @@ const columns: TableColumn<Payment>[] = [
     {
         accessorKey: "description",
         header: "Description",
+        meta: {
+            class: {
+                td: "max-w-[100px] md:max-w-[200px] lg:max-w-[300px] overflow-hidden text-ellipsis whitespace-nowrap",
+            },
+        },
     },
     {
         accessorKey: "amount",
