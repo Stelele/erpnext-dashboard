@@ -31,10 +31,8 @@ import CardDoughnutChart from "@/components/CardDoughnutChart.vue";
 import type { NumberCardProps } from "@/components/NumberCard.vue";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import { useOverViewDataStore } from "@/stores/OverViewDataStore";
-import { useDataStore } from "@/stores/DataStore";
 
 const overViewDataStore = useOverViewDataStore();
-const dataStore = useDataStore();
 const items = computed<NumberCardProps[]>(() => [
     {
         title: "No. Sales",
