@@ -30,7 +30,7 @@ export const useDataStore = defineStore("dataStore", () => {
   } as AccountMappings);
   const paymentEntries = ref<Payment[]>([]);
 
-  const currentPeriod = ref<Period>("Today");
+  const currentPeriod = ref<Period>("This Month");
   const lastRefresh = ref("");
   const dateRange = computed(() => getPeriodDateRange(currentPeriod.value));
 

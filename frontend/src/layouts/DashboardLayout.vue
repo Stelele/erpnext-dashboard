@@ -2,13 +2,15 @@
     <UApp>
         <UHeader>
             <template #left>
-                <div class="w-full h-full flex gap-2 items-center p-1">
-                    <img
-                        src="/logo.png"
-                        class="object-contain h-20"
-                        alt="Njeremoto Logo"
-                    />
-                </div>
+                <router-link to="/">
+                    <div class="w-full h-full flex gap-2 items-center p-1">
+                        <img
+                            src="/logo.png"
+                            class="object-contain h-20"
+                            alt="Njeremoto Logo"
+                        />
+                    </div>
+                </router-link>
             </template>
             <UPageHeader :title="`${authStore.company} Dashboard`" />
             <template #right>
