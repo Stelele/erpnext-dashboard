@@ -16,6 +16,7 @@ import type {
   Payment,
 } from "@/types/Expenses";
 import type { JournalEntry } from "@/types/JournalEntry";
+import type { SalesDetail } from "@/types/SalesDetail";
 
 type ErpNextResponse<T> = { data: T[] };
 export type SalesGrouping = "years" | "months" | "days";
@@ -143,6 +144,21 @@ export class ErpNextService {
           },
         },
       )
+      .then((resp) => resp?.data.data);
+  }
+
+  public async getSales(period: Period = "Today") {
+    const authStore = useAuthStore();
+    const dateRange = getPeriodDateRange(period);
+
+    return this.instance
+      .get<ErpNextResponse<SalesDetail>>("/api/v2/method/get_sales", {
+        params: {
+          from_date: dateRange.start,
+          to_date: dateRange.end,
+          company: authStore.company,
+        },
+      })
       .then((resp) => resp?.data.data);
   }
 
