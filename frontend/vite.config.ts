@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon/**/*", "logo.png"],
       devOptions: {
-        enabled: false,
+        enabled: mode === "development",
         type: "module",
         navigateFallback: "index.html",
       },
