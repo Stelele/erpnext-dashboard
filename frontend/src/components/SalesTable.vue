@@ -56,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, resolveComponent } from "vue";
+import { computed, ref } from "vue";
 import type { TableColumn } from "@nuxt/ui";
 import { getGroupedRowModel } from "@tanstack/vue-table";
 import type { GroupingOptions } from "@tanstack/vue-table";
@@ -67,7 +67,6 @@ export interface Props {
     data: SalesDetail[];
 }
 
-const UBadge = resolveComponent("UBadge");
 const props = defineProps<Props>();
 
 const groupedSalesDetails = computed(() => {
