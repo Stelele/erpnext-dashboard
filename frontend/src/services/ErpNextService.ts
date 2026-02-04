@@ -132,7 +132,7 @@ export class ErpNextService {
 
     return this.instance
       .get<ErpNextResponse<GroupSummary>>(
-        "/api/v2/method/grouped_purchase_order_summary",
+        "/api/v2/method/grouped_purchase_invoice_summary",
         {
           params: {
             from_date: dateRange.start,
@@ -201,6 +201,19 @@ export class ErpNextService {
           },
         },
       )
+      .then((resp) => resp?.data.data);
+  }
+
+  public getStockLevels() {
+    const authStore = useAuthStore();
+
+    return this.instance
+      .get<ErpNextResponse<any>>("/api/v2/method/get_stock_levels", {
+        params: {
+          company: authStore.company,
+          warehouse: "Stores - NEs",
+        },
+      })
       .then((resp) => resp?.data.data);
   }
 

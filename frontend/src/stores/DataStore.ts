@@ -75,6 +75,7 @@ export const useDataStore = defineStore("dataStore", () => {
       erpNextService.getAccountMappings(),
       erpNextService.getPaymentEntries(period),
       erpNextService.getSales(period),
+      // erpNextService.getStockLevels(),
     ];
 
     const result = await Promise.all(erpNextServicePromises);
