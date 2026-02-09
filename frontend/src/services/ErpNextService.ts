@@ -17,6 +17,7 @@ import type {
 } from "@/types/Expenses";
 import type { JournalEntry } from "@/types/JournalEntry";
 import type { SalesDetail } from "@/types/SalesDetail";
+import type { StockDetail } from "@/types/StockDetail";
 
 type ErpNextResponse<T> = { data: T[] };
 export type SalesGrouping = "years" | "months" | "days";
@@ -208,7 +209,7 @@ export class ErpNextService {
     const authStore = useAuthStore();
 
     return this.instance
-      .get<ErpNextResponse<any>>("/api/v2/method/get_stock_levels", {
+      .get<ErpNextResponse<StockDetail>>("/api/v2/method/get_stock_levels", {
         params: {
           company: authStore.company,
           warehouse: "Stores - NEs",

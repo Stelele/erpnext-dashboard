@@ -16,6 +16,7 @@
                 :columns="columns"
                 :grouping="['posting_date', 'item_group']"
                 :grouping-options="grouping_options"
+                :loading="props.loading"
                 :ui="{
                     root: 'min-w-full',
                     td: 'empty:p-0', // helps with the colspaned row added for expand slot
@@ -65,6 +66,7 @@ import moment from "moment";
 
 export interface Props {
     data: SalesDetail[];
+    loading: boolean;
 }
 
 const props = defineProps<Props>();

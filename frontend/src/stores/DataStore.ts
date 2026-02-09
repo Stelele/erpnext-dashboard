@@ -13,6 +13,7 @@ import type { GroupSummary, ItemGroupSummary } from "../types/MonthSales";
 import moment from "moment";
 import type { Expense, Payment } from "../types/Expenses";
 import type { SalesDetail } from "@/types/SalesDetail";
+import type { StockDetail } from "@/types/StockDetail";
 
 export const useDataStore = defineStore("dataStore", () => {
   const loading = ref(true);
@@ -31,6 +32,7 @@ export const useDataStore = defineStore("dataStore", () => {
   } as AccountMappings);
   const paymentEntries = ref<Payment[]>([]);
   const sales = ref<SalesDetail[]>([]);
+  const stockDetails = ref<StockDetail[]>([]);
 
   const currentPeriod = ref<Period>("This Month");
   const lastRefresh = ref("");
@@ -56,6 +58,7 @@ export const useDataStore = defineStore("dataStore", () => {
       Promise<AccountMappings>,
       Promise<Payment[]>,
       Promise<SalesDetail[]>,
+      Promise<StockDetail[]>,
     ] = [
       erpNextService.getSalesSummary(period),
       prevPeriod
@@ -75,7 +78,7 @@ export const useDataStore = defineStore("dataStore", () => {
       erpNextService.getAccountMappings(),
       erpNextService.getPaymentEntries(period),
       erpNextService.getSales(period),
-      // erpNextService.getStockLevels(),
+      erpNextService.getStockLevels(),
     ];
 
     const result = await Promise.all(erpNextServicePromises);
@@ -91,6 +94,7 @@ export const useDataStore = defineStore("dataStore", () => {
     accountMappings.value = result[9];
     paymentEntries.value = result[10];
     sales.value = result[11];
+    stockDetails.value = result[12];
 
     loading.value = false;
     setTimeout(
@@ -127,6 +131,7 @@ export const useDataStore = defineStore("dataStore", () => {
     prevExpensesSummary,
     accountMappings,
     paymentEntries,
+    stockDetails,
     sales,
     loading,
     getData,

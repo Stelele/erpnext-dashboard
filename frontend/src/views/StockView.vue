@@ -1,6 +1,9 @@
 <template>
     <DashboardLayout>
-        <SalesTable :loading="dataStore.loading" :data="dataStore.sales" />
+        <StockTable
+            :data="dataStore.stockDetails"
+            :loading="dataStore.loading"
+        />
     </DashboardLayout>
 </template>
 
