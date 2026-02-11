@@ -18,6 +18,12 @@ export default defineConfig(({ mode }) => ({
         pageGrid: {
           base: "relative grid grid-cols-6 sm:grid-cols-2 md:grid-cols-6 lg:grid-cols-6 gap-4",
         },
+        table: {
+          slots: {
+            th: "px-4 py-3.5 text-lg text-highlighted text-left rtl:text-right font-semibold [&:has([role=checkbox])]:pe-0",
+            td: "p-4 text-lg text-normal whitespace-nowrap [&:has([role=checkbox])]:pe-0",
+          },
+        },
       },
     }),
     VitePWA({
