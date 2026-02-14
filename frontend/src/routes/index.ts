@@ -12,25 +12,25 @@ export const router = createRouter({
     {
       path: "/",
       name: "Overview",
-      // beforeEnter: authGuard,
+      beforeEnter: authGuard,
       component: OverviewView,
     },
     {
       path: "/expenses",
       name: "Expenses",
-      // beforeEnter: authGuard,
+      beforeEnter: authGuard,
       component: ExpensesView,
     },
     {
       path: "/sales",
       name: "Sales",
-      // beforeEnter: authGuard,
+      beforeEnter: authGuard,
       component: SalesView,
     },
     {
       path: "/stock",
       name: "Stock",
-      // beforeEnter: authGuard,
+      beforeEnter: authGuard,
       component: StockView,
     },
     {
