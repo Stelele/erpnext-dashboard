@@ -1,6 +1,6 @@
 <template>
     <UPageCard
-        class="min-h-96 col-span-6"
+        class="min-h-96 max-h-[86vh] col-span-6"
         title="Current Stock Levels"
         :ui="{
             container: 'gap-y-1.5',
@@ -12,11 +12,64 @@
     >
         <div class="overflow-x-auto">
             <UTable
+                v-model:expanded="expanded"
+                :sticky="true"
                 :data="processedData"
                 :columns="columns"
                 :loading="props.loading"
+                :ui="{ tr: 'data-[expanded=true]:bg-elevated/50' }"
+                class="flex-1 h-full"
                 loadingColor="primary"
-            />
+            >
+                <template #expanded="{ row }">
+                    <div class="grid grid-cols-2 w-full md:w-1/2 px-1 md:px-4">
+                        <div>Item</div>
+                        <div>{{ row.original.item_name }}</div>
+                        <div>Group</div>
+                        <div>{{ row.original.item_group }}</div>
+                        <div>Current Quantity</div>
+                        <div>
+                            {{ formatNumber(row.original.real_qty, "decimal") }}
+                        </div>
+                        <div>Unit Order Price</div>
+                        <div>
+                            {{
+                                formatNumber(
+                                    row.original.buying_price,
+                                    "currency",
+                                )
+                            }}
+                        </div>
+                        <div>Unit Selling Price</div>
+                        <div>
+                            {{
+                                formatNumber(
+                                    row.original.selling_price,
+                                    "currency",
+                                )
+                            }}
+                        </div>
+                        <div>Unit Gross Profit</div>
+                        <div>
+                            {{
+                                formatNumber(
+                                    row.original.gross_profit,
+                                    "currency",
+                                )
+                            }}
+                        </div>
+                        <div>Total Groos Profit</div>
+                        <div>
+                            {{
+                                formatNumber(
+                                    row.original.total_gross_profit,
+                                    "currency",
+                                )
+                            }}
+                        </div>
+                    </div>
+                </template>
+            </UTable>
         </div>
     </UPageCard>
 </template>
@@ -24,17 +77,34 @@
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
 import type { StockDetail } from "@/types/StockDetail";
-import { computed } from "vue";
+import { computed, h, ref, resolveComponent } from "vue";
+import { formatNumber } from "@/utils/FormatNumber";
 
 export interface Props {
     data: StockDetail[];
     loading: boolean;
 }
 
-const props = defineProps<Props>();
+type Row = StockDetail & {
+    gross_profit: number;
+    total_gross_profit: number;
+};
 
-const processedData = computed(() => {
-    return props.data.sort((a, b) => {
+const props = defineProps<Props>();
+const UButton = resolveComponent("UButton");
+const expanded = ref({});
+
+const processedData = computed<Row[]>(() => {
+    const entries = props.data.map((entry) => {
+        return {
+            ...entry,
+            gross_profit: entry.selling_price - entry.buying_price,
+            total_gross_profit:
+                (entry.selling_price - entry.buying_price) * entry.real_qty,
+        } as Row;
+    });
+
+    return entries.sort((a, b) => {
         if (a.item_group.localeCompare(b.item_group) === 0) {
             return a.item_name.localeCompare(b.item_name);
         }
@@ -43,10 +113,40 @@ const processedData = computed(() => {
     });
 });
 
-const columns: TableColumn<StockDetail>[] = [
+const columns: TableColumn<Row>[] = [
+    {
+        id: "expand",
+        meta: {
+            class: {
+                th: "table-cell md:hidden",
+                td: "table-cell md:hidden",
+            },
+        },
+        cell: ({ row }) =>
+            h(UButton, {
+                color: "neutral",
+                variant: "ghost",
+                icon: "i-lucide-chevron-down",
+                square: true,
+                "aria-label": "Expand",
+                ui: {
+                    leadingIcon: [
+                        "transition-transform",
+                        row.getIsExpanded() ? "duration-200 rotate-180" : "",
+                    ],
+                },
+                onClick: () => row.toggleExpanded(),
+            }),
+    },
     {
         id: "item_group",
         header: "Group",
+        meta: {
+            class: {
+                th: "hidden md:table-cell",
+                td: "hidden md:table-cell",
+            },
+        },
         cell: ({ row }) => {
             return row.original.item_group;
         },
@@ -62,10 +162,7 @@ const columns: TableColumn<StockDetail>[] = [
         id: "real_qty",
         header: "Current Quantity",
         cell: ({ row }) => {
-            return new Intl.NumberFormat("en-ZW", {
-                style: "decimal",
-                maximumFractionDigits: 3,
-            }).format(row.original.real_qty);
+            return formatNumber(row.original.real_qty, "decimal");
         },
     },
     {
@@ -73,17 +170,14 @@ const columns: TableColumn<StockDetail>[] = [
         header: "Order Price",
         meta: {
             class: {
-                th: "text-right",
-                td: "text-right font-medium",
+                th: "text-right hidden md:table-cell",
+                td: "text-right font-medium hidden md:table-cell",
             },
         },
         cell: ({ row }) => {
             const amount = Number.parseFloat(row.getValue("buying_price"));
             if (isNaN(amount)) return "-";
-            return new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: "USD",
-            }).format(amount);
+            return formatNumber(amount, "currency");
         },
     },
     {
@@ -91,16 +185,43 @@ const columns: TableColumn<StockDetail>[] = [
         header: "Selling Price",
         meta: {
             class: {
-                th: "text-right",
-                td: "text-right font-medium",
+                th: "text-right hidden md:table-cell",
+                td: "text-right font-medium hidden md:table-cell",
             },
         },
         cell: ({ row }) => {
             const amount = Number.parseFloat(row.getValue("selling_price"));
-            return new Intl.NumberFormat("en-US", {
-                style: "currency",
-                currency: "USD",
-            }).format(amount);
+            return formatNumber(amount, "currency");
+        },
+    },
+    {
+        accessorKey: "gross_profit",
+        header: "Unit Gross Profit",
+        meta: {
+            class: {
+                th: "text-righ hidden md:table-cell",
+                td: "text-right font-medium hidden md:table-cell",
+            },
+        },
+        cell: ({ row }) => {
+            const amount = Number.parseFloat(row.getValue("gross_profit"));
+            return formatNumber(amount, "currency");
+        },
+    },
+    {
+        accessorKey: "total_gross_profit",
+        header: "Total Gross Profit",
+        meta: {
+            class: {
+                th: "text-right hidden md:table-cell",
+                td: "text-right font-medium hidden md:table-cell",
+            },
+        },
+        cell: ({ row }) => {
+            const amount = Number.parseFloat(
+                row.getValue("total_gross_profit"),
+            );
+            return formatNumber(amount, "currency");
         },
     },
 ];
