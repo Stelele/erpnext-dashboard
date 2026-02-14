@@ -1,20 +1,22 @@
 <template>
     <DashboardLayout>
-        <UModal
-            v-model:open="open"
-            title="Create New Expense"
-            :dismissible="false"
-        >
-            <UButton
-                trailing-icon="i-lucide-plus"
-                class="hover:cursor-pointer w-fit col-end-7"
-                >Add Expense</UButton
+        <div class="col-span-6 flex flex-row-reverse">
+            <UModal
+                v-model:open="open"
+                title="Create New Expense"
+                :dismissible="false"
             >
+                <UButton
+                    trailing-icon="i-lucide-plus"
+                    class="hover:cursor-pointer"
+                    >Add Expense</UButton
+                >
 
-            <template #body>
-                <ExpenseForm @on-submit="onSubmit" />
-            </template>
-        </UModal>
+                <template #body>
+                    <ExpenseForm @on-submit="onSubmit" />
+                </template>
+            </UModal>
+        </div>
         <ExpenseTable
             :data="dataStore.paymentEntries"
             :loading="dataStore.loading"

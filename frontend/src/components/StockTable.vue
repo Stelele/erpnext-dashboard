@@ -58,7 +58,7 @@
                                 )
                             }}
                         </div>
-                        <div>Total Groos Profit</div>
+                        <div>Total Gross Profit</div>
                         <div>
                             {{
                                 formatNumber(
