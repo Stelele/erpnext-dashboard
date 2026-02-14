@@ -10,15 +10,6 @@ public static class UsersEndpoints
 {
     public static WebApplication MapUsersEndpoints(this WebApplication app)
     {
-        app.MapGet("/hello-world", async () =>
-        {
-            return Results.Ok("Hello World!");
-        })
-            .WithName("HelloWorld")
-            .WithName("HelloWorld")
-            .Produces<string>(StatusCodes.Status200OK)
-            .WithTags(Tags.Users);
-
         app.MapGet("/users/{id}", async (Guid id, ISender mediator) =>
         {
             var user = await mediator.Send(new GetUserByIdQuery(id));
