@@ -6,11 +6,7 @@ import { calculatePercentChange } from "../utils/ChangeCalculations";
 import type { DoughnutChartData } from "../components/CardDoughnutChart.vue";
 import type { BarChartData } from "../components/CardBarChart.vue";
 import moment from "moment";
-import {
-  getPeriodDateRangeFromCurrent,
-  type Period,
-} from "../utils/PeriodUtilities";
-import type { GroupSummary } from "../types/MonthSales";
+import { type Period } from "../utils/PeriodUtilities";
 import { getPrevXYData } from "@/utils/DateCalculations";
 
 export const useOverViewDataStore = defineStore("overViewDataStore", () => {
