@@ -14,7 +14,7 @@
             <UTable
                 v-model:expanded="expanded"
                 :sticky="true"
-                :data="processedData"
+                :data="props.data"
                 :columns="columns"
                 :loading="props.loading"
                 :ui="{ tr: 'data-[expanded=true]:bg-elevated/50' }"
@@ -77,15 +77,15 @@
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
 import type { StockDetail } from "@/types/StockDetail";
-import { computed, h, ref, resolveComponent } from "vue";
+import { h, ref, resolveComponent } from "vue";
 import { formatNumber } from "@/utils/FormatNumber";
 
 export interface Props {
-    data: StockDetail[];
+    data: StockRow[];
     loading: boolean;
 }
 
-type Row = StockDetail & {
+export type StockRow = StockDetail & {
     gross_profit: number;
     total_gross_profit: number;
 };
@@ -94,26 +94,7 @@ const props = defineProps<Props>();
 const UButton = resolveComponent("UButton");
 const expanded = ref({});
 
-const processedData = computed<Row[]>(() => {
-    const entries = props.data.map((entry) => {
-        return {
-            ...entry,
-            gross_profit: entry.selling_price - entry.buying_price,
-            total_gross_profit:
-                (entry.selling_price - entry.buying_price) * entry.real_qty,
-        } as Row;
-    });
-
-    return entries.sort((a, b) => {
-        if (a.item_group.localeCompare(b.item_group) === 0) {
-            return a.item_name.localeCompare(b.item_name);
-        }
-
-        return a.item_group.localeCompare(b.item_group);
-    });
-});
-
-const columns: TableColumn<Row>[] = [
+const columns: TableColumn<StockRow>[] = [
     {
         id: "expand",
         meta: {

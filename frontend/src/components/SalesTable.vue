@@ -13,7 +13,7 @@
         <div class="overflow-x-auto">
             <div class="hidden md:block">
                 <UTable
-                    :data="groupedSalesDetails"
+                    :data="props.salesDetails"
                     :columns="columns"
                     :grouping="['posting_date', 'item_group']"
                     :grouping-options="grouping_options"
@@ -60,13 +60,13 @@
                 </UTable>
             </div>
             <div class="md:hidden space-y-4">
-                <div v-for="date in mobileSaleDates" :key="date">
+                <div v-for="date in props.mobileSalesDateDetails" :key="date">
                     <h3 class="font-bold text-lg p-2">
                         {{ date }}
                     </h3>
 
                     <UCard
-                        v-for="item in mobileSaleData[date]"
+                        v-for="item in props.mobileSalesDetails[date]"
                         :key="item.item_name"
                         class="mt-2"
                     >
@@ -109,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { ref } from "vue";
 import type { TableColumn } from "@nuxt/ui";
 import { getGroupedRowModel } from "@tanstack/vue-table";
 import type { GroupingOptions } from "@tanstack/vue-table";
@@ -118,67 +118,13 @@ import moment from "moment";
 import { formatNumber } from "@/utils/FormatNumber";
 
 export interface Props {
-    data: SalesDetail[];
     loading: boolean;
+    salesDetails: SalesDetail[];
+    mobileSalesDetails: Record<string, SalesDetail[]>;
+    mobileSalesDateDetails: string[];
 }
 
 const props = defineProps<Props>();
-
-const groupedSalesDetails = computed(() => {
-    const temp: SalesDetail[] = [];
-    for (const saleDetail of props.data) {
-        const entry = temp.find((item) => {
-            const itemDate = moment(item.posting_date).format("DD MMM YYYY");
-            const saleDate = moment(saleDetail.posting_date).format(
-                "DD MMM YYYY",
-            );
-            return (
-                itemDate === saleDate &&
-                item.item_name === saleDetail.item_name &&
-                item.item_group === saleDetail.item_group
-            );
-        });
-
-        if (!entry) {
-            temp.push(saleDetail);
-        } else {
-            entry.qty += saleDetail.qty;
-            entry.item_total_amount += saleDetail.item_total_amount;
-        }
-    }
-
-    return temp.sort((a, b) => {
-        const aDate = moment(a.posting_date, "DD MMM YYYY");
-        const bDate = moment(b.posting_date, "DD MMM YYYY");
-
-        if (aDate.isSame(bDate, "days")) {
-            return a.item_group.localeCompare(b.item_group);
-        }
-
-        return aDate.isBefore(bDate, "days") ? -1 : 1;
-    });
-});
-
-const mobileSaleData = computed(() => {
-    const data: Record<string, SalesDetail[]> = {};
-    for (const saleDetail of groupedSalesDetails.value) {
-        if (!(saleDetail.posting_date in data)) {
-            data[saleDetail.posting_date] = [];
-        }
-
-        data[saleDetail.posting_date]?.push(saleDetail);
-    }
-
-    return data;
-});
-
-const mobileSaleDates = computed(() => {
-    return Object.keys(mobileSaleData.value).sort((a, b) => {
-        const aDate = moment(a, "DD MMM YYYY");
-        const bDate = moment(b, "DD MMM YYYY");
-        return aDate.isBefore(bDate, "days") ? -1 : 1;
-    });
-});
 
 const columns: TableColumn<SalesDetail>[] = [
     {

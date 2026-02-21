@@ -21,7 +21,7 @@
             :data="stockDataStore.stockByItemGroup"
         />
         <StockTable
-            :data="dataStore.stockDetails"
+            :data="stockDataStore.stockTableData"
             :loading="dataStore.loading"
         />
     </DashboardLayout>

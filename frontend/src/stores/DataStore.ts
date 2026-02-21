@@ -41,11 +41,12 @@ export const useDataStore = defineStore("dataStore", () => {
   const lastRefresh = ref("");
   const dateRange = computed(() => getPeriodDateRange(currentPeriod.value));
 
-  async function getData(period: Period) {
+  async function getData() {
     loading.value = true;
 
     const erpNextService = new ErpNextService();
-    const prevPeriod = getPreviousPeriod(period);
+    const period = currentPeriod.value;
+    const prevPeriod = getPreviousPeriod(currentPeriod.value);
 
     lastRefresh.value = moment().format("DD-MMM-YY HH:mm");
     const erpNextServicePromises: [
@@ -141,6 +142,10 @@ export const useDataStore = defineStore("dataStore", () => {
     );
   }
 
+  async function update() {
+    await getData();
+  }
+
   return {
     currentPeriod,
     lastRefresh,
@@ -161,7 +166,7 @@ export const useDataStore = defineStore("dataStore", () => {
     salesStockValues,
     sales,
     loading,
-    getData,
+    update,
     addDraftExpense,
   };
 });
