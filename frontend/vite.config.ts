@@ -113,4 +113,17 @@ export default defineConfig(({ mode }) => ({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // If the module is in node_modules, put it in a separate chunk called 'vendor'
+          if (id.includes("node_modules")) {
+            const path = id.split("/");
+            return `vendor_${path[path.indexOf("node_modules") + 1]}`;
+          }
+        },
+      },
+    },
+  },
 }));
