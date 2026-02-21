@@ -67,7 +67,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onBeforeMount } from "vue";
+import { computed } from "vue";
 import BasePage from "./BasePage.vue";
 import { useAuthStore } from "@/stores/AuthStore";
 import { useDataStore } from "@/stores/DataStore";
@@ -106,10 +106,5 @@ moment.updateLocale("en", {
     week: {
         dow: 1, // Monday is the first day of the week.
     },
-});
-
-onBeforeMount(async () => {
-    await authStore.update();
-    await dataStore.getData(dataStore.currentPeriod);
 });
 </script>

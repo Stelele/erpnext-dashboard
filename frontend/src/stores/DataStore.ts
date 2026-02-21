@@ -128,12 +128,6 @@ export const useDataStore = defineStore("dataStore", () => {
     salesStockValues.value = result[14];
 
     loading.value = false;
-    setTimeout(
-      async () => {
-        await getData(currentPeriod.value);
-      },
-      5 * 60 * 1000,
-    );
   }
 
   function addDraftExpense(expense: Expense) {
