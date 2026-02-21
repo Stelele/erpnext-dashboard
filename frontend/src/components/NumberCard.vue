@@ -14,7 +14,11 @@
             <div class="w-full flex justify-between items-center">
                 <CartTitle class="text-3xl">{{ formatedValue }}</CartTitle>
                 <div
-                    v-if="props.direction && !isNaN(props.percentChange)"
+                    v-if="
+                        props.direction &&
+                        props.percentChange &&
+                        !isNaN(props.percentChange)
+                    "
                     class="flex items-center gap-1 h-full"
                     :style="{
                         color: trendColor,
@@ -39,7 +43,7 @@ export interface NumberCardProps {
     title: string;
     value: number;
     direction?: ChangeDirection;
-    percentChange: number;
+    percentChange?: number;
 }
 const props = defineProps<NumberCardProps>();
 const colorMode = useColorMode();

@@ -6,3 +6,9 @@ export interface StockDetail {
   selling_price: number;
   buying_price: number;
 }
+
+export interface StockValueSummary {
+  grouping_name: string;
+  average_stock_value: number;
+  closing_balance: number;
+}

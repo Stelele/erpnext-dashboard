@@ -13,7 +13,7 @@ import type { GroupSummary, ItemGroupSummary } from "../types/MonthSales";
 import moment from "moment";
 import type { Expense, Payment } from "../types/Expenses";
 import type { SalesDetail } from "@/types/SalesDetail";
-import type { StockDetail } from "@/types/StockDetail";
+import type { StockDetail, StockValueSummary } from "@/types/StockDetail";
 
 export const useDataStore = defineStore("dataStore", () => {
   const loading = ref(true);
@@ -33,6 +33,9 @@ export const useDataStore = defineStore("dataStore", () => {
   const paymentEntries = ref<Payment[]>([]);
   const sales = ref<SalesDetail[]>([]);
   const stockDetails = ref<StockDetail[]>([]);
+
+  const stockValues = ref<StockValueSummary[]>([]);
+  const salesStockValues = ref<GroupSummary[]>([]);
 
   const currentPeriod = ref<Period>("This Month");
   const lastRefresh = ref("");
@@ -59,6 +62,8 @@ export const useDataStore = defineStore("dataStore", () => {
       Promise<Payment[]>,
       Promise<SalesDetail[]>,
       Promise<StockDetail[]>,
+      Promise<StockValueSummary[]>,
+      Promise<GroupSummary[]>,
     ] = [
       erpNextService.getSalesSummary(period),
       prevPeriod
@@ -79,6 +84,30 @@ export const useDataStore = defineStore("dataStore", () => {
       erpNextService.getPaymentEntries(period),
       erpNextService.getSales(period),
       erpNextService.getStockLevels(),
+      Promise.all([
+        erpNextService.getStockValueSummary(
+          ["Today", "This Week"].includes(period)
+            ? "This Week"
+            : "This Semester",
+        ),
+        erpNextService.getStockValueSummary(
+          ["Yesterday", "Last Week"].includes(prevPeriod ?? "")
+            ? "Last Week"
+            : "Last Semester",
+        ),
+      ]).then((r) => r.flat()),
+      Promise.all([
+        erpNextService.getSalesSummary(
+          ["Today", "This Week"].includes(period)
+            ? "This Week"
+            : "This Semester",
+        ),
+        erpNextService.getSalesSummary(
+          ["Yesterday", "Last Week"].includes(prevPeriod ?? "")
+            ? "Last Week"
+            : "Last Semester",
+        ),
+      ]).then((r) => r.flat()),
     ];
 
     const result = await Promise.all(erpNextServicePromises);
@@ -95,6 +124,8 @@ export const useDataStore = defineStore("dataStore", () => {
     paymentEntries.value = result[10];
     sales.value = result[11];
     stockDetails.value = result[12];
+    stockValues.value = result[13];
+    salesStockValues.value = result[14];
 
     loading.value = false;
     setTimeout(
@@ -132,6 +163,8 @@ export const useDataStore = defineStore("dataStore", () => {
     accountMappings,
     paymentEntries,
     stockDetails,
+    stockValues,
+    salesStockValues,
     sales,
     loading,
     getData,

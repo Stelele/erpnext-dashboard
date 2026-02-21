@@ -17,7 +17,7 @@ import type {
 } from "@/types/Expenses";
 import type { JournalEntry } from "@/types/JournalEntry";
 import type { SalesDetail } from "@/types/SalesDetail";
-import type { StockDetail } from "@/types/StockDetail";
+import type { StockDetail, StockValueSummary } from "@/types/StockDetail";
 
 type ErpNextResponse<T> = { data: T[] };
 export type SalesGrouping = "years" | "months" | "days";
@@ -184,6 +184,27 @@ export class ErpNextService {
       .then((resp) => resp?.data.data);
   }
 
+  public getStockValueSummary(period: Period = "Today") {
+    const authStore = useAuthStore();
+    const dateRange = getPeriodDateRange(period);
+
+    return this.instance
+      .get<ErpNextResponse<StockValueSummary>>(
+        "/api/v2/method/get_average_stock_value",
+        {
+          params: {
+            from_date: dateRange.start,
+            to_date: dateRange.end,
+            company: authStore.company,
+            time_grouping: this.getDateGrouping(
+              this.getPeriodDateGrouping(period),
+            ),
+          },
+        },
+      )
+      .then((resp) => resp?.data.data);
+  }
+
   public getItemGroupSalesSummary(period: Period = "Today") {
     const authStore = useAuthStore();
     const dateRange = getPeriodDateRange(period);
@@ -197,7 +218,9 @@ export class ErpNextService {
             to_date: dateRange.end,
             company: authStore.company,
             time_grouping: this.getDateGrouping(
-              this.getPeriodDateGrouping(period),
+              ["Today", "Yesterday", "This Week", "Last Week"].includes(period)
+                ? "days"
+                : "months",
             ),
           },
         },
