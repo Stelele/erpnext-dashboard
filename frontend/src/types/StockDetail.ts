@@ -5,6 +5,7 @@ export interface StockDetail {
   item_group: string;
   selling_price: number;
   buying_price: number;
+  pack_size?: string;
 }
 
 export interface StockValueSummary {

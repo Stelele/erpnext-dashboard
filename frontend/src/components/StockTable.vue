@@ -29,7 +29,12 @@
                         <div>{{ row.original.item_group }}</div>
                         <div>Current Quantity</div>
                         <div>
-                            {{ formatNumber(row.original.real_qty, "decimal") }}
+                            {{
+                                formatNumber(row.original.real_qty, "decimal") +
+                                (row.original.pack_size
+                                    ? ` (${row.original.pack_size})`
+                                    : "")
+                            }}
                         </div>
                         <div>Unit Order Price</div>
                         <div>
@@ -88,6 +93,7 @@ export interface Props {
 export type StockRow = StockDetail & {
     gross_profit: number;
     total_gross_profit: number;
+    packageSize?: string;
 };
 
 const props = defineProps<Props>();
@@ -143,7 +149,10 @@ const columns: TableColumn<StockRow>[] = [
         id: "real_qty",
         header: "Current Quantity",
         cell: ({ row }) => {
-            return formatNumber(row.original.real_qty, "decimal");
+            const additional = row.original.pack_size
+                ? ` (${row.original.pack_size})`
+                : "";
+            return formatNumber(row.original.real_qty, "decimal") + additional;
         },
     },
     {
