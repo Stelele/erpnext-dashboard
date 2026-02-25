@@ -29,12 +29,11 @@
                         <div>{{ row.original.item_group }}</div>
                         <div>Current Quantity</div>
                         <div>
-                            {{
-                                formatNumber(row.original.real_qty, "decimal") +
-                                (row.original.pack_size
-                                    ? ` (${row.original.pack_size})`
-                                    : "")
-                            }}
+                            {{ formatNumber(row.original.real_qty, "decimal") }}
+                        </div>
+                        <div v-if="row.original.pack_size">Pack Size</div>
+                        <div v-if="row.original.pack_size">
+                            {{ row.original.pack_size }}
                         </div>
                         <div>Unit Order Price</div>
                         <div>
@@ -149,10 +148,11 @@ const columns: TableColumn<StockRow>[] = [
         id: "real_qty",
         header: "Current Quantity",
         cell: ({ row }) => {
-            const additional = row.original.pack_size
-                ? ` (${row.original.pack_size})`
-                : "";
-            return formatNumber(row.original.real_qty, "decimal") + additional;
+            if (row.original.pack_size) {
+                return row.original.pack_size;
+            }
+
+            return formatNumber(row.original.real_qty, "decimal");
         },
     },
     {
