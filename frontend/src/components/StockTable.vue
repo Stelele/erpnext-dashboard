@@ -22,9 +22,13 @@
                 loadingColor="primary"
             >
                 <template #expanded="{ row }">
-                    <div class="grid grid-cols-2 w-full md:w-1/2 px-1 md:px-4">
+                    <div
+                        class="grid grid-cols-2 w-full md:w-1/2 px-1 md:px-4 text-wrap"
+                    >
                         <div>Item</div>
-                        <div>{{ row.original.item_name }}</div>
+                        <div>
+                            {{ row.original.item_name }}
+                        </div>
                         <div>Group</div>
                         <div>{{ row.original.item_group }}</div>
                         <div>Current Quantity</div>
@@ -140,6 +144,11 @@ const columns: TableColumn<StockRow>[] = [
     {
         id: "item_name",
         header: "Item",
+        meta: {
+            class: {
+                td: "max-w-[160px] md:max-w-[200px] lg:max-w-[300px] overflow-hidden text-ellipsis",
+            },
+        },
         cell: ({ row }) => {
             return row.original.item_name;
         },
