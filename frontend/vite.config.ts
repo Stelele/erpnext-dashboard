@@ -20,8 +20,8 @@ export default defineConfig(({ mode }) => ({
         },
         table: {
           slots: {
-            th: "px-4 py-3.5 text-lg text-highlighted text-left rtl:text-right font-semibold [&:has([role=checkbox])]:pe-0",
-            td: "p-4 text-lg text-normal whitespace-nowrap [&:has([role=checkbox])]:pe-0",
+            th: "px-3.5 py-3.5 text-lg text-highlighted text-left rtl:text-right font-semibold [&:has([role=checkbox])]:pe-0",
+            td: "p-3.5 text-lg text-normal whitespace-nowrap [&:has([role=checkbox])]:pe-0",
           },
         },
       },
