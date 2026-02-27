@@ -13,7 +13,11 @@ import type { GroupSummary, ItemGroupSummary } from "../types/MonthSales";
 import moment from "moment";
 import type { Expense, Payment } from "../types/Expenses";
 import type { SalesDetail } from "@/types/SalesDetail";
-import type { StockDetail, StockValueSummary } from "@/types/StockDetail";
+import type {
+  DailyStockValue,
+  StockDetail,
+  StockValueSummary,
+} from "@/types/StockDetail";
 
 export const useDataStore = defineStore("dataStore", () => {
   const loading = ref(true);
@@ -36,6 +40,7 @@ export const useDataStore = defineStore("dataStore", () => {
   const stockDetails = ref<StockDetail[]>([]);
 
   const stockValues = ref<StockValueSummary[]>([]);
+  const dailyStockValues = ref<DailyStockValue[]>([]);
   const salesStockValues = ref<GroupSummary[]>([]);
 
   const currentPeriod = ref<Period>("This Month");
@@ -67,6 +72,7 @@ export const useDataStore = defineStore("dataStore", () => {
       Promise<StockValueSummary[]>,
       Promise<GroupSummary[]>,
       Promise<GroupSummary[]>,
+      Promise<DailyStockValue[]>,
     ] = [
       erpNextService.getSalesSummary(period),
       prevPeriod
@@ -112,6 +118,7 @@ export const useDataStore = defineStore("dataStore", () => {
         ),
       ]).then((r) => r.flat()),
       erpNextService.getPrevGroupedExpenses("months", 6),
+      erpNextService.getDailyStockValueSummary("months", 3),
     ];
 
     const result = await Promise.all(erpNextServicePromises);
@@ -131,6 +138,7 @@ export const useDataStore = defineStore("dataStore", () => {
     stockValues.value = result[13];
     salesStockValues.value = result[14];
     prev6MonthsExpenses.value = result[15];
+    dailyStockValues.value = result[16];
 
     loading.value = false;
   }
@@ -169,6 +177,7 @@ export const useDataStore = defineStore("dataStore", () => {
     stockDetails,
     stockValues,
     salesStockValues,
+    dailyStockValues,
     sales,
     loading,
     update,

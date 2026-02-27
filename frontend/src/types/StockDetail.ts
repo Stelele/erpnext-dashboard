@@ -13,3 +13,9 @@ export interface StockValueSummary {
   average_stock_value: number;
   closing_balance: number;
 }
+
+export interface DailyStockValue {
+  posting_date: string;
+  daily_stock_value: number;
+  days_from_end: number;
+}

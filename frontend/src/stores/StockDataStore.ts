@@ -9,6 +9,7 @@ import type { Period } from "@/utils/PeriodUtilities";
 import moment from "moment";
 import type { DoughnutChartData } from "@/components/CardDoughnutChart.vue";
 import type { StockRow } from "@/components/StockTable.vue";
+import type { LineChartData } from "@/components/CardLineChart.vue";
 
 export const useStockDataStore = defineStore("stockDataStore", () => {
   const dataStore = useDataStore();
@@ -25,6 +26,7 @@ export const useStockDataStore = defineStore("stockDataStore", () => {
   const totalSellingValue = ref(0);
   const averageMarkupPercentage = ref(0);
   const stockTableData = ref<StockRow[]>([]);
+  const dailyStockValues = ref<LineChartData>({ labels: [], datasets: [] });
 
   function update() {
     salesVsStock.value = getSalesVsStock();
@@ -33,6 +35,7 @@ export const useStockDataStore = defineStore("stockDataStore", () => {
     totalSellingValue.value = getTotalSellingValue();
     averageMarkupPercentage.value = getAverageMarkupPercentage();
     stockTableData.value = getStockTableData();
+    dailyStockValues.value = getDailyStockValues();
 
     function getSalesVsStock() {
       const groupedSales = dataStore.salesStockValues;
@@ -148,6 +151,24 @@ export const useStockDataStore = defineStore("stockDataStore", () => {
         return a.item_group.localeCompare(b.item_group);
       });
     }
+
+    function getDailyStockValues() {
+      const sortedData = dataStore.dailyStockValues.sort(
+        (a, b) => b.days_from_end - a.days_from_end,
+      );
+
+      const labels = sortedData.map((data) =>
+        moment(data.posting_date, "YYYY-MM-DD").format("DD MMM"),
+      );
+      const datasets = [
+        {
+          label: "Closing Stock",
+          data: sortedData.map((data) => data.daily_stock_value),
+        },
+      ];
+
+      return { labels, datasets } as LineChartData;
+    }
   }
 
   return {
@@ -157,6 +178,7 @@ export const useStockDataStore = defineStore("stockDataStore", () => {
     totalSellingValue,
     averageMarkupPercentage,
     stockTableData,
+    dailyStockValues,
     update,
   };
 });

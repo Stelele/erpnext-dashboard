@@ -20,6 +20,10 @@
             title="Stock Value By Item Group"
             :data="stockDataStore.stockByItemGroup"
         />
+        <CardLineChart
+            title="Daily Stock Value"
+            :data="stockDataStore.dailyStockValues"
+        />
         <StockTable
             :data="stockDataStore.stockTableData"
             :loading="dataStore.loading"

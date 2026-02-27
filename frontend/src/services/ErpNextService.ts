@@ -17,7 +17,11 @@ import type {
 } from "@/types/Expenses";
 import type { JournalEntry } from "@/types/JournalEntry";
 import type { SalesDetail } from "@/types/SalesDetail";
-import type { StockDetail, StockValueSummary } from "@/types/StockDetail";
+import type {
+  DailyStockValue,
+  StockDetail,
+  StockValueSummary,
+} from "@/types/StockDetail";
 
 type ErpNextResponse<T> = { data: T[] };
 export type Grouping = "years" | "months" | "days";
@@ -199,6 +203,26 @@ export class ErpNextService {
             time_grouping: this.getDateGrouping(
               this.getPeriodDateGrouping(period),
             ),
+          },
+        },
+      )
+      .then((resp) => resp?.data.data);
+  }
+
+  public getDailyStockValueSummary(grouping: Grouping, diff: number) {
+    const authStore = useAuthStore();
+
+    return this.instance
+      .get<ErpNextResponse<DailyStockValue>>(
+        "/api/v2/method/get_daily_stock_value",
+        {
+          params: {
+            from_date: moment()
+              .subtract(diff, grouping)
+              .startOf(this.getGroupingStart(grouping))
+              .format("YYYY-MM-DD"),
+            to_date: moment().endOf("day").format("YYYY-MM-DD"),
+            company: authStore.company,
           },
         },
       )
