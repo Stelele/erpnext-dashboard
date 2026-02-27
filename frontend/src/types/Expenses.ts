@@ -40,4 +40,5 @@ export interface Payment {
   type: "Expense" | "Order";
   description: string;
   amount: number;
+  account?: string;
 }

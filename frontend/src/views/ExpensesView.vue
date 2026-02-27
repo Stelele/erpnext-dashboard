@@ -17,6 +17,18 @@
                 </template>
             </UModal>
         </div>
+        <CardDoughnutChart
+            title="Orders By Suppliers"
+            :data="expenseDataStore.orderBreakdown"
+        />
+        <CardDoughnutChart
+            title="Expenses By Type"
+            :data="expenseDataStore.expenseBreakdown"
+        />
+        <CardBarChart
+            title="Expenses from last 6 months"
+            :data="expenseDataStore.prev6MonthsExpenses"
+        />
         <ExpenseTable
             :data="dataStore.paymentEntries"
             :loading="dataStore.loading"
@@ -28,6 +40,7 @@
 import { ref } from "vue";
 import type { Expense } from "@/types/Expenses";
 import { useDataStore } from "@/stores/DataStore";
+import { useExpenseDataStore } from "@/stores/ExpenseDataStore";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 
 const open = ref(false);
@@ -35,6 +48,7 @@ const open = ref(false);
 //@ts-ignore
 const toast = useToast();
 const dataStore = useDataStore();
+const expenseDataStore = useExpenseDataStore();
 
 async function onSubmit(expense: Expense) {
     open.value = false;

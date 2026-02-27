@@ -26,6 +26,7 @@ export const useDataStore = defineStore("dataStore", () => {
   const prevPurchaseGroupSummary = ref<GroupSummary[] | undefined>(undefined);
   const expensesSummary = ref<GroupSummary[]>([]);
   const prevExpensesSummary = ref<GroupSummary[] | undefined>(undefined);
+  const prev6MonthsExpenses = ref<GroupSummary[]>([]);
   const accountMappings = ref<AccountMappings>({
     incomes: {},
     expenses: {},
@@ -64,6 +65,7 @@ export const useDataStore = defineStore("dataStore", () => {
       Promise<SalesDetail[]>,
       Promise<StockDetail[]>,
       Promise<StockValueSummary[]>,
+      Promise<GroupSummary[]>,
       Promise<GroupSummary[]>,
     ] = [
       erpNextService.getSalesSummary(period),
@@ -109,6 +111,7 @@ export const useDataStore = defineStore("dataStore", () => {
             : "Last Semester",
         ),
       ]).then((r) => r.flat()),
+      erpNextService.getPrevGroupedExpenses("months", 6),
     ];
 
     const result = await Promise.all(erpNextServicePromises);
@@ -127,6 +130,7 @@ export const useDataStore = defineStore("dataStore", () => {
     stockDetails.value = result[12];
     stockValues.value = result[13];
     salesStockValues.value = result[14];
+    prev6MonthsExpenses.value = result[15];
 
     loading.value = false;
   }
@@ -159,6 +163,7 @@ export const useDataStore = defineStore("dataStore", () => {
     prevPurchaseGroupSummary,
     expensesSummary,
     prevExpensesSummary,
+    prev6MonthsExpenses,
     accountMappings,
     paymentEntries,
     stockDetails,

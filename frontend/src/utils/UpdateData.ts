@@ -1,4 +1,5 @@
 import { useDataStore } from "@/stores/DataStore";
+import { useExpenseDataStore } from "@/stores/ExpenseDataStore";
 import { useOverViewDataStore } from "@/stores/OverViewDataStore";
 import { useSalesDataStore } from "@/stores/SalesDataStore";
 import { useStockDataStore } from "@/stores/StockDataStore";
@@ -15,6 +16,7 @@ export async function update() {
   useOverViewDataStore().update();
   useSalesDataStore().update();
   useStockDataStore().update();
+  useExpenseDataStore().update();
 
   timeOutId = setTimeout(update, 5 * 60 * 1000);
 }

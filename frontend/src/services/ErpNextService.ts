@@ -20,7 +20,7 @@ import type { SalesDetail } from "@/types/SalesDetail";
 import type { StockDetail, StockValueSummary } from "@/types/StockDetail";
 
 type ErpNextResponse<T> = { data: T[] };
-export type SalesGrouping = "years" | "months" | "days";
+export type Grouping = "years" | "months" | "days";
 export type AccountResponse = { account_name: string; name: string };
 export type AllAccountsResponse = {
   data: {
@@ -83,12 +83,11 @@ export class ErpNextService {
     ];
 
     const [jeResponse, piResponse] = await Promise.all([
-      this.instance.get(`/api/resource/Journal Entry`, {
+      this.instance.get(`/api/v2/method/get_journal_entries`, {
         params: {
-          filters: JSON.stringify(commonFilters),
-          fields:
-            '["name", "posting_date", "docstatus", "user_remark", "total_debit"]',
-          limit_page_length: 0,
+          company: authStore.company,
+          start_date: dateRange.start,
+          end_date: dateRange.end,
         },
       }),
       this.instance.get(`/api/resource/Purchase Invoice`, {
@@ -107,6 +106,7 @@ export class ErpNextService {
       date: je.posting_date,
       status: docstatusMap[je.docstatus],
       type: "Expense",
+      account: je.debit_account,
       description: je.user_remark || "",
       amount: je.total_debit,
     }));
@@ -241,13 +241,35 @@ export class ErpNextService {
       .then((resp) => resp?.data.data);
   }
 
-  public getPrevGroupedSales(grouping: SalesGrouping, diff: number) {
+  public getPrevGroupedSales(grouping: Grouping, diff: number) {
     const authStore = useAuthStore();
     const groupingTemplate = this.getDateGrouping(grouping);
 
     return this.instance
       .get<ErpNextResponse<GroupSummary>>(
         "/api/v2/method/grouped_sales_summary",
+        {
+          params: {
+            from_date: moment()
+              .subtract(diff, grouping)
+              .startOf(this.getGroupingStart(grouping))
+              .format("YYYY-MM-DD"),
+            to_date: moment().endOf("month").format("YYYY-MM-DD"),
+            company: authStore.company,
+            time_grouping: groupingTemplate,
+          },
+        },
+      )
+      .then((resp) => resp?.data.data);
+  }
+
+  public getPrevGroupedExpenses(grouping: Grouping, diff: number) {
+    const authStore = useAuthStore();
+    const groupingTemplate = this.getDateGrouping(grouping);
+
+    return this.instance
+      .get<ErpNextResponse<GroupSummary>>(
+        "/api/v2/method/grouped_expenses_summary",
         {
           params: {
             from_date: moment()
@@ -354,7 +376,7 @@ export class ErpNextService {
       });
   }
 
-  private getDateGrouping(grouping: SalesGrouping) {
+  private getDateGrouping(grouping: Grouping) {
     switch (grouping) {
       case "years":
         return "%%y";
@@ -365,7 +387,7 @@ export class ErpNextService {
     }
   }
 
-  private getGroupingStart(grouping: SalesGrouping) {
+  private getGroupingStart(grouping: Grouping) {
     switch (grouping) {
       case "years":
         return "year";
