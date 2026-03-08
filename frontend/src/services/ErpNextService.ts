@@ -104,9 +104,6 @@ export class ErpNextService {
       }),
     ]);
 
-    console.log("This is something");
-    // this is a comment
-    // Map Journal Entries
     const journalEntries: Payment[] = jeResponse.data.data.map((je: any) => ({
       id: je.name,
       date: je.posting_date,
