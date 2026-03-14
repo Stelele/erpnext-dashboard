@@ -1,11 +1,11 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-import OverviewView from "@/views/OverviewView.vue";
-import ExpensesView from "@/views/ExpensesView.vue";
-import SalesView from "@/views/SalesView.vue";
-import StockView from "@/views/StockView.vue";
-
 import { authGuard } from "@auth0/auth0-vue";
+
+const OverviewView = () => import("@/views/OverviewView.vue");
+const ExpensesView = () => import("@/views/ExpensesView.vue");
+const SalesView = () => import("@/views/SalesView.vue");
+const StockView = () => import("@/views/StockView.vue");
 
 export const router = createRouter({
   routes: [

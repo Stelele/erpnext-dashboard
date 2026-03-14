@@ -18,7 +18,6 @@
 import type { UniqueExpense } from "@/components/BulkExpenseUploadButton.vue";
 import { formatNumber } from "@/utils/FormatNumber";
 import type { TableColumn } from "@nuxt/ui";
-import moment from "moment";
 import { h, ref, resolveComponent, watch } from "vue";
 
 const UButton = resolveComponent("UButton");
@@ -97,16 +96,6 @@ const columns: TableColumn<UniqueExpense>[] = [
 
 function removeRow(idToRemove: string) {
     importData.value = importData.value.filter((row) => row.id !== idToRemove);
-}
-
-function addRow() {
-    importData.value.push({
-        id: Date.now().toString(),
-        date: moment().format("YYYY-MM-DD"),
-        expenseType: "Sekuru",
-        amount: 0,
-        description: "",
-    });
 }
 
 function submitBulkImport() {
