@@ -154,6 +154,37 @@ export const useDataStore = defineStore("dataStore", () => {
     );
   }
 
+  async function bulkAddDraftExpenses(
+    expenses: Expense[],
+  ): Promise<{ success: boolean; expense: Expense; error?: Error }[]> {
+    const results: { success: boolean; expense: Expense; error?: Error }[] = [];
+    const batchSize = 20;
+
+    for (let i = 0; i < expenses.length; i += batchSize) {
+      const batch = expenses.slice(i, i + batchSize);
+      const batchResults = await Promise.allSettled(
+        batch.map((expense) => addDraftExpense(expense)),
+      );
+
+      batchResults.forEach((result, index) => {
+        const expense = batch[index];
+        if (!expense) return;
+        
+        if (result.status === "fulfilled") {
+          results.push({ success: true, expense });
+        } else {
+          results.push({
+            success: false,
+            expense,
+            error: result.reason,
+          });
+        }
+      });
+    }
+
+    return results;
+  }
+
   async function update() {
     await getData();
   }
@@ -182,5 +213,6 @@ export const useDataStore = defineStore("dataStore", () => {
     loading,
     update,
     addDraftExpense,
+    bulkAddDraftExpenses,
   };
 });

@@ -5,6 +5,7 @@ export type ExpenseType =
   | "Utilities"
   | "Consumables"
   | "Neg Variance"
+  | "Staff"
   | "Other";
 export type IncomeType = "Pos Variance" | "Cash";
 
@@ -25,6 +26,7 @@ export const ExpenseAccountMapping: Record<ExpenseType, string> = {
   Utilities: "Utility Expenses",
   Consumables: "Consumables",
   "Neg Variance": "Variance Deficit",
+  Staff: "Administrative Expenses",
   Other: "Miscellaneous Expenses",
 };
 
