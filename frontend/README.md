@@ -11,6 +11,8 @@ A Vue 3 + TypeScript dashboard that surfaces point-of-sale insights captured in 
 - **Period Filtering** - Filter data by Today, Yesterday, This Week, Last Week, This Month, Last Month, This Quarter, Last Quarter, This Semester, Last Semester, This Year, Last Year
 - **Authentication** - Auth0-based authentication protecting all routes
 - **PWA Support** - Service worker enabled for offline capability
+- **Offline Data** - SQL.js for local data import
+- **Excel Import** - Import any data table from .xlsx format
 
 ## Tech Stack
 
@@ -25,6 +27,8 @@ A Vue 3 + TypeScript dashboard that surfaces point-of-sale insights captured in 
 - openapi-fetch for type-safe API calls
 - moment.js for date handling
 - vite-plugin-pwa for PWA support
+- sql.js for offline data caching
+- xlsx (SheetJS) for Excel import
 
 ## Quick Start
 
