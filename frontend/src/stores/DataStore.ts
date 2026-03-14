@@ -48,8 +48,6 @@ export const useDataStore = defineStore("dataStore", () => {
   const dateRange = computed(() => getPeriodDateRange(currentPeriod.value));
 
   async function getData() {
-    loading.value = true;
-
     const erpNextService = new ErpNextService();
     const period = currentPeriod.value;
     const prevPeriod = getPreviousPeriod(currentPeriod.value);
@@ -139,8 +137,6 @@ export const useDataStore = defineStore("dataStore", () => {
     salesStockValues.value = result[14];
     prev6MonthsExpenses.value = result[15];
     dailyStockValues.value = result[16];
-
-    loading.value = false;
   }
 
   function addDraftExpense(expense: Expense) {
@@ -169,7 +165,7 @@ export const useDataStore = defineStore("dataStore", () => {
       batchResults.forEach((result, index) => {
         const expense = batch[index];
         if (!expense) return;
-        
+
         if (result.status === "fulfilled") {
           results.push({ success: true, expense });
         } else {
@@ -187,6 +183,31 @@ export const useDataStore = defineStore("dataStore", () => {
 
   async function update() {
     await getData();
+  }
+
+  function toJson() {
+    return JSON.parse(
+      JSON.stringify({
+        salesSummary: salesSummary.value,
+        prevSalesSummary: prevSalesSummary.value,
+        prev6MonthsSales: prev6MonthsSales.value,
+        prevXGroupingSales: prevXGroupingSales.value,
+        itemGroupSalesSummary: itemGroupSalesSummary.value,
+        purchaseGroupSummary: purchaseGroupSummary.value,
+        prevPurchaseGroupSummary: prevPurchaseGroupSummary.value,
+        expensesSummary: expensesSummary.value,
+        prevExpensesSummary: prevExpensesSummary.value,
+        prev6MonthsExpenses: prev6MonthsExpenses.value,
+        accountMappings: accountMappings.value,
+        paymentEntries: paymentEntries.value,
+        sales: sales.value,
+        stockDetails: stockDetails.value,
+        stockValues: stockValues.value,
+        salesStockValues: salesStockValues.value,
+        dailyStockValues: dailyStockValues.value,
+        currentPeriod: currentPeriod.value,
+      }),
+    );
   }
 
   return {
@@ -212,6 +233,7 @@ export const useDataStore = defineStore("dataStore", () => {
     sales,
     loading,
     update,
+    toJson,
     addDraftExpense,
     bulkAddDraftExpenses,
   };
