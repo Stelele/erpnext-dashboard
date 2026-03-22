@@ -94,7 +94,7 @@ function computePrev6MonthsExpenses(data: SerializedData): BarChartData {
     labels,
     datasets: [
       {
-        label: "Sales",
+        label: "Expenses",
         data: dataEntry,
       },
     ],
