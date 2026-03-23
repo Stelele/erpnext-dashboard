@@ -9,6 +9,12 @@ import type { DoughnutChartData, BarChartData } from "../types/ChartData";
 import moment from "moment";
 import type { LineChartData } from "@/components/CardLineChart.vue";
 
+moment.updateLocale("en", {
+  week: {
+    dow: 1, // Monday is the first day of the week
+  },
+});
+
 interface SerializedData {
   stockValues: StockValueSummary[];
   salesStockValues: GroupSummary[];

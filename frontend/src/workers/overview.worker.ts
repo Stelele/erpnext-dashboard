@@ -12,6 +12,12 @@ import {
 } from "@/utils/DateCalculations";
 import moment from "moment";
 
+moment.updateLocale("en", {
+  week: {
+    dow: 1, // Monday is the first day of the week
+  },
+});
+
 interface SerializedData {
   salesSummary: GroupSummary[];
   prevSalesSummary: GroupSummary[] | undefined;

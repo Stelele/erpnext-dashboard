@@ -1,6 +1,12 @@
 import moment from "moment";
 import type { SalesDetail } from "../types/SalesDetail";
 
+moment.updateLocale("en", {
+  week: {
+    dow: 1, // Monday is the first day of the week
+  },
+});
+
 interface SerializedData {
   sales: SalesDetail[];
 }
