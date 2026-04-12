@@ -17,7 +17,6 @@ moment.updateLocale("en", {
 const authStore = useAuthStore();
 
 onBeforeMount(async () => {
-    console.log("Updating auth store...");
     await authStore.update();
     update();
 });
