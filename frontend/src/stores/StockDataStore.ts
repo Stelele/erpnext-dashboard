@@ -56,7 +56,11 @@ export const useStockDataStore = defineStore("stockDataStore", () => {
     }
   }
 
-  function applySalesVsStock(stockData: { grouping_name: string; average_stock_value: number }[], salesData: { grouping_name: string; total: number }[], currentPeriod: string) {
+  function applySalesVsStock(
+    stockData: { grouping_name: string; average_stock_value: number }[],
+    salesData: { grouping_name: string; total: number }[],
+    currentPeriod: string
+  ) {
     const dataEntry: BubbleDataPoint[] = stockData.map((stock) => {
       const sales = salesData.find(s => s.grouping_name === stock.grouping_name);
       return {

@@ -22,7 +22,7 @@ export const useSalesDataStore = defineStore("salesDataStore", () => {
       item_name: sale.item_name,
       item_group: sale.item_group,
       qty: sale.qty,
-      rate: sale.item_total_amount / (sale.qty || 1),
+      rate: Math.round(sale.item_total_amount / (sale.qty || 1) * 100) / 100,
       item_total_amount: sale.item_total_amount,
     }));
 

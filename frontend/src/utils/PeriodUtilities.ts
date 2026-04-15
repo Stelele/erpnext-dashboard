@@ -1,6 +1,6 @@
 import moment from "moment"
 
-export type Period = 'Today' | 'Yesterday' | 'This Week' | 'Last Week' | 'This Month' | 'Last Month' | 'This Quarter' | 'Last Quarter' | 'This Semester' | 'Last Semester' | 'This Year' | 'Last Year'
+export type Period = 'Today' | 'Yesterday' | 'This Week' | 'Last Week' | 'This Month' | 'Last Month' | 'This Quarter' | 'Last Quarter' | 'This Semester' | 'Last Semester' | 'This Year' | 'Last Year' | 'Last 12 Months'
 export type PeriodDateRange = {
     start: string
     end: string
@@ -68,6 +68,11 @@ export function getPeriodDateRange(period: Period): PeriodDateRange {
             return {
                 start: moment().subtract(1, 'year').startOf('year').format('YYYY-MM-DD'),
                 end: moment().subtract(1, 'year').endOf('year').format('YYYY-MM-DD')
+            }
+        case 'Last 12 Months':
+            return {
+                start: moment().subtract(11, 'months').startOf('month').format('YYYY-MM-DD'),
+                end: moment().endOf('month').format('YYYY-MM-DD')
             }
     }
 }

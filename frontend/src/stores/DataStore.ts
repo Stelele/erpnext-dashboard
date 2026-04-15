@@ -110,6 +110,8 @@ export const useDataStore = defineStore("dataStore", () => {
     const barChartConfig = getBarChartConfig(period);
     const barChartTitle = getBarChartTitle(period);
 
+    const stockPeriod = ["Today", "This Week"].includes(period) ? "This Week" : "Last 12 Months";
+
     const [
       dashboardResults,
       accountMappingsData,
@@ -118,6 +120,8 @@ export const useDataStore = defineStore("dataStore", () => {
       dailyStockValues,
       aggregatedSales,
       barChartData,
+      stockValueData,
+      salesSummaryData,
     ] = await Promise.all([
       erpNextService.getDashboardComplete(period, prevPeriod),
       erpNextService.getAccountMappings(),
@@ -126,6 +130,8 @@ export const useDataStore = defineStore("dataStore", () => {
       erpNextService.getDailyStockValueSummary("months", 3),
       erpNextService.getDashboardSalesAggregated(period),
       erpNextService.getDashboardBarChart(barChartConfig.fromDate, barChartConfig.toDate, barChartConfig.grouping),
+      erpNextService.getStockValueSummary(stockPeriod),
+      erpNextService.getSalesSummary(stockPeriod),
     ]);
 
     accountMappings.value = accountMappingsData;
@@ -145,6 +151,7 @@ export const useDataStore = defineStore("dataStore", () => {
     );
     useExpenseDataStore().parseDashboardResults(dashboardResults);
     useStockDataStore().parseDashboardResults(dashboardResults);
+    useStockDataStore().applySalesVsStock(stockValueData, salesSummaryData, period);
     useStockDataStore().setStockTableData(stockDetailsData);
     useStockDataStore().setDailyStockValues({
       labels: dailyStockValues.map(d => moment(d.posting_date).format("DD MMM")),

@@ -58,6 +58,7 @@ query = """
     WHERE 
         bin.warehouse = %s 
         AND bin.projected_qty > 0
+ORDER BY item_group ASC, item_name ASC
 """
 
 data = frappe.db.sql(query, (company, warehouse, warehouse), as_dict=True)

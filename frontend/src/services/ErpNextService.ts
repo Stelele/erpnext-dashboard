@@ -513,6 +513,8 @@ export class ErpNextService {
         return "years";
       case "Last Year":
         return "years";
+      case "Last 12 Months":
+        return "months";
     }
   }
 }
