@@ -3,12 +3,11 @@ import { useAuthStore } from "@/stores/AuthStore";
 import axios from "axios";
 import {
   getPeriodDateRange,
-  getPeriodDateRangeFromCurrent,
   type Period,
 } from "@/utils/PeriodUtilities";
 import { ExpenseAccountMapping, IncomeAccountMapping } from "@/types/Expenses";
 import moment from "moment";
-import type { GroupSummary, ItemGroupSummary } from "@/types/MonthSales";
+import type { GroupSummary } from "@/types/MonthSales";
 import type {
   Expense,
   ExpenseType,
@@ -49,121 +48,6 @@ export class ErpNextService {
         "Content-Type": "application/json",
       },
     });
-  }
-
-  public getExpensesSummary(period: Period = "Today") {
-    const authStore = useAuthStore();
-    const dateRange = getPeriodDateRange(period);
-
-    return this.instance
-      .get<ErpNextResponse<GroupSummary>>(
-        "/api/v2/method/grouped_expenses_summary",
-        {
-          params: {
-            from_date: dateRange.start,
-            to_date: dateRange.end,
-            company: authStore.company,
-            time_grouping: this.getDateGrouping(
-              this.getPeriodDateGrouping(period),
-            ),
-          },
-        },
-      )
-      .then((resp) => resp?.data.data);
-  }
-
-  public async getPaymentEntries(period: Period = "Today") {
-    const authStore = useAuthStore();
-    const dateRange = getPeriodDateRange(period);
-
-    const docstatusMap: Record<number, Payment["status"]> = {
-      0: "Draft",
-      1: "Submitted",
-      2: "Cancelled",
-    };
-    const commonFilters = [
-      ["company", "=", authStore.company],
-      ["posting_date", "between", [dateRange.start, dateRange.end]],
-    ];
-
-    const [jeResponse, piResponse] = await Promise.all([
-      this.instance.get(`/api/v2/method/get_journal_entries`, {
-        params: {
-          company: authStore.company,
-          start_date: dateRange.start,
-          end_date: dateRange.end,
-        },
-      }),
-      this.instance.get(`/api/resource/Purchase Invoice`, {
-        params: {
-          filters: JSON.stringify(commonFilters),
-          fields:
-            '["name", "posting_date", "docstatus", "supplier", "base_grand_total"]',
-          limit_page_length: 0,
-        },
-      }),
-    ]);
-
-    const journalEntries: Payment[] = jeResponse.data.data.map((je: any) => ({
-      id: je.name,
-      date: je.posting_date,
-      status: docstatusMap[je.docstatus],
-      type: "Expense",
-      account: je.debit_account,
-      description: je.user_remark || "",
-      amount: je.total_debit,
-    }));
-
-    // Map Purchase Invoices
-    const purchaseInvoices: Payment[] = piResponse.data.data.map((pi: any) => ({
-      id: pi.name,
-      date: pi.posting_date,
-      status: docstatusMap[pi.docstatus],
-      type: "Order",
-      description: pi.supplier,
-      amount: pi.base_grand_total,
-    }));
-
-    // Merge and sort by date descending
-    return [...journalEntries, ...purchaseInvoices].sort(
-      (a, b) => moment(b.date).valueOf() - moment(a.date).valueOf(),
-    );
-  }
-
-  public getPurchaseGroupSummary(period: Period = "Today") {
-    const authStore = useAuthStore();
-    const dateRange = getPeriodDateRange(period);
-
-    return this.instance
-      .get<ErpNextResponse<GroupSummary>>(
-        "/api/v2/method/grouped_purchase_invoice_summary",
-        {
-          params: {
-            from_date: dateRange.start,
-            to_date: dateRange.end,
-            company: authStore.company,
-            time_grouping: this.getDateGrouping(
-              this.getPeriodDateGrouping(period),
-            ),
-          },
-        },
-      )
-      .then((resp) => resp?.data.data);
-  }
-
-  public async getSales(period: Period = "Today") {
-    const authStore = useAuthStore();
-    const dateRange = getPeriodDateRange(period);
-
-    return this.instance
-      .get<ErpNextResponse<SalesDetail>>("/api/v2/method/get_sales", {
-        params: {
-          from_date: dateRange.start,
-          to_date: dateRange.end,
-          company: authStore.company,
-        },
-      })
-      .then((resp) => resp?.data.data);
   }
 
   public getSalesSummary(period: Period = "Today") {
@@ -228,29 +112,6 @@ export class ErpNextService {
       .then((resp) => resp?.data.data);
   }
 
-  public getItemGroupSalesSummary(period: Period = "Today") {
-    const authStore = useAuthStore();
-    const dateRange = getPeriodDateRange(period);
-
-    return this.instance
-      .get<ErpNextResponse<ItemGroupSummary>>(
-        "/api/v2/method/item_group_sales_summary",
-        {
-          params: {
-            from_date: dateRange.start,
-            to_date: dateRange.end,
-            company: authStore.company,
-            time_grouping: this.getDateGrouping(
-              ["Today", "Yesterday", "This Week", "Last Week"].includes(period)
-                ? "days"
-                : "months",
-            ),
-          },
-        },
-      )
-      .then((resp) => resp?.data.data);
-  }
-
   public getStockLevels() {
     const authStore = useAuthStore();
 
@@ -261,28 +122,6 @@ export class ErpNextService {
           warehouse: "Stores - NEs",
         },
       })
-      .then((resp) => resp?.data.data);
-  }
-
-  public getPrevGroupedSales(grouping: Grouping, diff: number) {
-    const authStore = useAuthStore();
-    const groupingTemplate = this.getDateGrouping(grouping);
-
-    return this.instance
-      .get<ErpNextResponse<GroupSummary>>(
-        "/api/v2/method/grouped_sales_summary",
-        {
-          params: {
-            from_date: moment()
-              .subtract(diff, grouping)
-              .startOf(this.getGroupingStart(grouping))
-              .format("YYYY-MM-DD"),
-            to_date: moment().endOf("month").format("YYYY-MM-DD"),
-            company: authStore.company,
-            time_grouping: groupingTemplate,
-          },
-        },
-      )
       .then((resp) => resp?.data.data);
   }
 
@@ -333,25 +172,6 @@ export class ErpNextService {
           company: authStore.company,
         },
       })
-      .then((resp) => resp?.data.data);
-  }
-
-  public getPrevGroupSalesFromCurrent(period: Period) {
-    const authStore = useAuthStore();
-    const dateRange = getPeriodDateRangeFromCurrent(period);
-
-    return this.instance
-      .get<ErpNextResponse<GroupSummary>>(
-        "/api/v2/method/grouped_sales_summary",
-        {
-          params: {
-            from_date: dateRange.start,
-            to_date: dateRange.end,
-            company: authStore.company,
-            time_grouping: this.getDateGrouping("days"),
-          },
-        },
-      )
       .then((resp) => resp?.data.data);
   }
 

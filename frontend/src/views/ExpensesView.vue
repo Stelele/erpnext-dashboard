@@ -1,4 +1,3 @@
-ju36y7
 <template>
     <DashboardLayout>
         <div class="col-span-6 flex flex-row-reverse gap-2">
