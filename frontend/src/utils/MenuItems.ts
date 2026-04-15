@@ -9,7 +9,9 @@ export const filterItems = computed<DropdownMenuItem[]>(() => [
   { label: "This Week", onSelect: () => onFilterChange("This Week") },
   { label: "This Month", onSelect: () => onFilterChange("This Month") },
   { label: "This Quarter", onSelect: () => onFilterChange("This Quarter") },
+  { label: "Last Quarter", onSelect: () => onFilterChange("Last Quarter") },
   { label: "This Year", onSelect: () => onFilterChange("This Year") },
+  { label: "Last Year", onSelect: () => onFilterChange("Last Year") },
 ]);
 
 function onFilterChange(value: Period) {
