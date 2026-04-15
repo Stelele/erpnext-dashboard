@@ -34,7 +34,6 @@ function computeSalesDetails(sales: SalesDetail[]): SalesDetail[] {
   const temp: SalesDetail[] = [];
   for (const saleDetail of sales) {
     const entry = temp.find((item) => {
-      console.log(item.posting_date, saleDetail.posting_date);
       const itemDate = moment(item.posting_date, "YYYY-MM-DD").format(
         "DD MMM YYYY",
       );
