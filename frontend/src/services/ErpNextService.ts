@@ -308,6 +308,34 @@ export class ErpNextService {
       .then((resp) => resp?.data.data);
   }
 
+  public getOrderBreakdown(period: Period) {
+    const authStore = useAuthStore();
+    const dateRange = getPeriodDateRange(period);
+    return this.instance
+      .get("/api/v2/method/dashboard_order_breakdown", {
+        params: {
+          from_date: dateRange.start,
+          to_date: dateRange.end,
+          company: authStore.company,
+        },
+      })
+      .then((resp) => resp?.data.data);
+  }
+
+  public getExpenseBreakdown(period: Period) {
+    const authStore = useAuthStore();
+    const dateRange = getPeriodDateRange(period);
+    return this.instance
+      .get("/api/v2/method/dashboard_expense_breakdown", {
+        params: {
+          from_date: dateRange.start,
+          to_date: dateRange.end,
+          company: authStore.company,
+        },
+      })
+      .then((resp) => resp?.data.data);
+  }
+
   public getPrevGroupSalesFromCurrent(period: Period) {
     const authStore = useAuthStore();
     const dateRange = getPeriodDateRangeFromCurrent(period);

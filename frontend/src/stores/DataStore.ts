@@ -122,6 +122,9 @@ export const useDataStore = defineStore("dataStore", () => {
       barChartData,
       stockValueData,
       salesSummaryData,
+      orderBreakdownData,
+      prevExpensesData,
+      expenseBreakdownData,
     ] = await Promise.all([
       erpNextService.getDashboardComplete(period, prevPeriod),
       erpNextService.getAccountMappings(),
@@ -132,6 +135,9 @@ export const useDataStore = defineStore("dataStore", () => {
       erpNextService.getDashboardBarChart(barChartConfig.fromDate, barChartConfig.toDate, barChartConfig.grouping),
       erpNextService.getStockValueSummary(stockPeriod),
       erpNextService.getSalesSummary(stockPeriod),
+      erpNextService.getOrderBreakdown(period),
+      erpNextService.getPrevGroupedExpenses("months", 6),
+      erpNextService.getExpenseBreakdown(period),
     ]);
 
     accountMappings.value = accountMappingsData;
@@ -150,6 +156,9 @@ export const useDataStore = defineStore("dataStore", () => {
       barChartConfig.grouping
     );
     useExpenseDataStore().parseDashboardResults(dashboardResults);
+    useExpenseDataStore().applyExpenseBreakdown(expenseBreakdownData, accountMappings.value.expenses);
+    useExpenseDataStore().applyOrderBreakdown(orderBreakdownData);
+    useExpenseDataStore().applyPrev6MonthsExpenses(prevExpensesData);
     useStockDataStore().parseDashboardResults(dashboardResults);
     useStockDataStore().applySalesVsStock(stockValueData, salesSummaryData, period);
     useStockDataStore().setStockTableData(stockDetailsData);

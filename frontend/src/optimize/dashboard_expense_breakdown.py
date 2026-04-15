@@ -2,7 +2,6 @@ from_date = frappe.form_dict.get("from_date")
 to_date = frappe.form_dict.get("to_date")
 company = frappe.form_dict.get("company")
 
-
 def get_bounds(account_name):
     result = frappe.db.get_value(
         "Account",
@@ -18,7 +17,6 @@ def get_bounds(account_name):
         return {"lft": result[0], "rgt": result[1]}
     else:
         return None
-
 
 indirect = get_bounds("Indirect Expenses")
 direct = get_bounds("Direct Expenses")
@@ -46,36 +44,18 @@ if direct:
 
 account_tree_condition = " OR ".join(conditions)
 
-query = f"""
+query = """
     SELECT
-        CASE
-            WHEN gle.account LIKE '%%Salary%%' THEN 'Salaries'
-            WHEN gle.account LIKE '%%Wages%%' THEN 'Salaries'
-            WHEN gle.account LIKE '%%Rent%%' THEN 'Rent'
-            WHEN gle.account LIKE '%%Utility%%' THEN 'Utilities'
-            WHEN gle.account LIKE '%%Electricity%%' THEN 'Utilities'
-            WHEN gle.account LIKE '%%Water%%' THEN 'Utilities'
-            WHEN gle.account LIKE '%%Travel%%' THEN 'Travel'
-            WHEN gle.account LIKE '%%Transport%%' THEN 'Travel'
-            WHEN gle.account LIKE '%%Marketing%%' THEN 'Marketing'
-            WHEN gle.account LIKE '%%Advertising%%' THEN 'Marketing'
-            WHEN gle.account LIKE '%%Office%%' THEN 'Office Supplies'
-            WHEN gle.account LIKE '%%Stationery%%' THEN 'Office Supplies'
-            WHEN gle.account LIKE '%%Insurance%%' THEN 'Insurance'
-            WHEN gle.account LIKE '%%Tax%%' THEN 'Taxes'
-            WHEN gle.account LIKE '%%Repairs%%' THEN 'Maintenance'
-            WHEN gle.account LIKE '%%Maintenance%%' THEN 'Maintenance'
-            ELSE 'Other Expenses'
-        END AS expense_type,
-        SUM(gle.debit) AS total,
+        gle.account AS expense_type,
+        SUM(gle.debit) - SUM(gle.credit) AS total,
         COUNT(gle.name) AS count
     FROM `tabGL Entry` gle
     INNER JOIN `tabAccount` acc ON acc.name = gle.account
     WHERE gle.company = %s
     AND gle.posting_date BETWEEN %s AND %s
     AND gle.is_cancelled = 0
-    AND ({account_tree_condition})
-    GROUP BY expense_type
+    AND (""" + account_tree_condition + """)
+    GROUP BY gle.account
     ORDER BY total DESC
 """
 

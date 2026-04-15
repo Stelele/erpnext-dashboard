@@ -4,7 +4,6 @@ prev_from_date = frappe.form_dict.get("prev_from_date")
 prev_to_date = frappe.form_dict.get("prev_to_date")
 company = frappe.form_dict.get("company")
 warehouse = frappe.form_dict.get("warehouse", "Stores - NEs")
-time_grouping = frappe.form_dict.get("time_grouping", "%Y-%m-%d")
 
 results = []
 
@@ -50,7 +49,7 @@ results.append({
     "prev_count": prev_purchases.count
 })
 
-# 3. Expense Summary (current + prev) - using working pattern from grouped_expenses_summary.py
+# 3. Expense Summary (current + prev)
 def get_bounds(account_name):
     result = frappe.db.get_value(
         "Account",
@@ -111,9 +110,9 @@ results.append({
     "prev_count": prev_expenses.count
 })
 
+# Profit calculations
 cur_gross_profit = current_sales.total - current_purchases.total
 prev_gross_profit = prev_sales.total - prev_purchases.total
-
 cur_net_profit = cur_gross_profit - current_expenses.total
 prev_net_profit = prev_gross_profit - prev_expenses.total
 
@@ -173,26 +172,7 @@ for row in category_sales:
         "total": row.total
     })
 
-# 7. Expenses by Type
-expenses_by_type = frappe.db.sql(f"""
-    SELECT gle.account as expense_type, SUM(gle.debit) - SUM(gle.credit) as total, COUNT(*) as count
-    FROM `tabGL Entry` gle
-    INNER JOIN `tabAccount` acc ON acc.name = gle.account
-    WHERE gle.company = %s AND gle.posting_date BETWEEN %s AND %s AND gle.is_cancelled = 0
-    AND ({expense_condition})
-    GROUP BY gle.account
-    ORDER BY total DESC
-""", tuple([company, from_date, to_date] + expense_params[3:]), as_dict=True)
-
-for row in expenses_by_type:
-    results.append({
-        "metric_type": "expenses_by_type",
-        "expense_type": row.expense_type,
-        "total": row.total,
-        "count": row.count
-    })
-
-# 8. Stock by Group
+# 7. Stock by Group
 stock_groups = frappe.db.sql("""
     SELECT item.item_group, ROUND(SUM(bin.projected_qty * COALESCE(bp.price_list_rate, 0)), 2) as total
     FROM `tabBin` bin
