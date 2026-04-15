@@ -367,6 +367,72 @@ export class ErpNextService {
     return { expenses, incomes } as AccountMappings;
   }
 
+  public getDashboardComplete(period: Period, prevPeriod: Period | undefined) {
+    const authStore = useAuthStore();
+    const dateRange = getPeriodDateRange(period);
+    const prevDateRange = prevPeriod ? getPeriodDateRange(prevPeriod) : getPeriodDateRange(period);
+
+    return this.instance
+      .get("/api/v2/method/dashboard_complete", {
+        params: {
+          from_date: dateRange.start,
+          to_date: dateRange.end,
+          prev_from_date: prevDateRange.start,
+          prev_to_date: prevDateRange.end,
+          company: authStore.company,
+          warehouse: "Stores - NEs",
+          time_grouping: this.getDateGrouping(
+            this.getPeriodDateGrouping(period),
+          ),
+        },
+      })
+      .then((resp) => resp?.data.data);
+  }
+
+  public getDashboardBarChart(fromDate: string, toDate: string, grouping: "day" | "week" | "month" | "quarter") {
+    const authStore = useAuthStore();
+    return this.instance
+      .get("/api/v2/method/dashboard_bar_chart", {
+        params: {
+          from_date: fromDate,
+          to_date: toDate,
+          grouping,
+          company: authStore.company,
+        },
+      })
+      .then((resp) => resp?.data.data);
+  }
+
+  public getDashboardSalesAggregated(period: Period = "Today") {
+    const authStore = useAuthStore();
+    const dateRange = getPeriodDateRange(period);
+
+    return this.instance
+      .get("/api/v2/method/dashboard_sales_aggregated", {
+        params: {
+          from_date: dateRange.start,
+          to_date: dateRange.end,
+          company: authStore.company,
+        },
+      })
+      .then((resp) => resp?.data.data);
+  }
+
+  public getDashboardPaymentEntries(period: Period = "Today") {
+    const authStore = useAuthStore();
+    const dateRange = getPeriodDateRange(period);
+
+    return this.instance
+      .get("/api/v2/method/dashboard_payment_entries", {
+        params: {
+          from_date: dateRange.start,
+          to_date: dateRange.end,
+          company: authStore.company,
+        },
+      })
+      .then((resp) => resp?.data.data);
+  }
+
   public async addDraftExpenseJournalEntry(
     expense: Expense,
     incomeAccount: AccountResponse,

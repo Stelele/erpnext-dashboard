@@ -1,142 +1,159 @@
 import { defineStore } from "pinia";
-import {
-  ErpNextService,
-  type AccountMappings,
-} from "../services/ErpNextService";
+import { ErpNextService, type AccountMappings } from "../services/ErpNextService";
 import { computed, ref } from "vue";
-import {
-  getPeriodDateRange,
-  getPreviousPeriod,
-  type Period,
-} from "../utils/PeriodUtilities";
-import type { GroupSummary, ItemGroupSummary } from "../types/MonthSales";
+import { getPeriodDateRange, getPreviousPeriod, type Period } from "../utils/PeriodUtilities";
 import moment from "moment";
 import type { Expense, Payment } from "../types/Expenses";
-import type { SalesDetail } from "@/types/SalesDetail";
-import type {
-  DailyStockValue,
-  StockDetail,
-  StockValueSummary,
-} from "@/types/StockDetail";
+import type { StockDetail } from "@/types/StockDetail";
 
 export const useDataStore = defineStore("dataStore", () => {
   const loading = ref(true);
-  const salesSummary = ref<GroupSummary[]>([]);
-  const prevSalesSummary = ref<GroupSummary[] | undefined>(undefined);
-  const prev6MonthsSales = ref<GroupSummary[]>([]);
-  const prevXGroupingSales = ref<GroupSummary[]>([]);
-  const itemGroupSalesSummary = ref<ItemGroupSummary[]>([]);
-  const purchaseGroupSummary = ref<GroupSummary[]>([]);
-  const prevPurchaseGroupSummary = ref<GroupSummary[] | undefined>(undefined);
-  const expensesSummary = ref<GroupSummary[]>([]);
-  const prevExpensesSummary = ref<GroupSummary[] | undefined>(undefined);
-  const prev6MonthsExpenses = ref<GroupSummary[]>([]);
   const accountMappings = ref<AccountMappings>({
     incomes: {},
     expenses: {},
   } as AccountMappings);
   const paymentEntries = ref<Payment[]>([]);
-  const sales = ref<SalesDetail[]>([]);
   const stockDetails = ref<StockDetail[]>([]);
-
-  const stockValues = ref<StockValueSummary[]>([]);
-  const dailyStockValues = ref<DailyStockValue[]>([]);
-  const salesStockValues = ref<GroupSummary[]>([]);
 
   const currentPeriod = ref<Period>("This Month");
   const lastRefresh = ref("");
   const dateRange = computed(() => getPeriodDateRange(currentPeriod.value));
 
+  function getBarChartConfig(period: Period) {
+    const today = moment();
+    const monthStart = today.clone().startOf("month");
+
+    switch (period) {
+      case "Today":
+      case "Yesterday":
+        return {
+          fromDate: monthStart.clone().subtract(14, "days").format("YYYY-MM-DD"),
+          toDate: today.format("YYYY-MM-DD"),
+          grouping: "day" as const,
+        };
+      case "This Week":
+      case "Last Week":
+        return {
+          fromDate: monthStart.clone().subtract(5, "weeks").format("YYYY-MM-DD"),
+          toDate: today.format("YYYY-MM-DD"),
+          grouping: "week" as const,
+        };
+      case "This Month":
+      case "Last Month":
+        return {
+          fromDate: monthStart.clone().subtract(3, "months").startOf("month").format("YYYY-MM-DD"),
+          toDate: today.format("YYYY-MM-DD"),
+          grouping: "month" as const,
+        };
+      case "This Quarter":
+      case "Last Quarter":
+        return {
+          fromDate: monthStart.clone().subtract(4, "quarters").startOf("quarter").format("YYYY-MM-DD"),
+          toDate: today.format("YYYY-MM-DD"),
+          grouping: "quarter" as const,
+        };
+      case "This Semester":
+      case "Last Semester":
+        return {
+          fromDate: monthStart.clone().subtract(6, "quarters").startOf("quarter").format("YYYY-MM-DD"),
+          toDate: today.format("YYYY-MM-DD"),
+          grouping: "quarter" as const,
+        };
+      case "This Year":
+      case "Last Year":
+        return {
+          fromDate: monthStart.clone().subtract(3, "years").startOf("years").format("YYYY-MM-DD"),
+          toDate: today.format("YYYY-MM-DD"),
+          grouping: "quarter" as const,
+        };
+      default:
+        return {
+          fromDate: monthStart.clone().subtract(14, "days").format("YYYY-MM-DD"),
+          toDate: today.format("YYYY-MM-DD"),
+          grouping: "day" as const,
+        };
+    }
+  }
+
+  function getBarChartTitle(period: Period): string {
+    switch (period) {
+      case "Today":
+      case "Yesterday":
+        return "Sales from last 14 days";
+      case "This Week":
+      case "Last Week":
+        return "Sales from last 4 weeks";
+      case "This Month":
+      case "Last Month":
+        return "Sales from last 3 months";
+      case "This Quarter":
+      case "Last Quarter":
+        return "Sales from last 4 quarters";
+      case "This Semester":
+      case "Last Semester":
+        return "Sales from last 6 quarters";
+      case "This Year":
+      case "Last Year":
+        return "Sales from last 3 years";
+      default:
+        return "Sales from last 14 days";
+    }
+  }
+
   async function getData() {
     const erpNextService = new ErpNextService();
     const period = currentPeriod.value;
-    const prevPeriod = getPreviousPeriod(currentPeriod.value);
+    const prevPeriod = getPreviousPeriod(period);
 
     lastRefresh.value = moment().format("DD-MMM-YY HH:mm");
-    const erpNextServicePromises: [
-      Promise<GroupSummary[]>,
-      Promise<GroupSummary[] | undefined>,
-      Promise<GroupSummary[]>,
-      Promise<GroupSummary[]>,
-      Promise<ItemGroupSummary[]>,
-      Promise<GroupSummary[]>,
-      Promise<GroupSummary[] | undefined>,
-      Promise<GroupSummary[]>,
-      Promise<GroupSummary[] | undefined>,
-      Promise<AccountMappings>,
-      Promise<Payment[]>,
-      Promise<SalesDetail[]>,
-      Promise<StockDetail[]>,
-      Promise<StockValueSummary[]>,
-      Promise<GroupSummary[]>,
-      Promise<GroupSummary[]>,
-      Promise<DailyStockValue[]>,
-    ] = [
-      erpNextService.getSalesSummary(period),
-      prevPeriod
-        ? erpNextService.getSalesSummary(prevPeriod)
-        : new Promise((resolve) => resolve(undefined)),
-      erpNextService.getPrevGroupedSales("months", 6),
-      erpNextService.getPrevGroupSalesFromCurrent(period),
-      erpNextService.getItemGroupSalesSummary(period),
-      erpNextService.getPurchaseGroupSummary(period),
-      prevPeriod
-        ? erpNextService.getPurchaseGroupSummary(prevPeriod)
-        : new Promise((resolve) => resolve(undefined)),
-      erpNextService.getExpensesSummary(period),
-      prevPeriod
-        ? erpNextService.getExpensesSummary(prevPeriod)
-        : new Promise((resolve) => resolve(undefined)),
-      erpNextService.getAccountMappings(),
-      erpNextService.getPaymentEntries(period),
-      erpNextService.getSales(period),
-      erpNextService.getStockLevels(),
-      Promise.all([
-        erpNextService.getStockValueSummary(
-          ["Today", "This Week"].includes(period)
-            ? "This Week"
-            : "This Semester",
-        ),
-        erpNextService.getStockValueSummary(
-          ["Yesterday", "Last Week"].includes(prevPeriod ?? "")
-            ? "Last Week"
-            : "Last Semester",
-        ),
-      ]).then((r) => r.flat()),
-      Promise.all([
-        erpNextService.getSalesSummary(
-          ["Today", "This Week"].includes(period)
-            ? "This Week"
-            : "This Semester",
-        ),
-        erpNextService.getSalesSummary(
-          ["Yesterday", "Last Week"].includes(prevPeriod ?? "")
-            ? "Last Week"
-            : "Last Semester",
-        ),
-      ]).then((r) => r.flat()),
-      erpNextService.getPrevGroupedExpenses("months", 6),
-      erpNextService.getDailyStockValueSummary("months", 3),
-    ];
 
-    const result = await Promise.all(erpNextServicePromises);
-    salesSummary.value = result[0];
-    prevSalesSummary.value = result[1];
-    prev6MonthsSales.value = result[2];
-    prevXGroupingSales.value = result[3];
-    itemGroupSalesSummary.value = result[4];
-    purchaseGroupSummary.value = result[5];
-    prevPurchaseGroupSummary.value = result[6];
-    expensesSummary.value = result[7];
-    prevExpensesSummary.value = result[8];
-    accountMappings.value = result[9];
-    paymentEntries.value = result[10];
-    sales.value = result[11];
-    stockDetails.value = result[12];
-    stockValues.value = result[13];
-    salesStockValues.value = result[14];
-    prev6MonthsExpenses.value = result[15];
-    dailyStockValues.value = result[16];
+    const barChartConfig = getBarChartConfig(period);
+    const barChartTitle = getBarChartTitle(period);
+
+    const [
+      dashboardResults,
+      accountMappingsData,
+      paymentEntriesData,
+      stockDetailsData,
+      dailyStockValues,
+      aggregatedSales,
+      barChartData,
+    ] = await Promise.all([
+      erpNextService.getDashboardComplete(period, prevPeriod),
+      erpNextService.getAccountMappings(),
+      erpNextService.getDashboardPaymentEntries(period),
+      erpNextService.getStockLevels(),
+      erpNextService.getDailyStockValueSummary("months", 3),
+      erpNextService.getDashboardSalesAggregated(period),
+      erpNextService.getDashboardBarChart(barChartConfig.fromDate, barChartConfig.toDate, barChartConfig.grouping),
+    ]);
+
+    accountMappings.value = accountMappingsData;
+    paymentEntries.value = paymentEntriesData;
+    stockDetails.value = stockDetailsData;
+
+    const { useOverViewDataStore } = await import("./OverViewDataStore");
+    const { useExpenseDataStore } = await import("./ExpenseDataStore");
+    const { useStockDataStore } = await import("./StockDataStore");
+    const { useSalesDataStore } = await import("./SalesDataStore");
+
+    useOverViewDataStore().parseDashboardResults(dashboardResults);
+    useOverViewDataStore().applyBarChart(
+      { ...barChartData, fromDate: barChartConfig.fromDate, toDate: barChartConfig.toDate },
+      barChartTitle,
+      barChartConfig.grouping
+    );
+    useExpenseDataStore().parseDashboardResults(dashboardResults);
+    useStockDataStore().parseDashboardResults(dashboardResults);
+    useStockDataStore().setStockTableData(stockDetailsData);
+    useStockDataStore().setDailyStockValues({
+      labels: dailyStockValues.map(d => moment(d.posting_date).format("DD MMM")),
+      datasets: [{
+        label: "Closing Stock",
+        data: dailyStockValues.map(d => d.daily_stock_value),
+      }],
+    });
+    useSalesDataStore().applyAggregatedSales(aggregatedSales);
   }
 
   function addDraftExpense(expense: Expense) {
@@ -188,23 +205,9 @@ export const useDataStore = defineStore("dataStore", () => {
   function toJson() {
     return JSON.parse(
       JSON.stringify({
-        salesSummary: salesSummary.value,
-        prevSalesSummary: prevSalesSummary.value,
-        prev6MonthsSales: prev6MonthsSales.value,
-        prevXGroupingSales: prevXGroupingSales.value,
-        itemGroupSalesSummary: itemGroupSalesSummary.value,
-        purchaseGroupSummary: purchaseGroupSummary.value,
-        prevPurchaseGroupSummary: prevPurchaseGroupSummary.value,
-        expensesSummary: expensesSummary.value,
-        prevExpensesSummary: prevExpensesSummary.value,
-        prev6MonthsExpenses: prev6MonthsExpenses.value,
         accountMappings: accountMappings.value,
         paymentEntries: paymentEntries.value,
-        sales: sales.value,
         stockDetails: stockDetails.value,
-        stockValues: stockValues.value,
-        salesStockValues: salesStockValues.value,
-        dailyStockValues: dailyStockValues.value,
         currentPeriod: currentPeriod.value,
       }),
     );
@@ -214,23 +217,9 @@ export const useDataStore = defineStore("dataStore", () => {
     currentPeriod,
     lastRefresh,
     dateRange,
-    salesSummary,
-    prevSalesSummary,
-    prev6MonthsSales,
-    prevXGroupingSales,
-    itemGroupSalesSummary,
-    purchaseGroupSummary,
-    prevPurchaseGroupSummary,
-    expensesSummary,
-    prevExpensesSummary,
-    prev6MonthsExpenses,
     accountMappings,
     paymentEntries,
     stockDetails,
-    stockValues,
-    salesStockValues,
-    dailyStockValues,
-    sales,
     loading,
     update,
     toJson,

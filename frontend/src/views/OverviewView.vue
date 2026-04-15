@@ -9,8 +9,8 @@
             :percent-change="item.percentChange"
         />
         <CardBarChart
-            :title="overViewDataStore.prevXGroupingSales.title"
-            :data="overViewDataStore.prevXGroupingSales.data"
+            :title="overViewDataStore.prevXGroupingSalesTitle"
+            :data="overViewDataStore.prevXGroupingSales"
         />
         <CardDoughnutChart
             title="Sales by Category"
