@@ -174,32 +174,44 @@ for row in category_sales:
 
 # 7. Stock by Group
 stock_groups = frappe.db.sql("""
-    SELECT item.item_group, ROUND(SUM(bin.projected_qty * COALESCE(bp.price_list_rate, 0)), 2) as total
+    SELECT
+        item.item_group,
+        ROUND(SUM((bin.actual_qty - COALESCE(pos_reserved.reserved_qty, 0)) * COALESCE(bp.price_list_rate, 0)), 2) as total
     FROM `tabBin` bin
     JOIN `tabItem` item ON bin.item_code = item.item_code
     LEFT JOIN (
-        SELECT item_code, price_list_rate
-        FROM `tabItem Price`
-        WHERE price_list = 'Standard Buying'
-    ) bp ON bin.item_code = bp.item_code
-    WHERE bin.warehouse = %s AND bin.projected_qty > 0
-    GROUP BY item.item_group
-    ORDER BY total DESC
-""", (warehouse,), as_dict=True)
-
-for row in stock_groups:
-    results.append({
-        "metric_type": "stock_by_group",
-        "item_group": row.item_group,
-        "total": row.total
-    })
-
-# 9. Stock Summary
-stock_summary = frappe.db.sql("""
-    SELECT 
-        ROUND(SUM(bin.projected_qty * COALESCE(bp.price_list_rate, 0)), 2) as total_value,
-        ROUND(SUM(bin.projected_qty * COALESCE(sp.price_list_rate, 0)), 2) as selling_value
-    FROM `tabBin` bin
+        SELECT
+            item_code,
+            SUM(reserved_qty) as reserved_qty
+        FROM (
+            SELECT
+                item_code,
+                SUM(stock_qty) as reserved_qty
+            FROM `tabPOS Invoice Item`
+            WHERE warehouse = %s
+            AND parent IN (
+                SELECT name FROM `tabPOS Invoice`
+                WHERE docstatus = 1
+                AND (consolidated_invoice IS NULL OR consolidated_invoice = '')
+                AND company = %s
+            )
+            GROUP BY item_code
+            UNION ALL
+            SELECT
+                item_code,
+                SUM(qty) as reserved_qty
+            FROM `tabPacked Item`
+            WHERE warehouse = %s
+            AND parent IN (
+                SELECT name FROM `tabPOS Invoice`
+                WHERE docstatus = 1
+                AND (consolidated_invoice IS NULL OR consolidated_invoice = '')
+                AND company = %s
+            )
+            GROUP BY item_code
+        ) pos_items
+        GROUP BY item_code
+    ) pos_reserved ON bin.item_code = pos_reserved.item_code
     LEFT JOIN (
         SELECT item_code, price_list_rate
         FROM `tabItem Price`
@@ -210,8 +222,70 @@ stock_summary = frappe.db.sql("""
         FROM `tabItem Price`
         WHERE price_list = 'Standard Selling'
     ) sp ON bin.item_code = sp.item_code
-    WHERE bin.warehouse = %s
-""", (warehouse,), as_dict=True)[0]
+    WHERE bin.warehouse = %s AND bin.actual_qty > 0
+    GROUP BY item.item_group
+    ORDER BY total DESC
+""", (warehouse, company, warehouse, company, warehouse), as_dict=True)
+
+for row in stock_groups:
+    results.append({
+        "metric_type": "stock_by_group",
+        "item_group": row.item_group,
+        "total": row.total or 0,
+        "selling_value": row.selling_value or 0
+    })
+
+# 9. Stock Summary
+stock_summary = frappe.db.sql("""
+    SELECT
+        ROUND(SUM((bin.actual_qty - COALESCE(pos_reserved.reserved_qty, 0)) * COALESCE(bp.price_list_rate, 0)), 2) as total_value,
+        ROUND(SUM((bin.actual_qty - COALESCE(pos_reserved.reserved_qty, 0)) * COALESCE(sp.price_list_rate, 0)), 2) as selling_value
+    FROM `tabBin` bin
+    LEFT JOIN (
+        SELECT
+            item_code,
+            SUM(reserved_qty) as reserved_qty
+        FROM (
+            SELECT
+                item_code,
+                SUM(stock_qty) as reserved_qty
+            FROM `tabPOS Invoice Item`
+            WHERE warehouse = %s
+            AND parent IN (
+                SELECT name FROM `tabPOS Invoice`
+                WHERE docstatus = 1
+                AND (consolidated_invoice IS NULL OR consolidated_invoice = '')
+                AND company = %s
+            )
+            GROUP BY item_code
+            UNION ALL
+            SELECT
+                item_code,
+                SUM(qty) as reserved_qty
+            FROM `tabPacked Item`
+            WHERE warehouse = %s
+            AND parent IN (
+                SELECT name FROM `tabPOS Invoice`
+                WHERE docstatus = 1
+                AND (consolidated_invoice IS NULL OR consolidated_invoice = '')
+                AND company = %s
+            )
+            GROUP BY item_code
+        ) pos_items
+        GROUP BY item_code
+    ) pos_reserved ON bin.item_code = pos_reserved.item_code
+    LEFT JOIN (
+        SELECT item_code, price_list_rate
+        FROM `tabItem Price`
+        WHERE price_list = 'Standard Buying'
+    ) bp ON bin.item_code = bp.item_code
+    LEFT JOIN (
+        SELECT item_code, price_list_rate
+        FROM `tabItem Price`
+        WHERE price_list = 'Standard Selling'
+    ) sp ON bin.item_code = sp.item_code
+    WHERE bin.warehouse = %s AND bin.actual_qty > 0
+""", (warehouse, company, warehouse, company, warehouse), as_dict=True)[0]
 
 results.append({
     "metric_type": "stock_summary",
