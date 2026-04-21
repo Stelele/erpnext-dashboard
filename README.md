@@ -18,11 +18,14 @@ A full-stack business intelligence dashboard for monitoring ERP metrics includin
 njeremoto-dashboard/
 ├── frontend/          # Vue 3 SPA with PWA support
 ├── backend/
-│   ├── Api/          # .NET 10 API
-│   └── Env/          # Docker Compose configuration
-├── designs/          # Database schema & wireframes
+│   ├── Api/           # .NET 10 API
+│   └── Env/           # Docker Compose configuration
+├── erpnext/           # ERPNext integration scripts
+│   ├── optimize/      # Database optimization scripts
+│   └── server_scripts/ # Server-side automation
+├── designs/           # Database schema & wireframes
 └── .github/
-    └── workflows/    # CI/CD pipelines
+    └── workflows/      # CI/CD pipelines
 ```
 
 ## Quick Start
@@ -79,6 +82,7 @@ njeremoto-dashboard/
 - **Expense Tracking** - Categorized expense reporting
 - **Offline Support** - PWA with local data caching via SQL.js
 - **Excel Export** - Export any data table to `.xlsx`
+- **ERPNext Integration** - Database optimization and server-side automation scripts
 
 ## CI/CD Pipeline
 
