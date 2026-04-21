@@ -14,6 +14,8 @@ public static class CompanyEndpoints
         {
             var query = new GetCompaniesQuery(companyIds);
             var result = await mediator.Send(query);
+
+            var test = 1;
             return Results.Ok(result);
         })
         .WithTags(Tags.Companies)
