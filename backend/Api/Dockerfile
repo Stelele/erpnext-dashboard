@@ -30,6 +30,9 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
+# Create data directory with correct ownership for non-root user
+RUN mkdir -p /app/data && chown $APP_UID:$APP_UID /app/data
+
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
     CMD bash -c '</dev/tcp/localhost/8000' || exit 1
 
