@@ -30,8 +30,7 @@ public class DatabaseRestoreService(
 
         try
         {
-            var task = RestoreDatabaseAsyncInternal(googleDrive, fileName, maxRetries, logger, cancellationToken);
-            task.Wait(cancellationToken);
+            RestoreDatabaseAsyncInternal(googleDrive, fileName, maxRetries, logger, cancellationToken).GetAwaiter().GetResult();
         }
         catch (Exception ex)
         {
@@ -96,50 +95,4 @@ public class DatabaseRestoreService(
     }
 
     public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
-
-    private async Task RestoreDatabaseAsync(CancellationToken cancellationToken)
-    {
-        var fileName = Path.GetFileName(_googleDrive.DatabasePath);
-
-        for (int attempt = 1; attempt <= _maxRetries; attempt++)
-        {
-            try
-            {
-                _logger.LogInformation("Attempting to restore database (attempt {Attempt}/{MaxRetries})", attempt, _maxRetries);
-
-                var existingFile = await _googleDrive.FindFileAsync(fileName, cancellationToken);
-
-                if (existingFile is null)
-                {
-                    _logger.LogWarning("No backup found in Google Drive: {FileName}, creating new database", fileName);
-                    return;
-                }
-
-                using var memoryStream = new MemoryStream();
-                await _googleDrive.DownloadFileAsync(existingFile.Id, memoryStream, cancellationToken);
-
-                var directory = Path.GetDirectoryName(_googleDrive.DatabasePath);
-                if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
-
-                await File.WriteAllBytesAsync(_googleDrive.DatabasePath, memoryStream.ToArray(), cancellationToken);
-
-                _logger.LogInformation("Database restored successfully from Google Drive");
-                return;
-            }
-            catch (Exception ex) when (attempt < _maxRetries)
-            {
-                var delay = TimeSpan.FromSeconds(Math.Pow(2, attempt - 1));
-                _logger.LogWarning(ex, "Database restore attempt {Attempt} failed, retrying in {Delay}s", attempt, delay.TotalSeconds);
-                await Task.Delay(delay, cancellationToken);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Database restore failed after {MaxRetries} attempts", _maxRetries);
-                throw new InvalidOperationException($"Failed to restore database after {_maxRetries} attempts", ex);
-            }
-        }
-    }
 }
