@@ -97,7 +97,10 @@ public static class DependancyInjection
         {
             var connectionString = builder.Configuration.GetConnectionString("Sqlite") ??
                 "Data Source=erpnext.db";
-            options.UseSqlite(connectionString);
+            options.UseSqlite(connectionString, sqliteOptions =>
+            {
+                sqliteOptions.UseQuerySplittingBehavior(QuerySplittingBehavior.SplitQuery);
+            });
         });
 
         builder.Services.AddSingleton<IDatabaseSyncService, DatabaseSyncService>();

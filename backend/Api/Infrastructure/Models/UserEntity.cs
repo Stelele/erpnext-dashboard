@@ -1,4 +1,4 @@
-﻿using Domain.Users;
+using Domain.Users;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,6 +10,12 @@ public class UserEntity : IEntityTypeConfiguration<User>
     {
         builder
             .HasKey(b => b.Id);
+
+        builder
+            .Property(b => b.Id)
+            .HasConversion(
+                g => g.ToString().ToLowerInvariant(),
+                s => Guid.Parse(s));
 
         builder
             .Property(b => b.Name)

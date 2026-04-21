@@ -1,4 +1,4 @@
-﻿using Domain.Companies;
+using Domain.Companies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,6 +10,12 @@ public class CompanyEntity : IEntityTypeConfiguration<Company>
     {
         builder
             .HasKey(b => b.Id);
+
+        builder
+            .Property(b => b.Id)
+            .HasConversion(
+                g => g.ToString().ToLowerInvariant(),
+                s => Guid.Parse(s));
 
         builder
             .Property(b => b.Name)
@@ -30,6 +36,12 @@ public class CompanyEntity : IEntityTypeConfiguration<Company>
             .HasOne(b => b.Site)
             .WithMany(b => b.Companies)
             .HasForeignKey(b => b.SiteId);
+
+        builder
+            .Property(b => b.SiteId)
+            .HasConversion(
+                g => g.ToString().ToLowerInvariant(),
+                s => Guid.Parse(s));
 
         builder
             .HasMany(b => b.Users)

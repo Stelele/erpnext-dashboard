@@ -1,4 +1,4 @@
-﻿using Application.Companies;
+using Application.Companies;
 using Application.DTOs;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -48,7 +48,7 @@ public static class CompanyEndpoints
         app.MapPost("/companies", async (IMediator mediator, CreateCompanyCommand command) =>
         {
             var result = await mediator.Send(command);
-            return Results.Created($"/companies/{result}", result);
+            return Results.Created($"/companies/{result}", new { id = result });
         })
         .WithTags(Tags.Companies)
         .WithName("CreateCompany")

@@ -1,4 +1,4 @@
-﻿using Application.DTOs;
+using Application.DTOs;
 using Application.Users;
 using MediatR;
 using Microsoft.AspNetCore.Builder;

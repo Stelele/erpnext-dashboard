@@ -1,4 +1,4 @@
-﻿using Domain.Sites;
+using Domain.Sites;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -10,6 +10,12 @@ public class SiteEntity : IEntityTypeConfiguration<Site>
     {
         builder
             .HasKey(b => b.Id);
+
+        builder
+            .Property(b => b.Id)
+            .HasConversion(
+                g => g.ToString().ToLowerInvariant(),
+                s => Guid.Parse(s));
 
         builder
             .Property(b => b.Name)

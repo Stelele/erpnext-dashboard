@@ -1,4 +1,4 @@
-﻿using Api.Authentication;
+using Api.Authentication;
 using Api.Endpoints;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;

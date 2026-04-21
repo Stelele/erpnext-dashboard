@@ -1,4 +1,4 @@
-﻿using Application.Abstractions;
+using Application.Abstractions;
 using Application.DTOs;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,9 @@ public class GetCompanyByIdQueryHandler(
 {
     public async Task<ExtendedCompanyResponse?> Handle(GetCompanyByIdQuery request, CancellationToken cancellationToken)
     {
-        var company = await db.Companies.FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
+        var company = await db.Companies
+            .Include(c => c.Site)
+            .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
         if (company == null) return null;
         return ExtendedCompanyResponse.FromDomain(company);
     }
