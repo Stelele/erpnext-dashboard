@@ -1,4 +1,3 @@
-using Infrastructure.Auth0;
 using Infrastructure.Models;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Builder;
@@ -36,6 +35,7 @@ public static class DependancyInjection
         var loggerFactory = builder.Services.BuildServiceProvider()
             .GetRequiredService<ILoggerFactory>();
         var tokenProviderLogger = loggerFactory.CreateLogger<GoogleTokenProvider>();
+        var tokenProvider = new GoogleTokenProvider(tokenProviderLogger);
         var contentRoot = builder.Environment.ContentRootPath;
         tokenProvider.LoadFromConfigurationAsync(builder.Configuration, contentRoot).GetAwaiter().GetResult();
 
