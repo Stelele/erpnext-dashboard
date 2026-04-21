@@ -109,7 +109,7 @@ public sealed class GoogleTokenProvider : IGoogleTokenProvider
         googleDrive["RefreshToken"] = JsonDocument.Parse($"\"{tokenToSave}\"").RootElement;
 
         var newConfig = new Dictionary<string, object>();
-        foreach (var prop in root.EnumerateProperty())
+        foreach (var prop in root.EnumerateObject())
         {
             if (prop.Name == "GoogleDrive")
             {
