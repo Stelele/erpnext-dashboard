@@ -1,0 +1,21 @@
+services:
+  erpnext-dashboard:
+    image: stelele/erpnext-dashboard:latest
+    container_name: erpnext-dashboard
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./data:/app
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - Identity__ClientSecret={{IDENTITY_CLIENTSECRET}}
+      - MediatR__LicenseKey={{MEDIATR_LICENSEKEY}}
+      - GoogleDrive__FolderId={{GOOGLEDRIVE_FOLDERID}}
+      - GoogleDrive__ClientID={{GOOGLEDRIVE_CLIENTID}}
+      - GoogleDrive__ClientSecret={{GOOGLEDRIVE_CLIENTSECRET}}
+      - GoogleDrive__RefreshToken={{GOOGLEDRIVE_REFRESH_TOKEN}}
+      - GoogleDrive__SyncIntervalMinutes={{GOOGLEDRIVE_SYNCINTERVAL}}
+      - Auth0__Domain={{AUTH0_DOMAIN}}
+      - Auth0__Audience={{AUTH0_AUDIENCE}}
+      - ConnectionStrings__Sqlite=Data Source=/app/erpnext.db

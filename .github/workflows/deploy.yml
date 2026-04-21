@@ -89,6 +89,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore
+        working-directory: backend/Api
+        run: dotnet restore
+
+      - name: Build
+        working-directory: backend/Api
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run tests
+        working-directory: backend/Api
+        run: dotnet test --configuration Release --no-build
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -99,10 +116,62 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push backend image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./backend/Api
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/erpnext-dashboard:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/erpnext-dashboard:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Replace docker-compose placeholders
+        run: |
+          sed -i \
+            -e 's|{{IDENTITY_CLIENTSECRET}}|${{ secrets.IDENTITY_CLIENT_SECRET }}|g' \
+            -e 's|{{MEDIATR_LICENSEKEY}}|${{ secrets.MEDIATR_LICENSE_KEY }}|g' \
+            -e 's|{{GOOGLEDRIVE_FOLDERID}}|${{ secrets.GOOGLE_DRIVE_FOLDER_ID }}|g' \
+            -e 's|{{GOOGLEDRIVE_CLIENTID}}|${{ secrets.GOOGLE_DRIVE_CLIENT_ID }}|g' \
+            -e 's|{{GOOGLEDRIVE_CLIENTSECRET}}|${{ secrets.GOOGLE_DRIVE_CLIENT_SECRET }}|g' \
+            -e 's|{{GOOGLEDRIVE_SYNCINTERVAL}}|${{ secrets.GOOGLE_DRIVE_SYNC_INTERVAL }}|g' \
+            -e 's|{{GOOGLEDRIVE_REFRESH_TOKEN}}|${{ secrets.GOOGLE_DRIVE_REFRESH_TOKEN }}|g' \
+            -e 's|{{AUTH0_DOMAIN}}|${{ secrets.AUTH0_DOMAIN }}|g' \
+            -e 's|{{AUTH0_AUDIENCE}}|${{ secrets.AUTH0_AUDIENCE }}|g' \
+            backend/Api/docker-compose.yml
+
+      - name: Copy docker-compose.yml to droplet
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          source: backend/Api/docker-compose.yml
+          target: /opt/erpnext-dashboard
+          strip_components: 2
+
+      - name: Deploy to droplet
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DROPLET_HOST }}
+          username: ${{ secrets.DROPLET_USER }}
+          key: ${{ secrets.DROPLET_SSH_KEY }}
+          script: |
+            cd /opt/erpnext-dashboard
+
+            # Stop existing container if running
+            sudo docker compose -f docker-compose.yml down
+
+            # Pull latest image
+            sudo docker compose -f docker-compose.yml pull
+
+            # Start container
+            sudo docker compose -f docker-compose.yml up -d
+
+            # Wait for container to start
+            sleep 10
+
+            # Verify container is running
+            sudo docker ps | grep erpnext-dashboard
+
+            echo "Deployment complete"
