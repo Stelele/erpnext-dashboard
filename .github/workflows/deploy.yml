@@ -82,7 +82,7 @@ jobs:
 
   backend:
     needs: changes
-    if: needs.changes.outputs.backend == 'true'
+    # if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -158,6 +158,12 @@ jobs:
           key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
             cd /opt/erpnext-dashboard
+
+            # Create volume if it doesn't exist
+            if ! sudo docker volume inspect erpnext_data >/dev/null 2>&1; then
+              echo "Creating docker volume erpnext_data"
+              sudo docker volume create erpnext_data
+            fi
 
             # Stop existing container if running
             sudo docker compose -f docker-compose.yml down

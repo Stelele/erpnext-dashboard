@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./data:/app
+      - erpnext_data:/app/data
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - Identity__ClientSecret={{IDENTITY_CLIENTSECRET}}
@@ -18,4 +18,10 @@ services:
       - GoogleDrive__SyncIntervalMinutes={{GOOGLEDRIVE_SYNCINTERVAL}}
       - Auth0__Domain={{AUTH0_DOMAIN}}
       - Auth0__Audience={{AUTH0_AUDIENCE}}
-      - ConnectionStrings__Sqlite=Data Source=/app/erpnext.db
+      - Auth0__Apps__ERP-Dashboard={{AUTH0_APP_ERP_DASHBOARD}}
+      - ConnectionStrings__Sqlite=Data Source=/app/data/erpnext.db
+
+volumes:
+  erpnext_data:
+    name: erpnext_data
+    external: true
