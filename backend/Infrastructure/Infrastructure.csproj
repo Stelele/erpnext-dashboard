@@ -13,8 +13,7 @@
 	<ItemGroup>
 	  <PackageReference Include="Auth0.AuthenticationApi" Version="7.43.0" />
 	  <PackageReference Include="Auth0.ManagementApi" Version="7.43.0" />
-	  <PackageReference Include="Google.Apis.Auth" Version="1.69.0" />
-	  <PackageReference Include="Google.Apis.Drive.v3" Version="1.69.0.3520" />
+	  <PackageReference Include="AWSSDK.S3" Version="3.7.401" />
 	  <PackageReference Include="Microsoft.Data.Sqlite" Version="9.0.11" />
 	  <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.11" />
 	  <PackageReference Include="MediatR" Version="14.0.0" />

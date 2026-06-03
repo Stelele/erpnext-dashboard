@@ -5,26 +5,18 @@ using Microsoft.Extensions.Logging;
 
 namespace Infrastructure.Services;
 
-public class DatabaseSyncService : BackgroundService, IDatabaseSyncService
+public class DatabaseSyncService(
+    ILogger<DatabaseSyncService> logger,
+    IR2StorageService r2,
+    IConfiguration configuration
+) : BackgroundService, IDatabaseSyncService
 {
-    private readonly ILogger<DatabaseSyncService> _logger;
-    private readonly GoogleDriveService _googleDrive;
-    private readonly TimeSpan _interval;
-
-    public DatabaseSyncService(
-        ILogger<DatabaseSyncService> logger,
-        GoogleDriveService googleDrive,
-        IConfiguration configuration)
-    {
-        _logger = logger;
-        _googleDrive = googleDrive;
-        var intervalMinutes = configuration.GetValue<int?>("GoogleDrive:SyncIntervalMinutes") ?? 15;
-        _interval = TimeSpan.FromMinutes(intervalMinutes);
-    }
+    private readonly TimeSpan _interval = TimeSpan.FromMinutes(
+        configuration.GetValue<int?>("R2:SyncIntervalMinutes") ?? 15);
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation("Database sync service started. Sync interval: {Interval}", _interval);
+        logger.LogInformation("Database sync service started. Sync interval: {Interval}", _interval);
 
         while (!stoppingToken.IsCancellationRequested)
         {
@@ -35,30 +27,33 @@ public class DatabaseSyncService : BackgroundService, IDatabaseSyncService
             }
             catch (OperationCanceledException) when (stoppingToken.IsCancellationRequested)
             {
-                _logger.LogInformation("Database sync service stopping");
+                logger.LogInformation("Database sync service stopping");
                 break;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during database sync");
+                logger.LogError(ex, "Error during database sync");
             }
         }
     }
 
     public async Task SyncDatabaseAsync(CancellationToken cancellationToken = default)
     {
-        if (!File.Exists(_googleDrive.DatabasePath))
+        var connectionString = configuration.GetConnectionString("Sqlite") ?? "Data Source=erpnext.db";
+        var databasePath = connectionString.Replace("Data Source=", "");
+
+        if (!File.Exists(databasePath))
         {
-            _logger.LogWarning("Database file not found at {Path}", _googleDrive.DatabasePath);
+            logger.LogWarning("Database file not found at {Path}", databasePath);
             return;
         }
 
         var tempDbPath = Path.GetTempFileName();
         try
         {
-            _logger.LogInformation("Starting database sync to Google Drive");
+            logger.LogInformation("Starting database sync to R2");
 
-            using (var sourceDb = new SqliteConnection($"Data Source={_googleDrive.DatabasePath}"))
+            using (var sourceDb = new SqliteConnection($"Data Source={databasePath}"))
             using (var destinationDb = new SqliteConnection($"Data Source={tempDbPath};Pooling=False;"))
             {
                 sourceDb.Open();
@@ -66,16 +61,16 @@ public class DatabaseSyncService : BackgroundService, IDatabaseSyncService
                 sourceDb.BackupDatabase(destinationDb);
             }
 
-            using (var fileStream = new FileStream(tempDbPath, FileMode.Open, FileAccess.Read))
-            {
-                await _googleDrive.UploadOrUpdateFileAsync(fileStream, cancellationToken);
-            }
+            var dbFileName = Path.GetFileName(databasePath);
+            var key = $"erpnext-dashboard/{r2.Environment}/database/{dbFileName}";
+            await using var fileStream = new FileStream(tempDbPath, FileMode.Open, FileAccess.Read);
+            await r2.UploadAsync(r2.BackupBucket, key, fileStream, "application/vnd.sqlite3", cancellationToken);
 
-            _logger.LogInformation("Database sync completed successfully");
+            logger.LogInformation("Database sync completed successfully");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to sync database to Google Drive");
+            logger.LogError(ex, "Failed to sync database to R2");
             throw;
         }
         finally

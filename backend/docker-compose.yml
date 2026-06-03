@@ -11,11 +11,11 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - Identity__ClientSecret={{IDENTITY_CLIENTSECRET}}
       - MediatR__LicenseKey={{MEDIATR_LICENSEKEY}}
-      - GoogleDrive__FolderId={{GOOGLEDRIVE_FOLDERID}}
-      - GoogleDrive__ClientID={{GOOGLEDRIVE_CLIENTID}}
-      - GoogleDrive__ClientSecret={{GOOGLEDRIVE_CLIENTSECRET}}
-      - GoogleDrive__RefreshToken={{GOOGLEDRIVE_REFRESH_TOKEN}}
-      - GoogleDrive__SyncIntervalMinutes={{GOOGLEDRIVE_SYNCINTERVAL}}
+      - R2__AccountId={{R2_ACCOUNT_ID}}
+      - R2__AccessKeyId={{R2_ACCESS_KEY_ID}}
+      - R2__SecretAccessKey={{R2_SECRET_ACCESS_KEY}}
+      - R2__BackupBucketName={{R2_BACKUP_BUCKET_NAME}}
+      - R2__SyncIntervalMinutes={{R2_SYNC_INTERVAL}}
       - Auth0__Domain={{AUTH0_DOMAIN}}
       - Auth0__Audience={{AUTH0_AUDIENCE}}
       - Auth0__Apps__ERP-Dashboard={{AUTH0_APP_ERP_DASHBOARD}}
