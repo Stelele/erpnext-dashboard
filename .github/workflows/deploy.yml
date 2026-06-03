@@ -148,7 +148,6 @@ jobs:
           key: ${{ secrets.DROPLET_SSH_KEY }}
           source: backend/docker-compose.yml
           target: /opt/erpnext-dashboard
-          strip_components: 2
 
       - name: Deploy to droplet
         uses: appleboy/ssh-action@v1
@@ -157,6 +156,7 @@ jobs:
           username: ${{ secrets.DROPLET_USER }}
           key: ${{ secrets.DROPLET_SSH_KEY }}
           script: |
+            mv /opt/erpnext-dashboard/backend/docker-compose.yml /opt/erpnext-dashboard/docker-compose.yml
             cd /opt/erpnext-dashboard
 
             # Create volume if it doesn't exist
