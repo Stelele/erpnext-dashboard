@@ -50,6 +50,26 @@ export class ErpNextService {
     });
   }
 
+  public static async getCompanyLogo(
+    companyName: string,
+    siteUrl: string,
+    siteToken: string,
+  ): Promise<string | undefined> {
+    try {
+      const response = await axios.get(
+        `${siteUrl}/api/resource/Company/${encodeURIComponent(companyName)}`,
+        {
+          headers: {
+            Authorization: `token ${siteToken}`,
+          },
+        },
+      );
+      return response.data.data?.company_logo;
+    } catch {
+      return undefined;
+    }
+  }
+
   public getSalesSummary(period: Period = "Today") {
     const authStore = useAuthStore();
     const dateRange = getPeriodDateRange(period);

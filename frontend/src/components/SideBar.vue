@@ -29,6 +29,7 @@
                         </div>
                     </UButton>
                 </UDropdownMenu>
+                <CompanySwitcherModal v-if="authStore.showSwitcher" />
                 <CartTitle class="text-sm"
                     >Last Refresh: {{ dataStore.lastRefresh }}</CartTitle
                 >
@@ -41,9 +42,11 @@
 import { computed } from "vue";
 import { useDataStore } from "@/stores/DataStore";
 import { useNavStore } from "@/stores/NavStore";
+import { useAuthStore } from "@/stores/AuthStore";
 import { filterItems } from "@/utils/MenuItems";
 import moment from "moment";
 
+const authStore = useAuthStore();
 const navStore = useNavStore();
 const dataStore = useDataStore();
 

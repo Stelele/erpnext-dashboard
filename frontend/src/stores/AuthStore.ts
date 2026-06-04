@@ -5,8 +5,36 @@ import { computed } from "vue";
 import type { components } from "@/services/api/schema";
 import { ApiSingleton } from "@/services/api";
 
+const SELECTED_COMPANY_KEY = "selectedCompany";
+
+function safeGetItem(key: string): string | null {
+  try {
+    return localStorage.getItem(key);
+  } catch {
+    return null;
+  }
+}
+
+function safeSetItem(key: string, value: string): void {
+  try {
+    localStorage.setItem(key, value);
+  } catch {
+    // Ignore in private browsing / storage disabled
+  }
+}
+
 export const useAuthStore = defineStore("authStore", () => {
-  const company = computed(() => "Njeremoto Enterprises");
+  const selectedCompany = ref<string>("");
+
+  const company = computed(() => {
+    if (
+      selectedCompany.value &&
+      user.value?.companies?.find((c) => c.name === selectedCompany.value)
+    ) {
+      return selectedCompany.value;
+    }
+    return user.value?.companies?.[0]?.name || "Njeremoto Enterprises";
+  });
 
   const url = computed(() => {
     const userCompany = user.value?.companies?.find(
@@ -21,6 +49,10 @@ export const useAuthStore = defineStore("authStore", () => {
     );
 
     return userCompany?.site.apiToken || "";
+  });
+
+  const showSwitcher = computed(() => {
+    return (user.value?.companies?.length || 0) > 1;
   });
 
   const givenName = ref("");
@@ -53,8 +85,31 @@ export const useAuthStore = defineStore("authStore", () => {
         params: { path: { id: userId.value } },
       });
       user.value = data;
+
+      // Restore persisted company selection
+      const persisted = safeGetItem(SELECTED_COMPANY_KEY);
+      if (persisted && data?.companies?.find((c) => c.name === persisted)) {
+        selectedCompany.value = persisted;
+      }
     } catch (error) {
       console.error("Error fetching user data:", error);
+    }
+  }
+
+  async function switchCompany(
+    companyName: string,
+    onDataRefresh: () => Promise<void>,
+  ) {
+    const previous = selectedCompany.value;
+    selectedCompany.value = companyName;
+    safeSetItem(SELECTED_COMPANY_KEY, companyName);
+
+    try {
+      await onDataRefresh();
+    } catch (error) {
+      selectedCompany.value = previous;
+      safeSetItem(SELECTED_COMPANY_KEY, previous);
+      throw error;
     }
   }
 
@@ -62,11 +117,14 @@ export const useAuthStore = defineStore("authStore", () => {
     token,
     url,
     company,
+    showSwitcher,
     givenName,
     email,
     userId,
     accessToken,
     user,
+    selectedCompany,
     update,
+    switchCompany,
   };
 });
