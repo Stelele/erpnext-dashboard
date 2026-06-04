@@ -12,10 +12,8 @@ import type {
   Expense,
   ExpenseType,
   IncomeType,
-  Payment,
 } from "@/types/Expenses";
 import type { JournalEntry } from "@/types/JournalEntry";
-import type { SalesDetail } from "@/types/SalesDetail";
 import type {
   DailyStockValue,
   StockDetail,
