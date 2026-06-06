@@ -57,6 +57,31 @@ public static class UsersEndpoints
          .WithTags(Tags.Users)
          .RequireAuthorization(Permissions.DeleteUsers);
 
+        app.MapPost("/users/{userId}/companies/{companyId}", async (Guid userId, Guid companyId, ISender mediator) =>
+        {
+            await mediator.Send(new AddUserToCompanyCommand(userId, companyId));
+            return Results.NoContent();
+        })
+         .WithName("AddUserToCompany")
+         .WithDisplayName("AddUserToCompany")
+         .Produces(StatusCodes.Status204NoContent)
+         .Produces(StatusCodes.Status404NotFound)
+         .Produces(StatusCodes.Status409Conflict)
+         .WithTags(Tags.Users)
+         .RequireAuthorization(Permissions.UpdateUsers);
+
+        app.MapDelete("/users/{userId}/companies/{companyId}", async (Guid userId, Guid companyId, ISender mediator) =>
+        {
+            await mediator.Send(new RemoveUserFromCompanyCommand(userId, companyId));
+            return Results.NoContent();
+        })
+         .WithName("RemoveUserFromCompany")
+         .WithDisplayName("RemoveUserFromCompany")
+         .Produces(StatusCodes.Status204NoContent)
+         .Produces(StatusCodes.Status404NotFound)
+         .WithTags(Tags.Users)
+         .RequireAuthorization(Permissions.UpdateUsers);
+
         return app;
     }
 }

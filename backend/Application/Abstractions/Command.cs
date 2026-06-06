@@ -2,6 +2,11 @@
 
 namespace Application.Abstractions;
 
+internal interface ICommand : IRequest;
 internal interface ICommand<TResponse> : IRequest<TResponse>;
+
 internal interface ICommandHandler<TRequest, TResponse> : IRequestHandler<TRequest, TResponse>
     where TRequest : ICommand<TResponse>;
+
+internal interface ICommandHandler<TRequest> : IRequestHandler<TRequest>
+    where TRequest : ICommand;
