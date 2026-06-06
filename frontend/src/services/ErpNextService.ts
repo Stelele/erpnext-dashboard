@@ -137,7 +137,7 @@ export class ErpNextService {
       .get<ErpNextResponse<StockDetail>>("/api/v2/method/get_stock_levels", {
         params: {
           company: authStore.company,
-          warehouse: "Stores - NEs",
+          warehouse: "Stores",
         },
       })
       .then((resp) => resp?.data.data);
@@ -246,7 +246,7 @@ export class ErpNextService {
           prev_from_date: prevDateRange.start,
           prev_to_date: prevDateRange.end,
           company: authStore.company,
-          warehouse: "Stores - NEs",
+          warehouse: "Stores",
           time_grouping: this.getDateGrouping(
             this.getPeriodDateGrouping(period),
           ),

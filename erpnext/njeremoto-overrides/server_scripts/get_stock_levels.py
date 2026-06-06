@@ -79,4 +79,25 @@ query = """
     ORDER BY item_group ASC, item_name ASC
 """
 
-frappe.response['data'] = frappe.db.sql(query, (warehouse, company, warehouse, company, warehouse), as_dict=True)
+data = frappe.db.sql(query, (warehouse, company, warehouse, company, warehouse), as_dict=True)
+
+for entry in data:
+    if entry.item_group != 'Liquor':
+        continue
+    
+    if 'Pint' in entry.item_name:
+        entry['pack_size'] = f"{round(entry.real_qty / 24, 2)} crates"
+    elif 'Quart' in entry.item_name:
+        entry['pack_size'] = f"{round(entry.real_qty / 12, 2)} crates"
+    elif 'Can' in entry.item_name:
+        entry['pack_size'] = f"{round(entry.real_qty / 6, 2)} cases"
+    elif 'Scud' in entry.item_name:
+        entry['pack_size'] = f"{round(entry.real_qty / 8, 2)} crates"
+    elif 'Super' in entry.item_name:
+        entry['pack_size'] = f"{round(entry.real_qty / 6, 2)} cases"
+    elif 'Rockers' in entry.item_name:
+        entry['pack_size'] = f"{round(entry.real_qty / 30, 2)} cases"
+    elif 'Dumpy' in entry.item_name:
+        entry['pack_size'] = f"{round(entry.real_qty / 24, 2)} cases"
+
+frappe.response['data'] = data
