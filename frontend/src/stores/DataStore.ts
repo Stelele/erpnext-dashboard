@@ -214,6 +214,22 @@ export const useDataStore = defineStore("dataStore", () => {
     return results;
   }
 
+  async function clear() {
+    paymentEntries.value = [];
+    stockDetails.value = [];
+    accountMappings.value = { incomes: {}, expenses: {} } as AccountMappings;
+
+    const { useOverViewDataStore } = await import("./OverViewDataStore");
+    const { useExpenseDataStore } = await import("./ExpenseDataStore");
+    const { useStockDataStore } = await import("./StockDataStore");
+    const { useSalesDataStore } = await import("./SalesDataStore");
+
+    useOverViewDataStore().clear();
+    useExpenseDataStore().clear();
+    useStockDataStore().clear();
+    useSalesDataStore().clear();
+  }
+
   async function update() {
     await getData();
   }
@@ -238,6 +254,7 @@ export const useDataStore = defineStore("dataStore", () => {
     stockDetails,
     loading,
     update,
+    clear,
     toJson,
     addDraftExpense,
     bulkAddDraftExpenses,

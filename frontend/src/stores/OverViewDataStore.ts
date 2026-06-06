@@ -287,6 +287,26 @@ export const useOverViewDataStore = defineStore("overViewDataStore", () => {
     });
   }
 
+  function clear() {
+    nrSales.value = { value: 0 };
+    totalSales.value = { value: 0 };
+    avgSales.value = { value: 0 };
+    nrPurchases.value = { value: 0 };
+    totalPurchases.value = { value: 0 };
+    avgPurchases.value = { value: 0 };
+    grossProfit.value = { value: 0 };
+    grossMargin.value = { value: 0 };
+    nrExpenses.value = { value: 0 };
+    totalExpenses.value = { value: 0 };
+    avgExpenses.value = { value: 0 };
+    netProfit.value = { value: 0 };
+    netMargin.value = { value: 0 };
+    salesByCategory.value = { labels: [], datasets: [] };
+    prev6MonthsSales.value = { labels: [], datasets: [] };
+    prevXGroupingSalesTitle.value = "";
+    prevXGroupingSales.value = { labels: [], datasets: [] };
+  }
+
   return {
     nrSales,
     totalSales,
@@ -312,5 +332,6 @@ export const useOverViewDataStore = defineStore("overViewDataStore", () => {
     applyBarChart,
     applyPrev6MonthsSales,
     applySalesByCategory,
+    clear,
   };
 });

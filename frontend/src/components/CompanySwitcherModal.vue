@@ -104,6 +104,7 @@ async function selectCompany(companyName: string) {
     }
 
     dataStore.loading = true;
+    dataStore.clear();
     try {
         await authStore.switchCompany(companyName, async () => {
             await dataStore.update();

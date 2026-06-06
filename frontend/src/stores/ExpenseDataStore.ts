@@ -105,6 +105,12 @@ export const useExpenseDataStore = defineStore("ExpenseDataStore", () => {
     }
   }
 
+  function clear() {
+    expenseBreakdown.value = { labels: [], datasets: [] };
+    orderBreakdown.value = { labels: [], datasets: [] };
+    prev6MonthsExpenses.value = { labels: [], datasets: [] };
+  }
+
   return {
     expenseBreakdown,
     orderBreakdown,
@@ -113,5 +119,6 @@ export const useExpenseDataStore = defineStore("ExpenseDataStore", () => {
     applyOrderBreakdown,
     applyPrev6MonthsExpenses,
     parseDashboardResults,
+    clear,
   };
 });

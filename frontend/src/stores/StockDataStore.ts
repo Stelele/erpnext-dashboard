@@ -138,6 +138,16 @@ export const useStockDataStore = defineStore("stockDataStore", () => {
     applyStockSummary(stockSummaryData);
   }
 
+  function clear() {
+    salesVsStock.value = { datasets: [], labels: { x: "", y: "" }, additionalData: [], tooltipLabels: [], title: "Sales vs Stock" };
+    stockByItemGroup.value = { labels: [], datasets: [] };
+    totalStockValue.value = 0;
+    totalSellingValue.value = 0;
+    averageMarkupPercentage.value = 0;
+    stockTableData.value = [];
+    dailyStockValues.value = { labels: [], datasets: [] };
+  }
+
   return {
     salesVsStock,
     stockByItemGroup,
@@ -152,5 +162,6 @@ export const useStockDataStore = defineStore("stockDataStore", () => {
     setStockTableData,
     setDailyStockValues,
     parseDashboardResults,
+    clear,
   };
 });

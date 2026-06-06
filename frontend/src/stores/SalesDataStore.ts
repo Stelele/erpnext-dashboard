@@ -40,10 +40,17 @@ export const useSalesDataStore = defineStore("salesDataStore", () => {
     });
   }
 
+  function clear() {
+    salesDetails.value = [];
+    mobileSalesDetails.value = {};
+    mobileSalesDateDetails.value = [];
+  }
+
   return {
     salesDetails,
     mobileSalesDetails,
     mobileSalesDateDetails,
     applyAggregatedSales,
+    clear,
   };
 });
