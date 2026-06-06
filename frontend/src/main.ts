@@ -10,6 +10,11 @@ import { createAuth0 } from "@auth0/auth0-vue";
 
 addCollection(lucide);
 
+// Force dark mode permanently
+localStorage.setItem('vueuse-color-scheme', 'dark');
+document.documentElement.classList.add('dark');
+document.documentElement.classList.remove('light');
+
 const app = createApp(App);
 const pinia = createPinia();
 

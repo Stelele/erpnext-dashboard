@@ -1,2 +1,12 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+
+/* Force dark mode permanently */
+html {
+    color-scheme: dark;
+}
+
+/* Hide UHeader's built-in mobile menu button */
+header button[aria-label="Open menu"] {
+    display: none !important;
+}

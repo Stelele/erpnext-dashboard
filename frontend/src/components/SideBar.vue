@@ -13,48 +13,43 @@
         </template>
         <template #footer="{ collapsed }">
             <div class="flex flex-col gap-1">
-                <UDropdownMenu
-                    :collapsed="collapsed"
-                    :items="filterItems"
-                    class="w-full"
-                >
-                    <UButton variant="subtle" color="neutral" class="w-full">
-                        <div class="flex flex-col w-full">
-                            <CartTitle class="text-lg font-bold">{{
-                                dataStore.currentPeriod
-                            }}</CartTitle>
-                            <CartTitle class="text-sm"
-                                >{{ dateRange }}
-                            </CartTitle>
-                        </div>
+                <PeriodSelector />
+                <div v-if="authStore.showSwitcher" class="border-t pt-2 mt-2">
+                    <UButton
+                        variant="subtle"
+                        color="success"
+                        class="w-full min-h-[44px]"
+                        @click="showCompanyModal = true"
+                    >
+                        <UIcon name="i-lucide-building-2" class="w-4 h-4" />
+                        <span v-if="!collapsed">Switch Company</span>
                     </UButton>
-                </UDropdownMenu>
-                <CompanySwitcherModal v-if="authStore.showSwitcher" />
+                </div>
                 <CartTitle class="text-sm"
                     >Last Refresh: {{ dataStore.lastRefresh }}</CartTitle
                 >
             </div>
         </template>
     </UDashboardSidebar>
+    <UModal v-model:open="showCompanyModal" title="Switch Company" :dismissible="true">
+        <template #body>
+            <CompanySwitcherModalContent v-model="showCompanyModal" />
+        </template>
+    </UModal>
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { ref } from "vue";
 import { useDataStore } from "@/stores/DataStore";
 import { useNavStore } from "@/stores/NavStore";
 import { useAuthStore } from "@/stores/AuthStore";
-import { filterItems } from "@/utils/MenuItems";
-import moment from "moment";
+import PeriodSelector from "./PeriodSelector.vue";
+import CompanySwitcherModalContent from "./CompanySwitcherModalContent.vue";
+import CartTitle from "./CartTitle.vue";
 
 const authStore = useAuthStore();
 const navStore = useNavStore();
 const dataStore = useDataStore();
 
-const dateRange = computed(() => {
-    if (["Today", "Yesterday"].includes(dataStore.currentPeriod)) {
-        return moment().format("DD MMM YY");
-    }
-
-    return `${moment(dataStore.dateRange.start).format("DD MMM YY")} - ${moment(dataStore.dateRange.end).format("DD MMM YY")}`;
-});
+const showCompanyModal = ref(false);
 </script>
