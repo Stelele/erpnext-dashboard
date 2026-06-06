@@ -1,10 +1,12 @@
 import { defineStore } from "pinia";
 import { ErpNextService, type AccountMappings } from "../services/ErpNextService";
 import { computed, ref } from "vue";
-import { getPeriodDateRange, getPreviousPeriod, type Period } from "../utils/PeriodUtilities";
+import { getPeriodDateRange, type Period } from "../utils/PeriodUtilities";
 import moment from "moment";
 import type { Expense, Payment } from "../types/Expenses";
 import type { StockDetail } from "@/types/StockDetail";
+import { fetchAllData } from "@/services/DataFetcherFunctions";
+import * as ExpenseServiceFunctions from "@/services/ExpenseServiceFunctions";
 
 export const useDataStore = defineStore("dataStore", () => {
   const loading = ref(true);
@@ -19,199 +21,60 @@ export const useDataStore = defineStore("dataStore", () => {
   const lastRefresh = ref("");
   const dateRange = computed(() => getPeriodDateRange(currentPeriod.value));
 
-  function getBarChartConfig(period: Period) {
-    const today = moment();
-    const monthStart = today.clone().startOf("month");
-
-    switch (period) {
-      case "Today":
-      case "Yesterday":
-        return {
-          fromDate: monthStart.clone().subtract(14, "days").format("YYYY-MM-DD"),
-          toDate: today.format("YYYY-MM-DD"),
-          grouping: "day" as const,
-        };
-      case "This Week":
-      case "Last Week":
-        return {
-          fromDate: monthStart.clone().subtract(5, "weeks").format("YYYY-MM-DD"),
-          toDate: today.format("YYYY-MM-DD"),
-          grouping: "week" as const,
-        };
-      case "This Month":
-      case "Last Month":
-        return {
-          fromDate: monthStart.clone().subtract(3, "months").startOf("month").format("YYYY-MM-DD"),
-          toDate: today.format("YYYY-MM-DD"),
-          grouping: "month" as const,
-        };
-      case "This Quarter":
-      case "Last Quarter":
-        return {
-          fromDate: monthStart.clone().subtract(4, "quarters").startOf("quarter").format("YYYY-MM-DD"),
-          toDate: today.format("YYYY-MM-DD"),
-          grouping: "quarter" as const,
-        };
-      case "This Semester":
-      case "Last Semester":
-        return {
-          fromDate: monthStart.clone().subtract(6, "quarters").startOf("quarter").format("YYYY-MM-DD"),
-          toDate: today.format("YYYY-MM-DD"),
-          grouping: "quarter" as const,
-        };
-      case "This Year":
-      case "Last Year":
-        return {
-          fromDate: monthStart.clone().subtract(3, "years").startOf("years").format("YYYY-MM-DD"),
-          toDate: today.format("YYYY-MM-DD"),
-          grouping: "quarter" as const,
-        };
-      default:
-        return {
-          fromDate: monthStart.clone().subtract(14, "days").format("YYYY-MM-DD"),
-          toDate: today.format("YYYY-MM-DD"),
-          grouping: "day" as const,
-        };
-    }
-  }
-
-  function getBarChartTitle(period: Period): string {
-    switch (period) {
-      case "Today":
-      case "Yesterday":
-        return "Sales from last 14 days";
-      case "This Week":
-      case "Last Week":
-        return "Sales from last 4 weeks";
-      case "This Month":
-      case "Last Month":
-        return "Sales from last 3 months";
-      case "This Quarter":
-      case "Last Quarter":
-        return "Sales from last 4 quarters";
-      case "This Semester":
-      case "Last Semester":
-        return "Sales from last 6 quarters";
-      case "This Year":
-      case "Last Year":
-        return "Sales from last 3 years";
-      default:
-        return "Sales from last 14 days";
-    }
-  }
-
   async function getData() {
     const erpNextService = new ErpNextService();
-    const period = currentPeriod.value;
-    const prevPeriod = getPreviousPeriod(period);
+    const result = await fetchAllData(currentPeriod.value, erpNextService);
 
     lastRefresh.value = moment().format("DD-MMM-YY HH:mm");
 
-    const barChartConfig = getBarChartConfig(period);
-    const barChartTitle = getBarChartTitle(period);
-
-    const stockPeriod = ["Today", "This Week"].includes(period) ? "This Week" : "Last 12 Months";
-
-    const [
-      dashboardResults,
-      accountMappingsData,
-      paymentEntriesData,
-      stockDetailsData,
-      dailyStockValues,
-      aggregatedSales,
-      barChartData,
-      stockValueData,
-      salesSummaryData,
-      orderBreakdownData,
-      prevExpensesData,
-      expenseBreakdownData,
-    ] = await Promise.all([
-      erpNextService.getDashboardComplete(period, prevPeriod),
-      erpNextService.getAccountMappings(),
-      erpNextService.getDashboardPaymentEntries(period),
-      erpNextService.getStockLevels(),
-      erpNextService.getDailyStockValueSummary("months", 3),
-      erpNextService.getDashboardSalesAggregated(period),
-      erpNextService.getDashboardBarChart(barChartConfig.fromDate, barChartConfig.toDate, barChartConfig.grouping),
-      erpNextService.getStockValueSummary(stockPeriod),
-      erpNextService.getSalesSummary(stockPeriod),
-      erpNextService.getOrderBreakdown(period),
-      erpNextService.getPrevGroupedExpenses("months", 6),
-      erpNextService.getExpenseBreakdown(period),
-    ]);
-
-    accountMappings.value = accountMappingsData;
-    paymentEntries.value = paymentEntriesData;
-    stockDetails.value = stockDetailsData;
+    accountMappings.value = result.accountMappings;
+    paymentEntries.value = result.paymentEntries;
+    stockDetails.value = result.stockDetails;
 
     const { useOverViewDataStore } = await import("./OverViewDataStore");
     const { useExpenseDataStore } = await import("./ExpenseDataStore");
     const { useStockDataStore } = await import("./StockDataStore");
     const { useSalesDataStore } = await import("./SalesDataStore");
 
-    useOverViewDataStore().parseDashboardResults(dashboardResults);
+    useOverViewDataStore().parseDashboardResults(result.dashboardResults);
     useOverViewDataStore().applyBarChart(
-      { ...barChartData, fromDate: barChartConfig.fromDate, toDate: barChartConfig.toDate },
-      barChartTitle,
-      barChartConfig.grouping
+      { ...result.barChartData, fromDate: result.barChartConfig.fromDate, toDate: result.barChartConfig.toDate },
+      result.barChartTitle,
+      result.barChartConfig.grouping
     );
-    useExpenseDataStore().parseDashboardResults(dashboardResults);
-    useExpenseDataStore().applyExpenseBreakdown(expenseBreakdownData, accountMappings.value.expenses);
-    useExpenseDataStore().applyOrderBreakdown(orderBreakdownData);
-    useExpenseDataStore().applyPrev6MonthsExpenses(prevExpensesData);
-    useStockDataStore().parseDashboardResults(dashboardResults);
-    useStockDataStore().applySalesVsStock(stockValueData, salesSummaryData, period);
-    useStockDataStore().setStockTableData(stockDetailsData);
+    useExpenseDataStore().parseDashboardResults(result.dashboardResults);
+    useExpenseDataStore().applyExpenseBreakdown(result.expenseBreakdownData, result.accountMappings.expenses);
+    useExpenseDataStore().applyOrderBreakdown(result.orderBreakdownData);
+    useExpenseDataStore().applyPrev6MonthsExpenses(result.prevExpensesData);
+    useStockDataStore().parseDashboardResults(result.dashboardResults);
+    useStockDataStore().applySalesVsStock(result.stockValueData, result.salesSummaryData, currentPeriod.value);
+    useStockDataStore().setStockTableData(result.stockDetails);
     useStockDataStore().setDailyStockValues({
-      labels: dailyStockValues.map(d => moment(d.posting_date).format("DD MMM")),
+      labels: result.dailyStockValues.map(d => moment(d.posting_date).format("DD MMM")),
       datasets: [{
         label: "Closing Stock",
-        data: dailyStockValues.map(d => d.daily_stock_value),
+        data: result.dailyStockValues.map(d => d.daily_stock_value),
       }],
     });
-    useSalesDataStore().applyAggregatedSales(aggregatedSales);
+    useSalesDataStore().applyAggregatedSales(result.aggregatedSales);
   }
 
   function addDraftExpense(expense: Expense) {
-    const erpNextService = new ErpNextService();
-    const incomeAccount = accountMappings.value.incomes["Cash"];
-    const expenseAccount = accountMappings.value.expenses[expense.expenseType];
-    return erpNextService.addDraftExpenseJournalEntry(
+    return ExpenseServiceFunctions.addDraftExpense(
+      new ErpNextService(),
+      accountMappings.value,
       expense,
-      incomeAccount,
-      expenseAccount,
     );
   }
 
   async function bulkAddDraftExpenses(
     expenses: Expense[],
-  ): Promise<{ success: boolean; expense: Expense; error?: Error }[]> {
-    const results: { success: boolean; expense: Expense; error?: Error }[] = [];
-    const batchSize = 20;
-
-    for (let i = 0; i < expenses.length; i += batchSize) {
-      const batch = expenses.slice(i, i + batchSize);
-      const batchResults = await Promise.allSettled(
-        batch.map((expense) => addDraftExpense(expense)),
-      );
-
-      batchResults.forEach((result, index) => {
-        const expense = batch[index];
-        if (!expense) return;
-
-        if (result.status === "fulfilled") {
-          results.push({ success: true, expense });
-        } else {
-          results.push({
-            success: false,
-            expense,
-            error: result.reason,
-          });
-        }
-      });
-    }
-
-    return results;
+  ): Promise<ExpenseServiceFunctions.ExpenseSubmissionResult[]> {
+    return ExpenseServiceFunctions.bulkAddDraftExpenses(
+      new ErpNextService(),
+      accountMappings.value,
+      expenses,
+    );
   }
 
   async function clear() {
