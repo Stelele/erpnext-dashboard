@@ -7,8 +7,17 @@ import type { Expense, Payment } from "../types/Expenses";
 import type { StockDetail } from "@/types/StockDetail";
 import { fetchAllData } from "@/services/DataFetcherFunctions";
 import * as ExpenseServiceFunctions from "@/services/ExpenseServiceFunctions";
+import { useOverViewDataStore } from "./OverViewDataStore";
+import { useExpenseDataStore } from "./ExpenseDataStore";
+import { useStockDataStore } from "./StockDataStore";
+import { useSalesDataStore } from "./SalesDataStore";
 
 export const useDataStore = defineStore("dataStore", () => {
+  const overviewStore = useOverViewDataStore();
+  const expenseStore = useExpenseDataStore();
+  const stockStore = useStockDataStore();
+  const salesStore = useSalesDataStore();
+
   const loading = ref(true);
   const accountMappings = ref<AccountMappings>({
     incomes: {},
@@ -31,32 +40,27 @@ export const useDataStore = defineStore("dataStore", () => {
     paymentEntries.value = result.paymentEntries;
     stockDetails.value = result.stockDetails;
 
-    const { useOverViewDataStore } = await import("./OverViewDataStore");
-    const { useExpenseDataStore } = await import("./ExpenseDataStore");
-    const { useStockDataStore } = await import("./StockDataStore");
-    const { useSalesDataStore } = await import("./SalesDataStore");
-
-    useOverViewDataStore().parseDashboardResults(result.dashboardResults);
-    useOverViewDataStore().applyBarChart(
+    overviewStore.parseDashboardResults(result.dashboardResults);
+    overviewStore.applyBarChart(
       { ...result.barChartData, fromDate: result.barChartConfig.fromDate, toDate: result.barChartConfig.toDate },
       result.barChartTitle,
       result.barChartConfig.grouping
     );
-    useExpenseDataStore().parseDashboardResults(result.dashboardResults);
-    useExpenseDataStore().applyExpenseBreakdown(result.expenseBreakdownData, result.accountMappings.expenses);
-    useExpenseDataStore().applyOrderBreakdown(result.orderBreakdownData);
-    useExpenseDataStore().applyPrev6MonthsExpenses(result.prevExpensesData);
-    useStockDataStore().parseDashboardResults(result.dashboardResults);
-    useStockDataStore().applySalesVsStock(result.stockValueData, result.salesSummaryData, currentPeriod.value);
-    useStockDataStore().setStockTableData(result.stockDetails);
-    useStockDataStore().setDailyStockValues({
+    expenseStore.parseDashboardResults(result.dashboardResults);
+    expenseStore.applyExpenseBreakdown(result.expenseBreakdownData, result.accountMappings.expenses);
+    expenseStore.applyOrderBreakdown(result.orderBreakdownData);
+    expenseStore.applyPrev6MonthsExpenses(result.prevExpensesData);
+    stockStore.parseDashboardResults(result.dashboardResults);
+    stockStore.applySalesVsStock(result.stockValueData, result.salesSummaryData, currentPeriod.value);
+    stockStore.setStockTableData(result.stockDetails);
+    stockStore.setDailyStockValues({
       labels: result.dailyStockValues.map(d => moment(d.posting_date).format("DD MMM")),
       datasets: [{
         label: "Closing Stock",
         data: result.dailyStockValues.map(d => d.daily_stock_value),
       }],
     });
-    useSalesDataStore().applyAggregatedSales(result.aggregatedSales);
+    salesStore.applyAggregatedSales(result.aggregatedSales);
   }
 
   function addDraftExpense(expense: Expense) {
@@ -82,15 +86,10 @@ export const useDataStore = defineStore("dataStore", () => {
     stockDetails.value = [];
     accountMappings.value = { incomes: {}, expenses: {} } as AccountMappings;
 
-    const { useOverViewDataStore } = await import("./OverViewDataStore");
-    const { useExpenseDataStore } = await import("./ExpenseDataStore");
-    const { useStockDataStore } = await import("./StockDataStore");
-    const { useSalesDataStore } = await import("./SalesDataStore");
-
-    useOverViewDataStore().clear();
-    useExpenseDataStore().clear();
-    useStockDataStore().clear();
-    useSalesDataStore().clear();
+    overviewStore.clear();
+    expenseStore.clear();
+    stockStore.clear();
+    salesStore.clear();
   }
 
   async function update() {

@@ -33,7 +33,7 @@ export const useAuthStore = defineStore("authStore", () => {
     ) {
       return selectedCompany.value;
     }
-    return user.value?.companies?.[0]?.name || "Njeremoto Enterprises";
+    return user.value?.companies?.[0]?.name || "";
   });
 
   const url = computed(() => {
