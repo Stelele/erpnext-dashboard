@@ -2,7 +2,7 @@ import type { Period } from "@/utils/PeriodUtilities";
 import { getPreviousPeriod } from "@/utils/PeriodUtilities";
 import { getBarChartConfig, getBarChartTitle } from "@/utils/ChartConfigUtilities";
 import type { ErpNextService, AccountMappings } from "@/services/ErpNextService";
-import type { Payment } from "@/types/Expenses";
+import type { Payment, CompanyExpenseMapping } from "@/types/Expenses";
 import type { StockDetail, DailyStockValue, StockValueSummary } from "@/types/StockDetail";
 import type { GroupSummary } from "@/types/MonthSales";
 import moment from "moment";
@@ -26,6 +26,7 @@ interface DashboardInterval {
 export interface DataFetchResult {
   dashboardResults: any[];
   accountMappings: AccountMappings;
+  expenseMappings: CompanyExpenseMapping[];
   paymentEntries: Payment[];
   stockDetails: StockDetail[];
   dailyStockValues: DailyStockValue[];
@@ -50,9 +51,18 @@ export async function fetchAllData(
 
   const stockPeriod = ["Today", "This Week"].includes(period) ? "This Week" : "Last 12 Months";
 
+  const authStore = await import("@/stores/AuthStore").then((m) => m.useAuthStore());
+  const companyId = authStore.user?.companies?.find((c) => c.name === authStore.company)?.id ?? "";
+  const apiBaseUrl = import.meta.env.VITE_API_URL;
+  const headers = { Authorization: `Bearer ${authStore.accessToken}` };
+
+  const [expenseMappings, companySettings] = await Promise.all([
+    fetch(`${apiBaseUrl}/api/companies/${companyId}/expense-mappings`, { headers }).then((r) => r.ok ? r.json() : []),
+    fetch(`${apiBaseUrl}/api/companies/${companyId}/settings`, { headers }).then((r) => r.ok ? r.json() : null),
+  ]);
+
   const [
     dashboardResults,
-    accountMappingsData,
     paymentEntriesData,
     stockDetailsData,
     dailyStockValues,
@@ -65,7 +75,6 @@ export async function fetchAllData(
     expenseBreakdownData,
   ] = await Promise.all([
     erpNextService.getDashboardComplete(period, prevPeriod),
-    erpNextService.getAccountMappings(),
     erpNextService.getDashboardPaymentEntries(period),
     erpNextService.getStockLevels(),
     erpNextService.getDailyStockValueSummary("months", 3),
@@ -78,9 +87,15 @@ export async function fetchAllData(
     erpNextService.getExpenseBreakdown(period),
   ]);
 
+  const accountMappingsData = await erpNextService.getAccountMappings(
+    expenseMappings ?? [],
+    companySettings?.defaultIncomeAccountName ?? "",
+  );
+
   return {
     dashboardResults,
     accountMappings: accountMappingsData,
+    expenseMappings: expenseMappings ?? [],
     paymentEntries: paymentEntriesData,
     stockDetails: stockDetailsData,
     dailyStockValues,

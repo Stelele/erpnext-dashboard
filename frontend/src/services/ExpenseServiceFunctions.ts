@@ -1,6 +1,6 @@
-import type { Expense } from "@/types/Expenses";
+import type { AccountMappings, Expense } from "@/types/Expenses";
+import type { ErpNextService } from "./ErpNextService";
 import type { JournalEntry } from "@/types/JournalEntry";
-import type { ErpNextService, AccountMappings, AccountResponse } from "@/services/ErpNextService";
 
 export interface ExpenseSubmissionResult {
   success: boolean;
@@ -8,13 +8,18 @@ export interface ExpenseSubmissionResult {
   error?: Error;
 }
 
-export function addDraftExpense(
+function addDraftExpense(
   erpNextService: ErpNextService,
   accountMappings: AccountMappings,
   expense: Expense,
 ): Promise<JournalEntry | undefined> {
-  const incomeAccount = accountMappings.incomes["Cash"];
-  const expenseAccount = accountMappings.expenses[expense.expenseType];
+  const incomeAccount = accountMappings.income;
+  const expenseAccount = accountMappings.expenses[expense.expenseTypeId];
+
+  if (!incomeAccount || !expenseAccount) {
+    return Promise.resolve(undefined);
+  }
+
   return erpNextService.addDraftExpenseJournalEntry(
     expense,
     incomeAccount,
@@ -22,35 +27,47 @@ export function addDraftExpense(
   );
 }
 
-export async function bulkAddDraftExpenses(
+async function bulkAddDraftExpenses(
   erpNextService: ErpNextService,
   accountMappings: AccountMappings,
   expenses: Expense[],
 ): Promise<ExpenseSubmissionResult[]> {
-  const results: ExpenseSubmissionResult[] = [];
   const batchSize = 20;
+  const results: ExpenseSubmissionResult[] = [];
 
   for (let i = 0; i < expenses.length; i += batchSize) {
     const batch = expenses.slice(i, i + batchSize);
     const batchResults = await Promise.allSettled(
-      batch.map((expense) => addDraftExpense(erpNextService, accountMappings, expense)),
+      batch.map(async (expense) => {
+        const response = await addDraftExpense(
+          erpNextService,
+          accountMappings,
+          expense,
+        );
+        return { expense, response };
+      }),
     );
 
-    batchResults.forEach((result, index) => {
-      const expense = batch[index];
-      if (!expense) return;
-
+    for (const result of batchResults) {
       if (result.status === "fulfilled") {
-        results.push({ success: true, expense });
+        results.push({
+          success: result.value.response !== undefined,
+          expense: result.value.expense,
+          error: result.value.response === undefined
+            ? new Error("Journal entry creation failed")
+            : undefined,
+        });
       } else {
         results.push({
           success: false,
-          expense,
-          error: result.reason instanceof Error ? result.reason : new Error(String(result.reason)),
+          expense: (result.reason as any)?.expense ?? {} as Expense,
+          error: result.reason as Error,
         });
       }
-    });
+    }
   }
 
   return results;
 }
+
+export { addDraftExpense, bulkAddDraftExpenses };

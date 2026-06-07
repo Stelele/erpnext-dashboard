@@ -13,4 +13,7 @@ public static class Permissions
     public static string ReadSites = "read:sites";
     public static string UpdateSites = "update:sites";
     public static string DeleteSites = "delete:sites";
+
+    public static string ReadExpenses = "read:expenses";
+    public static string UpdateExpenses = "update:expenses";
 }

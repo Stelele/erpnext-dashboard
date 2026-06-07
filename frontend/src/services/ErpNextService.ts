@@ -5,13 +5,15 @@ import {
   getPeriodDateRange,
   type Period,
 } from "@/utils/PeriodUtilities";
-import { ExpenseAccountMapping, IncomeAccountMapping } from "@/types/Expenses";
 import moment from "moment";
 import type { GroupSummary } from "@/types/MonthSales";
 import type {
-  Expense,
   ExpenseType,
-  IncomeType,
+  CompanyExpenseMapping,
+  CompanySettings,
+  AccountMappings,
+  AccountResponse,
+  Expense,
 } from "@/types/Expenses";
 import type { JournalEntry } from "@/types/JournalEntry";
 import type {
@@ -22,16 +24,11 @@ import type {
 
 type ErpNextResponse<T> = { data: T[] };
 export type Grouping = "years" | "months" | "days";
-export type AccountResponse = { account_name: string; name: string };
 export type AllAccountsResponse = {
   data: {
     expense: AccountResponse[];
     income: AccountResponse[];
   };
-};
-export type AccountMappings = {
-  expenses: Record<ExpenseType, AccountResponse>;
-  incomes: Record<IncomeType, AccountResponse>;
 };
 
 export class ErpNextService {
@@ -193,7 +190,7 @@ export class ErpNextService {
       .then((resp) => resp?.data.data);
   }
 
-  public async getAccountMappings() {
+  public async getAllAccounts() {
     const authStore = useAuthStore();
 
     const accounts = await this.instance
@@ -204,33 +201,30 @@ export class ErpNextService {
       })
       .then((resp) => resp?.data.data);
 
-    const expenses: Record<ExpenseType, AccountResponse> = {} as Record<
-      ExpenseType,
-      AccountResponse
-    >;
-    Object.keys(ExpenseAccountMapping).forEach((expenseType) => {
+    return accounts;
+  }
+
+  public async getAccountMappings(
+    expenseMappings: CompanyExpenseMapping[],
+    incomeAccountName: string,
+  ): Promise<AccountMappings> {
+    const accounts = await this.getAllAccounts();
+
+    const expenses: Record<string, AccountResponse> = {};
+    for (const mapping of expenseMappings) {
       const account = accounts.expense.find(
-        (account) =>
-          ExpenseAccountMapping[expenseType as ExpenseType] ===
-          account.account_name,
+        (a) => a.account_name === mapping.erpnextAccountName,
       );
-      expenses[expenseType as ExpenseType] = account!;
-    });
+      if (account) {
+        expenses[mapping.expenseTypeId] = account;
+      }
+    }
 
-    const incomes: Record<IncomeType, AccountResponse> = {} as Record<
-      IncomeType,
-      AccountResponse
-    >;
-    Object.keys(IncomeAccountMapping).forEach((incomeType) => {
-      const account = accounts.income.find(
-        (account) =>
-          IncomeAccountMapping[incomeType as IncomeType] ===
-          account.account_name,
-      );
-      incomes[incomeType as IncomeType] = account!;
-    });
+    const income = accounts.income.find(
+      (a) => a.account_name === incomeAccountName,
+    ) ?? null;
 
-    return { expenses, incomes } as AccountMappings;
+    return { expenses, income };
   }
 
   public getDashboardComplete(period: Period, prevPeriod: Period | undefined) {
@@ -299,13 +293,51 @@ export class ErpNextService {
       .then((resp) => resp?.data.data);
   }
 
+  public getExpenseTypes() {
+    return this.instance
+      .get<ExpenseType[]>("/api/expense-types")
+      .then((resp) => resp?.data);
+  }
+
+  public getCompanyExpenseMappings(companyId: string) {
+    const authStore = useAuthStore();
+    return fetch(`${import.meta.env.VITE_API_URL}/api/companies/${companyId}/expense-mappings`, {
+      headers: { Authorization: `Bearer ${authStore.accessToken}` },
+    }).then((r) => r.ok ? r.json() : []);
+  }
+
+  public upsertCompanyExpenseMappings(companyId: string, mappings: { expenseTypeId: string; erpnextAccountName: string }[]) {
+    const authStore = useAuthStore();
+    return fetch(`${import.meta.env.VITE_API_URL}/api/companies/${companyId}/expense-mappings`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${authStore.accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ companyId, mappings }),
+    });
+  }
+
+  public getCompanySettings(companyId: string) {
+    const authStore = useAuthStore();
+    return fetch(`${import.meta.env.VITE_API_URL}/api/companies/${companyId}/settings`, {
+      headers: { Authorization: `Bearer ${authStore.accessToken}` },
+    }).then((r) => r.ok ? r.json() : null);
+  }
+
+  public updateCompanySettings(companyId: string, settings: { defaultIncomeAccountName: string }) {
+    const authStore = useAuthStore();
+    return fetch(`${import.meta.env.VITE_API_URL}/api/companies/${companyId}/settings`, {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${authStore.accessToken}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ companyId, ...settings }),
+    });
+  }
+
   public async addDraftExpenseJournalEntry(
     expense: Expense,
     incomeAccount: AccountResponse,
     expenseAccount: AccountResponse,
   ) {
     const authStore = useAuthStore();
-    const entry = {
+    const body = {
       voucher_type: "Journal Entry",
       company: authStore.company,
       posting_date: expense.date,
@@ -322,13 +354,15 @@ export class ErpNextService {
       ],
     };
 
-    return this.instance
-      .post("/api/resource/Journal Entry", entry)
-      .then((resp) => resp?.data.data as JournalEntry)
-      .catch((error) => {
-        console.error(error);
-        return undefined;
-      });
+    try {
+      const response = await this.instance.post<{ data: JournalEntry }>(
+        "/api/resource/Journal Entry",
+        body,
+      );
+      return response.data.data;
+    } catch {
+      return undefined;
+    }
   }
 
   private getDateGrouping(grouping: Grouping) {

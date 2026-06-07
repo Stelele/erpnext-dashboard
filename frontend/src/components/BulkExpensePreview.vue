@@ -16,9 +16,10 @@
 
 <script setup lang="ts">
 import type { UniqueExpense } from "@/components/BulkExpenseUploadButton.vue";
+import type { CompanyExpenseMapping } from "@/types/Expenses";
 import { formatNumber } from "@/utils/FormatNumber";
 import type { TableColumn } from "@nuxt/ui";
-import { h, ref, resolveComponent, watch } from "vue";
+import { h, ref, resolveComponent, watch, computed } from "vue";
 
 const UButton = resolveComponent("UButton");
 
@@ -26,10 +27,19 @@ const importData = ref<UniqueExpense[]>([]);
 
 const props = defineProps<{
     data?: UniqueExpense[];
+    mappings?: CompanyExpenseMapping[];
 }>();
 const emit = defineEmits<{
     (e: "onDataSubmit", payload: UniqueExpense[]): void;
 }>();
+
+const mappingLookup = computed(() => {
+    const lookup: Record<string, string> = {};
+    props.mappings?.forEach((m) => {
+        lookup[m.expenseTypeId] = m.expenseTypeName;
+    });
+    return lookup;
+});
 
 watch(
     () => props.data,
@@ -50,10 +60,10 @@ const columns: TableColumn<UniqueExpense>[] = [
     },
     {
         id: "expenseType",
-        accessorKey: "expenseType",
+        accessorKey: "expenseTypeId",
         header: "Type",
         cell: ({ row }) => {
-            return row.original.expenseType;
+            return mappingLookup.value[row.original.expenseTypeId] ?? row.original.expenseTypeId;
         },
     },
     {

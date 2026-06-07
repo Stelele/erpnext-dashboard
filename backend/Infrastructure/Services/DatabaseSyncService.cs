@@ -39,7 +39,8 @@ public class DatabaseSyncService(
 
     public async Task SyncDatabaseAsync(CancellationToken cancellationToken = default)
     {
-        var connectionString = configuration.GetConnectionString("Sqlite") ?? "Data Source=erpnext.db";
+        var connectionString = configuration.GetConnectionString("Sqlite") 
+            ?? throw new InvalidOperationException("Connection string 'Sqlite' not found.");
         var databasePath = connectionString.Replace("Data Source=", "");
 
         if (!File.Exists(databasePath))

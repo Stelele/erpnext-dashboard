@@ -30,7 +30,10 @@
                 >
 
                 <template #body>
-                    <ExpenseForm @on-submit="onSubmit" />
+                    <ExpenseForm
+                        :mappings="mappings"
+                        @on-submit="onSubmit"
+                    />
                 </template>
             </UModal>
             <UModal
@@ -42,6 +45,7 @@
                 <template #body>
                     <BulkExpensePreview
                         :data="bulkPreviewData"
+                        :mappings="mappings"
                         @onDataSubmit="onBulkSubmit"
                     />
                 </template>
@@ -67,22 +71,42 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import type { Expense } from "@/types/Expenses";
+import { ref, onMounted, computed } from "vue";
+import type { Expense, CompanyExpenseMapping } from "@/types/Expenses";
 import { useDataStore } from "@/stores/DataStore";
 import { useExpenseDataStore } from "@/stores/ExpenseDataStore";
+import { useAuthStore } from "@/stores/AuthStore";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import type { UniqueExpense } from "@/components/BulkExpenseUploadButton.vue";
 import BulkExpensePreview from "@/components/BulkExpensePreview.vue";
+import ExpenseForm from "@/components/ExpenseForm.vue";
 
 const open = ref(false);
 const openBulkUpload = ref(false);
 const openBulkPreview = ref(false);
 const bulkPreviewData = ref<UniqueExpense[]>([]);
+const mappings = ref<CompanyExpenseMapping[]>([]);
 
 const toast = useToast();
 const dataStore = useDataStore();
 const expenseDataStore = useExpenseDataStore();
+const authStore = useAuthStore();
+
+const companyId = computed(() => {
+    const companyName = authStore.company;
+    return authStore.user?.companies?.find((c) => c.name === companyName)?.id ?? "";
+});
+
+onMounted(async () => {
+    if (companyId.value) {
+        mappings.value = await dataStore.getCompanyExpenseMappings(companyId.value);
+        const settings = await dataStore.getCompanySettings(companyId.value);
+        await dataStore.initAccountMappings(
+            mappings.value,
+            settings?.defaultIncomeAccountName ?? "Sales",
+        );
+    }
+});
 
 async function onSubmit(expense: Expense) {
     open.value = false;

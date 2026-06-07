@@ -18,7 +18,8 @@ public static class DependancyInjection
         app
             .MapCompanyEndpoints()
             .MapSitesEndpoints()
-            .MapUsersEndpoints();
+            .MapUsersEndpoints()
+            .MapExpenseEndpoints();
 
         app.UseCors("AllowFrontend");
 
@@ -46,7 +47,10 @@ public static class DependancyInjection
 
             .AddPermission(Permissions.ReadCompanies)
             .AddPermission(Permissions.UpdateCompanies)
-            .AddPermission(Permissions.DeleteCompanies);
+            .AddPermission(Permissions.DeleteCompanies)
+
+            .AddPermission(Permissions.ReadExpenses)
+            .AddPermission(Permissions.UpdateExpenses);
 
         builder.Services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
 
@@ -55,7 +59,7 @@ public static class DependancyInjection
             options.AddPolicy("AllowFrontend", policy =>
             {
                 policy
-                    .WithOrigins("*")
+                    .AllowAnyOrigin()
                     .AllowAnyHeader()
                     .AllowAnyMethod();
             });

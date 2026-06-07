@@ -1,5 +1,8 @@
 ﻿using Domain.Abstractions;
 using Domain.Companies;
+using Domain.CompanyExpenseMappings;
+using Domain.CompanySettings;
+using Domain.ExpenseTypes;
 using Domain.Sites;
 using Domain.Users;
 using MediatR;
@@ -12,12 +15,18 @@ public class DashboardDbContext(DbContextOptions<DashboardDbContext> options, IP
     public DbSet<Site> Sites { get; set; }
     public DbSet<User> Users { get; set; }
     public DbSet<Company> Companies { get; set; }
+    public DbSet<ExpenseType> ExpenseTypes { get; set; }
+    public DbSet<CompanyExpenseMapping> CompanyExpenseMappings { get; set; }
+    public DbSet<CompanySettings> CompanySettings { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         new SiteEntity().Configure(modelBuilder.Entity<Site>());
         new UserEntity().Configure(modelBuilder.Entity<User>());
         new CompanyEntity().Configure(modelBuilder.Entity<Company>());
+        new ExpenseTypeEntity().Configure(modelBuilder.Entity<ExpenseType>());
+        new CompanyExpenseMappingEntity().Configure(modelBuilder.Entity<CompanyExpenseMapping>());
+        new CompanySettingsEntity().Configure(modelBuilder.Entity<CompanySettings>());
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

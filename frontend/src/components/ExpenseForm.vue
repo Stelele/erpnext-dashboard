@@ -30,13 +30,15 @@
 
             <UFormField
                 label="Expense Type"
-                name="expenseType"
+                name="expenseTypeId"
                 :required="true"
                 description="Please select the expense type."
             >
                 <UInputMenu
-                    v-model="state.expenseType"
-                    :items="expenseTypes"
+                    v-model="state.expenseTypeId"
+                    :items="mappedItems"
+                    value-key="expenseTypeId"
+                    label-key="expenseTypeName"
                     class="w-full"
                 />
             </UFormField>
@@ -79,20 +81,29 @@ import { CalendarDate, getLocalTimeZone } from "@internationalized/date";
 import * as z from "zod";
 import moment from "moment";
 import { computed, reactive, shallowRef } from "vue";
-import type { Expense, ExpenseType } from "@/types/Expenses";
+import type { Expense, CompanyExpenseMapping } from "@/types/Expenses";
+
+const props = defineProps<{
+    mappings: CompanyExpenseMapping[];
+}>();
 
 const emit = defineEmits<{
     onSubmit: [Expense];
 }>();
 
-const expenseTypes: ExpenseType[] = [
-    "Sekuru",
-    "Canteen",
-    "Spoiled Meat",
-    "Utilities",
-    "Consumables",
-    "Other",
-];
+const configuredMappings = props.mappings.filter(
+    (m) => m.erpnextAccountName && m.erpnextAccountName.trim() !== "",
+);
+
+const mappedItems = configuredMappings.map((m) => ({
+    expenseTypeId: m.expenseTypeId,
+    expenseTypeName: m.expenseTypeName,
+}));
+
+const expenseTypeIds = computed(() =>
+    configuredMappings.map((m) => m.expenseTypeId) as [string, ...string[]],
+);
+
 const schema = z.object({
     date: z
         .object({
@@ -103,7 +114,7 @@ const schema = z.object({
         .transform(({ year, month, day }) =>
             shallowRef(new CalendarDate(year, month, day)),
         ),
-    expenseType: z.enum(expenseTypes),
+    expenseTypeId: z.enum(expenseTypeIds.value),
     amount: z.number().gt(0),
     description: z.string().min(10),
 });
@@ -117,7 +128,7 @@ const state = reactive<Schema>({
             moment().date(),
         ),
     ),
-    expenseType: "Sekuru",
+    expenseTypeId: configuredMappings[0]?.expenseTypeId ?? "",
     amount: 0,
     description: "",
 });
@@ -131,7 +142,7 @@ function onSubmit() {
         date: moment(state.date.toDate(getLocalTimeZone())).format(
             "YYYY-MM-DD",
         ),
-        expenseType: state.expenseType,
+        expenseTypeId: state.expenseTypeId,
         amount: state.amount,
         description: state.description,
     };

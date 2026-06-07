@@ -3,7 +3,7 @@ import { ErpNextService, type AccountMappings } from "../services/ErpNextService
 import { computed, ref } from "vue";
 import { getPeriodDateRange, type Period } from "../utils/PeriodUtilities";
 import moment from "moment";
-import type { Expense, Payment } from "../types/Expenses";
+import type { Expense, Payment, CompanyExpenseMapping, CompanySettings } from "../types/Expenses";
 import type { StockDetail } from "@/types/StockDetail";
 import { fetchAllData } from "@/services/DataFetcherFunctions";
 import * as ExpenseServiceFunctions from "@/services/ExpenseServiceFunctions";
@@ -11,6 +11,8 @@ import { useOverViewDataStore } from "./OverViewDataStore";
 import { useExpenseDataStore } from "./ExpenseDataStore";
 import { useStockDataStore } from "./StockDataStore";
 import { useSalesDataStore } from "./SalesDataStore";
+import { ApiSingleton } from "@/services/api";
+import { useAuthStore } from "./AuthStore";
 
 export const useDataStore = defineStore("dataStore", () => {
   const overviewStore = useOverViewDataStore();
@@ -20,7 +22,7 @@ export const useDataStore = defineStore("dataStore", () => {
 
   const loading = ref(true);
   const accountMappings = ref<AccountMappings>({
-    incomes: {},
+    income: null,
     expenses: {},
   } as AccountMappings);
   const paymentEntries = ref<Payment[]>([]);
@@ -47,7 +49,7 @@ export const useDataStore = defineStore("dataStore", () => {
       result.barChartConfig.grouping
     );
     expenseStore.parseDashboardResults(result.dashboardResults);
-    expenseStore.applyExpenseBreakdown(result.expenseBreakdownData, result.accountMappings.expenses);
+    expenseStore.applyExpenseBreakdown(result.expenseBreakdownData, result.expenseMappings);
     expenseStore.applyOrderBreakdown(result.orderBreakdownData);
     expenseStore.applyPrev6MonthsExpenses(result.prevExpensesData);
     stockStore.parseDashboardResults(result.dashboardResults);
@@ -61,6 +63,45 @@ export const useDataStore = defineStore("dataStore", () => {
       }],
     });
     salesStore.applyAggregatedSales(result.aggregatedSales);
+  }
+
+  async function getCompanyExpenseMappings(companyId: string): Promise<CompanyExpenseMapping[]> {
+    const api = await ApiSingleton.getInstance();
+    // Use a direct URL since the endpoint isn't in the OpenAPI schema yet
+    const baseUrl = import.meta.env.VITE_API_URL;
+    const authStore = useAuthStore();
+    const response = await fetch(`${baseUrl}/api/companies/${companyId}/expense-mappings`, {
+      headers: {
+        Authorization: `Bearer ${authStore.accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) return [];
+    return response.json();
+  }
+
+  async function getCompanySettings(companyId: string): Promise<CompanySettings | null> {
+    const baseUrl = import.meta.env.VITE_API_URL;
+    const authStore = useAuthStore();
+    const response = await fetch(`${baseUrl}/api/companies/${companyId}/settings`, {
+      headers: {
+        Authorization: `Bearer ${authStore.accessToken}`,
+        "Content-Type": "application/json",
+      },
+    });
+    if (!response.ok) return null;
+    return response.json();
+  }
+
+  async function initAccountMappings(
+    expenseMappings: CompanyExpenseMapping[],
+    incomeAccountName: string,
+  ) {
+    const erpNextService = new ErpNextService();
+    accountMappings.value = await erpNextService.getAccountMappings(
+      expenseMappings,
+      incomeAccountName,
+    );
   }
 
   function addDraftExpense(expense: Expense) {
@@ -84,7 +125,7 @@ export const useDataStore = defineStore("dataStore", () => {
   async function clear() {
     paymentEntries.value = [];
     stockDetails.value = [];
-    accountMappings.value = { incomes: {}, expenses: {} } as AccountMappings;
+    accountMappings.value = { income: null, expenses: {} } as AccountMappings;
 
     overviewStore.clear();
     expenseStore.clear();
@@ -120,5 +161,8 @@ export const useDataStore = defineStore("dataStore", () => {
     toJson,
     addDraftExpense,
     bulkAddDraftExpenses,
+    getCompanyExpenseMappings,
+    getCompanySettings,
+    initAccountMappings,
   };
 });

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
+using Microsoft.Extensions.Configuration;
 
 namespace Infrastructure.Models;
 
@@ -9,7 +10,7 @@ public class DashboardDbContextFactory : IDesignTimeDbContextFactory<DashboardDb
     public DashboardDbContext CreateDbContext(string[] args)
     {
         var optionsBuilder = new DbContextOptionsBuilder<DashboardDbContext>();
-        optionsBuilder.UseSqlite("Data Source=dashboard.db");
+        optionsBuilder.UseSqlite("Data Source=erpnext.db");
         return new DashboardDbContext(optionsBuilder.Options, NullPublisher.Instance);
     }
 }

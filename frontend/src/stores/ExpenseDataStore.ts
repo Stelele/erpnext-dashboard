@@ -3,8 +3,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import moment from "moment";
 import type { BarChartData } from "@/components/CardBarChart.vue";
-import { ExpenseAccountMapping, type ExpenseType } from "@/types/Expenses";
-import type { AccountResponse } from "@/services/ErpNextService";
+import type { AccountResponse, CompanyExpenseMapping } from "@/types/Expenses";
 
 interface ExpenseTypeData {
   expense_type: string;
@@ -36,30 +35,22 @@ export const useExpenseDataStore = defineStore("ExpenseDataStore", () => {
 
   function applyExpenseBreakdown(
     data: ExpenseTypeData[],
-    accountMappings: Record<ExpenseType, AccountResponse>
+    expenseMappings: CompanyExpenseMapping[]
   ) {
-    const mapped: Record<ExpenseType, number> = {
-      Sekuru: 0,
-      Canteen: 0,
-      "Spoiled Meat": 0,
-      Utilities: 0,
-      Consumables: 0,
-      "Neg Variance": 0,
-      Staff: 0,
-      Other: 0,
-    };
+    const mapped: Record<string, number> = {};
 
     for (const d of data) {
-      const expenseAccounts = Object.values(accountMappings);
-      const retrievedAccount = expenseAccounts.find((ea) => ea.name === d.expense_type);
-      const friendlyType = (
-        Object.entries(ExpenseAccountMapping) as [ExpenseType, string][]
-      ).find(([_, accountName]) => accountName === retrievedAccount?.account_name)?.[0] ?? "Other";
-      mapped[friendlyType] = (mapped[friendlyType] ?? 0) + d.total;
+      const mapping = expenseMappings.find(
+        (m) => m.erpnextAccountName === d.expense_type
+      );
+      if (mapping) {
+        const name = mapping.expenseTypeName;
+        mapped[name] = (mapped[name] ?? 0) + d.total;
+      }
     }
 
-    const labels = Object.keys(mapped).filter(k => mapped[k as ExpenseType] > 0) as ExpenseType[];
-    labels.sort((a, b) => mapped[b as ExpenseType] - mapped[a as ExpenseType]);
+    const labels = Object.keys(mapped).filter(k => mapped[k] > 0);
+    labels.sort((a, b) => mapped[b] - mapped[a]);
     const values = labels.map(k => mapped[k]);
 
     expenseBreakdown.value = {

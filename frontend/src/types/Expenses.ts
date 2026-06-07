@@ -1,39 +1,33 @@
-export type ExpenseType =
-  | "Sekuru"
-  | "Canteen"
-  | "Spoiled Meat"
-  | "Utilities"
-  | "Consumables"
-  | "Neg Variance"
-  | "Staff"
-  | "Other";
-export type IncomeType = "Pos Variance" | "Cash";
+export interface ExpenseType {
+  id: string;
+  name: string;
+  description: string;
+}
 
-export type ExpenseMappings = Record<ExpenseType, string>;
-export type IncomeMappings = Record<IncomeType, string>;
+export interface CompanyExpenseMapping {
+  id: string;
+  expenseTypeId: string;
+  expenseTypeName: string;
+  erpnextAccountName: string;
+}
+
+export interface CompanySettings {
+  id: string;
+  companyId: string;
+  defaultIncomeAccountName: string;
+}
 
 export interface Expense {
   date: string;
-  expenseType: ExpenseType;
+  expenseTypeId: string;
   amount: number;
   description: string;
 }
 
-export const ExpenseAccountMapping: Record<ExpenseType, string> = {
-  Sekuru: `Entertainment/Director's Expenses`,
-  Canteen: "Canteen",
-  "Spoiled Meat": "Spoiled Meat",
-  Utilities: "Utility Expenses",
-  Consumables: "Consumables",
-  "Neg Variance": "Variance Deficit",
-  Staff: "Administrative Expenses",
-  Other: "Miscellaneous Expenses",
-};
-
-export const IncomeAccountMapping: Record<IncomeType, string> = {
-  "Pos Variance": "Variance Surplus",
-  Cash: "Njeremoto Sales",
-};
+export interface AccountResponse {
+  name: string;
+  account_name: string;
+}
 
 export interface Payment {
   id: string;
@@ -43,4 +37,9 @@ export interface Payment {
   description: string;
   amount: number;
   account?: string;
+}
+
+export interface AccountMappings {
+  expenses: Record<string, AccountResponse>;
+  income: AccountResponse | null;
 }
