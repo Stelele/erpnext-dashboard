@@ -3,6 +3,7 @@ using System;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(DashboardDbContext))]
-    partial class DashboardDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260607092309_UpdateExpenseTypeNames")]
+    partial class UpdateExpenseTypeNames
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.11");
@@ -143,9 +146,6 @@ namespace Infrastructure.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("TEXT");
 
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("INTEGER");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -167,7 +167,6 @@ namespace Infrastructure.Migrations
                             Id = "00000000-0000-0000-0001-000000000001",
                             CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Utility expenses",
-                            IsDeleted = false,
                             Name = "Utilities",
                             UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
@@ -176,7 +175,6 @@ namespace Infrastructure.Migrations
                             Id = "00000000-0000-0000-0001-000000000002",
                             CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Consumable supplies",
-                            IsDeleted = false,
                             Name = "Consumables",
                             UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
@@ -185,7 +183,6 @@ namespace Infrastructure.Migrations
                             Id = "00000000-0000-0000-0001-000000000003",
                             CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Administrative expenses",
-                            IsDeleted = false,
                             Name = "Administrative",
                             UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
@@ -194,7 +191,6 @@ namespace Infrastructure.Migrations
                             Id = "00000000-0000-0000-0001-000000000004",
                             CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Entertainment/Director's Expenses",
-                            IsDeleted = false,
                             Name = "Entertainment/Owner",
                             UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
@@ -203,7 +199,6 @@ namespace Infrastructure.Migrations
                             Id = "00000000-0000-0000-0001-000000000005",
                             CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Marketing Expenses",
-                            IsDeleted = false,
                             Name = "Marketing",
                             UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
@@ -212,7 +207,6 @@ namespace Infrastructure.Migrations
                             Id = "00000000-0000-0000-0001-000000000006",
                             CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Rent payments",
-                            IsDeleted = false,
                             Name = "Rent",
                             UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
@@ -221,7 +215,6 @@ namespace Infrastructure.Migrations
                             Id = "00000000-0000-0000-0001-000000000007",
                             CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Travel expenses",
-                            IsDeleted = false,
                             Name = "Travel",
                             UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
@@ -230,7 +223,6 @@ namespace Infrastructure.Migrations
                             Id = "00000000-0000-0000-0001-000000000008",
                             CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Canteen",
-                            IsDeleted = false,
                             Name = "Staff Canteen",
                             UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
@@ -239,7 +231,6 @@ namespace Infrastructure.Migrations
                             Id = "00000000-0000-0000-0001-000000000009",
                             CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Professional service fees",
-                            IsDeleted = false,
                             Name = "Professional Fees",
                             UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
@@ -248,7 +239,6 @@ namespace Infrastructure.Migrations
                             Id = "00000000-0000-0000-0001-000000000010",
                             CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Salary",
-                            IsDeleted = false,
                             Name = "Staff Salary",
                             UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         },
@@ -257,7 +247,6 @@ namespace Infrastructure.Migrations
                             Id = "00000000-0000-0000-0001-000000000011",
                             CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             Description = "Other expenses",
-                            IsDeleted = false,
                             Name = "Other",
                             UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });

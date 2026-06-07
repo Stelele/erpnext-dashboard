@@ -16,4 +16,5 @@ public static class Permissions
 
     public static string ReadExpenses = "read:expenses";
     public static string UpdateExpenses = "update:expenses";
+    public static string DeleteExpenses = "delete:expenses";
 }

@@ -41,7 +41,7 @@ public class CreateCompanyCommandHandler(
         {
             { "Administrative", "Administrative Expenses" },
             { "Consumables", "Consumables" },
-            { "Entertainment", "Entertainment/Director's Expenses" },
+            { "Entertainment/Owner", "Entertainment/Director's Expenses" },
             { "Marketing", "Marketing Expenses" },
             { "Other", "Miscellaneous Expenses" },
             { "Professional Fees", "Legal Expenses" },

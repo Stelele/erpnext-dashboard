@@ -62,6 +62,52 @@ public static class ExpenseEndpoints
             .WithName("UpdateCompanySettings")
             .RequireAuthorization(Permissions.UpdateExpenses);
 
+        group.MapPost("/expense-types", async (IMediator mediator, CreateExpenseTypeCommand command) =>
+            {
+                var id = await mediator.Send(command);
+                return Results.Created($"/api/expense-types/{id}", new { id });
+            })
+            .Produces<Guid>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status409Conflict)
+            .WithName("CreateExpenseType")
+            .RequireAuthorization(Permissions.UpdateExpenses);
+
+        group.MapGet("/expense-types/{id:guid}", async (IMediator mediator, Guid id) =>
+            {
+                var result = await mediator.Send(new GetExpenseTypeByIdQuery(id));
+                return result == null ? Results.NotFound() : Results.Ok(result);
+            })
+            .Produces<Application.DTOs.ExpenseTypeResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("GetExpenseTypeById")
+            .RequireAuthorization(Permissions.ReadExpenses);
+
+        group.MapPut("/expense-types/{id:guid}", async (IMediator mediator, Guid id, UpdateExpenseTypeCommand command) =>
+            {
+                if (command.Id != id)
+                    return Results.BadRequest();
+
+                await mediator.Send(command);
+                return Results.NoContent();
+            })
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status409Conflict)
+            .WithName("UpdateExpenseType")
+            .RequireAuthorization(Permissions.UpdateExpenses);
+
+        group.MapDelete("/expense-types/{id:guid}", async (IMediator mediator, Guid id) =>
+            {
+                await mediator.Send(new DeleteExpenseTypeCommand(id));
+                return Results.NoContent();
+            })
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound)
+            .WithName("DeleteExpenseType")
+            .RequireAuthorization(Permissions.DeleteExpenses);
+
         return app;
     }
 }
