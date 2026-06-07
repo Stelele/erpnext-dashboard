@@ -24,6 +24,7 @@ builder
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
+app.UseForwardedHeaders();
 app.MapOpenApi();
 app.MapScalarApiReference();
 
