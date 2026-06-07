@@ -8,12 +8,10 @@ import {
 import moment from "moment";
 import type { GroupSummary } from "@/types/MonthSales";
 import type {
-  ExpenseType,
+  Expense,
   CompanyExpenseMapping,
-  CompanySettings,
   AccountMappings,
   AccountResponse,
-  Expense,
 } from "@/types/Expenses";
 import type { JournalEntry } from "@/types/JournalEntry";
 import type {
@@ -291,44 +289,6 @@ export class ErpNextService {
         },
       })
       .then((resp) => resp?.data.data);
-  }
-
-  public getExpenseTypes() {
-    return this.instance
-      .get<ExpenseType[]>("/api/expense-types")
-      .then((resp) => resp?.data);
-  }
-
-  public getCompanyExpenseMappings(companyId: string) {
-    const authStore = useAuthStore();
-    return fetch(`${import.meta.env.VITE_API_URL}/api/companies/${companyId}/expense-mappings`, {
-      headers: { Authorization: `Bearer ${authStore.accessToken}` },
-    }).then((r) => r.ok ? r.json() : []);
-  }
-
-  public upsertCompanyExpenseMappings(companyId: string, mappings: { expenseTypeId: string; erpnextAccountName: string }[]) {
-    const authStore = useAuthStore();
-    return fetch(`${import.meta.env.VITE_API_URL}/api/companies/${companyId}/expense-mappings`, {
-      method: "PUT",
-      headers: { Authorization: `Bearer ${authStore.accessToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ companyId, mappings }),
-    });
-  }
-
-  public getCompanySettings(companyId: string) {
-    const authStore = useAuthStore();
-    return fetch(`${import.meta.env.VITE_API_URL}/api/companies/${companyId}/settings`, {
-      headers: { Authorization: `Bearer ${authStore.accessToken}` },
-    }).then((r) => r.ok ? r.json() : null);
-  }
-
-  public updateCompanySettings(companyId: string, settings: { defaultIncomeAccountName: string }) {
-    const authStore = useAuthStore();
-    return fetch(`${import.meta.env.VITE_API_URL}/api/companies/${companyId}/settings`, {
-      method: "PUT",
-      headers: { Authorization: `Bearer ${authStore.accessToken}`, "Content-Type": "application/json" },
-      body: JSON.stringify({ companyId, ...settings }),
-    });
   }
 
   public async addDraftExpenseJournalEntry(

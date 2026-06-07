@@ -104,6 +104,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/{userId}/companies/{companyId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["AddUserToCompany"];
+        delete: operations["RemoveUserFromCompany"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/expense-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetExpenseTypes"];
+        put?: never;
+        post: operations["CreateExpenseType"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/{companyId}/expense-mappings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetCompanyExpenseMappings"];
+        put: operations["UpsertCompanyExpenseMappings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/companies/{companyId}/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetCompanySettings"];
+        put: operations["UpdateCompanySettings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/expense-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetExpenseTypeById"];
+        put: operations["UpdateExpenseType"];
+        post?: never;
+        delete: operations["DeleteExpenseType"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -116,6 +196,14 @@ export interface components {
             url?: string;
             apiToken?: string;
         };
+        CompanyExpenseMappingResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            expenseTypeId: string;
+            expenseTypeName: string;
+            erpnextAccountName: string;
+        };
         CompanyResponse: {
             /** Format: uuid */
             siteId?: string;
@@ -124,9 +212,20 @@ export interface components {
             name?: string;
             description?: string;
         };
+        CompanySettingsResponse: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            companyId: string;
+            defaultIncomeAccountName: string;
+        };
         CreateCompanyCommand: {
             /** Format: uuid */
             siteId: string;
+            name: string;
+            description: string;
+        };
+        CreateExpenseTypeCommand: {
             name: string;
             description: string;
         };
@@ -140,6 +239,12 @@ export interface components {
             name: string;
             email: string;
             companies: string[];
+        };
+        ExpenseTypeResponse: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            description: string;
         };
         ExtendedCompanyResponse: {
             site: components["schemas"]["SiteResponse"];
@@ -164,6 +269,11 @@ export interface components {
             name?: string;
             email?: string;
         };
+        MappingItem: {
+            /** Format: uuid */
+            expenseTypeId: string;
+            erpnextAccountName: string;
+        };
         SiteCompanyResponse: {
             site: components["schemas"]["BaseSiteResponse"];
             /** Format: uuid */
@@ -179,6 +289,22 @@ export interface components {
             description?: string;
             url?: string;
             apiToken?: string;
+        };
+        UpdateCompanySettingsCommand: {
+            /** Format: uuid */
+            companyId: string;
+            defaultIncomeAccountName: string;
+        };
+        UpdateExpenseTypeCommand: {
+            /** Format: uuid */
+            id: string;
+            name: string;
+            description: string;
+        };
+        UpsertCompanyExpenseMappingsCommand: {
+            /** Format: uuid */
+            companyId: string;
+            mappings: components["schemas"]["MappingItem"][];
         };
         UserResponse: {
             companies?: string[];
@@ -499,6 +625,341 @@ export interface operations {
                 content: {
                     "application/json": string;
                 };
+            };
+        };
+    };
+    AddUserToCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    RemoveUserFromCompany: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetExpenseTypes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpenseTypeResponse"][];
+                };
+            };
+        };
+    };
+    CreateExpenseType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateExpenseTypeCommand"];
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string;
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetCompanyExpenseMappings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanyExpenseMappingResponse"][];
+                };
+            };
+        };
+    };
+    UpsertCompanyExpenseMappings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpsertCompanyExpenseMappingsCommand"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetCompanySettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["CompanySettingsResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateCompanySettings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                companyId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateCompanySettingsCommand"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetExpenseTypeById: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ExpenseTypeResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UpdateExpenseType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateExpenseTypeCommand"];
+            };
+        };
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    DeleteExpenseType: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description No Content */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };

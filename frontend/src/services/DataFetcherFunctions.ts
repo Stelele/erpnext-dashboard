@@ -6,6 +6,7 @@ import type { Payment, CompanyExpenseMapping } from "@/types/Expenses";
 import type { StockDetail, DailyStockValue, StockValueSummary } from "@/types/StockDetail";
 import type { GroupSummary } from "@/types/MonthSales";
 import moment from "moment";
+import { ApiSingleton } from "@/services/api";
 
 interface ExpenseTypeData {
   expense_type: string;
@@ -53,13 +54,23 @@ export async function fetchAllData(
 
   const authStore = await import("@/stores/AuthStore").then((m) => m.useAuthStore());
   const companyId = authStore.user?.companies?.find((c) => c.name === authStore.company)?.id ?? "";
-  const apiBaseUrl = import.meta.env.VITE_API_URL;
-  const headers = { Authorization: `Bearer ${authStore.accessToken}` };
+  const api = await ApiSingleton.getInstance();
 
-  const [expenseMappings, companySettings] = await Promise.all([
-    fetch(`${apiBaseUrl}/api/companies/${companyId}/expense-mappings`, { headers }).then((r) => r.ok ? r.json() : []),
-    fetch(`${apiBaseUrl}/api/companies/${companyId}/settings`, { headers }).then((r) => r.ok ? r.json() : null),
+  const [expenseMappingsResult, companySettingsResult] = await Promise.all([
+    api.GET("/api/companies/{companyId}/expense-mappings", { params: { path: { companyId } } }),
+    api.GET("/api/companies/{companyId}/settings", { params: { path: { companyId } } }),
   ]);
+
+  const expenseMappings = expenseMappingsResult.error ? [] : (expenseMappingsResult.data ?? []).map((m) => ({
+    expenseTypeId: m.expenseTypeId,
+    expenseTypeName: m.expenseTypeName,
+    erpnextAccountName: m.erpnextAccountName,
+  }));
+  const companySettings = companySettingsResult.error ? null : {
+    id: companySettingsResult.data!.id,
+    companyId: companySettingsResult.data!.companyId,
+    defaultIncomeAccountName: companySettingsResult.data!.defaultIncomeAccountName,
+  };
 
   const [
     dashboardResults,

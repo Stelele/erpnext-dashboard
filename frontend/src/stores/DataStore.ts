@@ -1,9 +1,9 @@
 import { defineStore } from "pinia";
-import { ErpNextService, type AccountMappings } from "../services/ErpNextService";
+import { ErpNextService } from "../services/ErpNextService";
 import { computed, ref } from "vue";
 import { getPeriodDateRange, type Period } from "../utils/PeriodUtilities";
 import moment from "moment";
-import type { Expense, Payment, CompanyExpenseMapping, CompanySettings } from "../types/Expenses";
+import type { Expense, Payment, CompanyExpenseMapping, CompanySettings, AccountMappings } from "../types/Expenses";
 import type { StockDetail } from "@/types/StockDetail";
 import { fetchAllData } from "@/services/DataFetcherFunctions";
 import * as ExpenseServiceFunctions from "@/services/ExpenseServiceFunctions";
@@ -12,7 +12,6 @@ import { useExpenseDataStore } from "./ExpenseDataStore";
 import { useStockDataStore } from "./StockDataStore";
 import { useSalesDataStore } from "./SalesDataStore";
 import { ApiSingleton } from "@/services/api";
-import { useAuthStore } from "./AuthStore";
 
 export const useDataStore = defineStore("dataStore", () => {
   const overviewStore = useOverViewDataStore();
@@ -67,30 +66,20 @@ export const useDataStore = defineStore("dataStore", () => {
 
   async function getCompanyExpenseMappings(companyId: string): Promise<CompanyExpenseMapping[]> {
     const api = await ApiSingleton.getInstance();
-    // Use a direct URL since the endpoint isn't in the OpenAPI schema yet
-    const baseUrl = import.meta.env.VITE_API_URL;
-    const authStore = useAuthStore();
-    const response = await fetch(`${baseUrl}/api/companies/${companyId}/expense-mappings`, {
-      headers: {
-        Authorization: `Bearer ${authStore.accessToken}`,
-        "Content-Type": "application/json",
-      },
+    const { data, error } = await api.GET("/api/companies/{companyId}/expense-mappings", {
+      params: { path: { companyId } },
     });
-    if (!response.ok) return [];
-    return response.json();
+    if (error) return [];
+    return data ?? [];
   }
 
   async function getCompanySettings(companyId: string): Promise<CompanySettings | null> {
-    const baseUrl = import.meta.env.VITE_API_URL;
-    const authStore = useAuthStore();
-    const response = await fetch(`${baseUrl}/api/companies/${companyId}/settings`, {
-      headers: {
-        Authorization: `Bearer ${authStore.accessToken}`,
-        "Content-Type": "application/json",
-      },
+    const api = await ApiSingleton.getInstance();
+    const { data, error } = await api.GET("/api/companies/{companyId}/settings", {
+      params: { path: { companyId } },
     });
-    if (!response.ok) return null;
-    return response.json();
+    if (error) return null;
+    return data ?? null;
   }
 
   async function initAccountMappings(

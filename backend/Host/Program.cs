@@ -13,6 +13,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi(options =>
 {
     options.AddDocumentTransformer<DocumentTransformer>();
+    options.AddSchemaTransformer<NullableSchemaTransformer>();
 });
 
 builder

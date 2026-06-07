@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import moment from "moment";
 import type { BarChartData } from "@/components/CardBarChart.vue";
-import type { AccountResponse, CompanyExpenseMapping } from "@/types/Expenses";
+import type { CompanyExpenseMapping } from "@/types/Expenses";
 
 interface ExpenseTypeData {
   expense_type: string;
@@ -49,8 +49,8 @@ export const useExpenseDataStore = defineStore("ExpenseDataStore", () => {
       }
     }
 
-    const labels = Object.keys(mapped).filter(k => mapped[k] > 0);
-    labels.sort((a, b) => mapped[b] - mapped[a]);
+    const labels = Object.keys(mapped).filter(k => (mapped[k] ?? 0) > 0);
+    labels.sort();
     const values = labels.map(k => mapped[k]);
 
     expenseBreakdown.value = {
