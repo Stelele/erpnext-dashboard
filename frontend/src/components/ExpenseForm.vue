@@ -80,7 +80,7 @@
 import { CalendarDate, getLocalTimeZone } from "@internationalized/date";
 import * as z from "zod";
 import moment from "moment";
-import { computed, reactive, shallowRef } from "vue";
+import { computed, reactive, shallowRef, watch } from "vue";
 import type { Expense, CompanyExpenseMapping } from "@/types/Expenses";
 
 const props = defineProps<{
@@ -91,17 +91,21 @@ const emit = defineEmits<{
     onSubmit: [Expense];
 }>();
 
-const configuredMappings = props.mappings.filter(
-    (m) => m.erpnextAccountName && m.erpnextAccountName.trim() !== "",
+const configuredMappings = computed(() =>
+    props.mappings.filter(
+        (m) => m.erpnextAccountName && m.erpnextAccountName.trim() !== "",
+    ),
 );
 
-const mappedItems = configuredMappings.map((m) => ({
-    expenseTypeId: m.expenseTypeId,
-    expenseTypeName: m.expenseTypeName,
-}));
+const mappedItems = computed(() =>
+    configuredMappings.value.map((m) => ({
+        expenseTypeId: m.expenseTypeId,
+        expenseTypeName: m.expenseTypeName,
+    })),
+);
 
 const expenseTypeIds = computed(() =>
-    configuredMappings.map((m) => m.expenseTypeId) as [string, ...string[]],
+    configuredMappings.value.map((m) => m.expenseTypeId) as [string, ...string[]],
 );
 
 const schema = z.object({
@@ -128,10 +132,23 @@ const state = reactive<Schema>({
             moment().date(),
         ),
     ),
-    expenseTypeId: configuredMappings[0]?.expenseTypeId ?? "",
+    expenseTypeId: "",
     amount: 0,
     description: "",
 });
+
+watch(
+    () => props.mappings,
+    (newMappings) => {
+        const configured = newMappings.filter(
+            (m) => m.erpnextAccountName && m.erpnextAccountName.trim() !== "",
+        );
+        if (configured.length > 0) {
+            state.expenseTypeId = configured[0].expenseTypeId;
+        }
+    },
+    { deep: true },
+);
 
 const displayDate = computed(() =>
     moment(state.date.toDate(getLocalTimeZone())).format("dddd, DD MMM YYYY"),

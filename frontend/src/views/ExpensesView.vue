@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from "vue";
+import { ref, onMounted, computed, watch } from "vue";
 import type { Expense, CompanyExpenseMapping } from "@/types/Expenses";
 import { useDataStore } from "@/stores/DataStore";
 import { useExpenseDataStore } from "@/stores/ExpenseDataStore";
@@ -99,14 +99,24 @@ const companyId = computed(() => {
 
 onMounted(async () => {
     if (companyId.value) {
-        mappings.value = await dataStore.getCompanyExpenseMappings(companyId.value);
-        const settings = await dataStore.getCompanySettings(companyId.value);
-        await dataStore.initAccountMappings(
-            mappings.value,
-            settings?.defaultIncomeAccountName ?? "Sales",
-        );
+        await loadCompanyData(companyId.value);
     }
 });
+
+watch(companyId, async (newId) => {
+    if (newId) {
+        await loadCompanyData(newId);
+    }
+});
+
+async function loadCompanyData(id: string) {
+    mappings.value = await dataStore.getCompanyExpenseMappings(id);
+    const settings = await dataStore.getCompanySettings(id);
+    await dataStore.initAccountMappings(
+        mappings.value,
+        settings?.defaultIncomeAccountName ?? "Sales",
+    );
+}
 
 async function onSubmit(expense: Expense) {
     open.value = false;
