@@ -3,10 +3,16 @@ using Microsoft.OpenApi;
 
 namespace Host.Transformers
 {
-    public class DocumentTransformer : IOpenApiDocumentTransformer
+    public class DocumentTransformer(IConfiguration configuration) : IOpenApiDocumentTransformer
     {
         public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
         {
+            var serverUrl = configuration["OpenApi:ServerUrl"];
+            if (!string.IsNullOrEmpty(serverUrl))
+            {
+                document.Servers = [new() { Url = serverUrl }];
+            }
+
             var bearerScheme = new OpenApiSecurityScheme
             {
                 Type = SecuritySchemeType.Http,
