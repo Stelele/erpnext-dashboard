@@ -41,6 +41,14 @@ const mappingLookup = computed(() => {
     return lookup;
 });
 
+const nameToIdLookup = computed(() => {
+    const lookup: Record<string, string> = {};
+    props.mappings?.forEach((m) => {
+        lookup[m.expenseTypeName.toLowerCase()] = m.expenseTypeId;
+    });
+    return lookup;
+});
+
 watch(
     () => props.data,
     (newData) => {
@@ -108,7 +116,20 @@ function removeRow(idToRemove: string) {
     importData.value = importData.value.filter((row) => row.id !== idToRemove);
 }
 
+function resolveExpenseTypeId(expense: UniqueExpense): string {
+    const direct = expense.expenseTypeId;
+    if (direct && direct.includes("-")) {
+        return direct;
+    }
+    const resolved = nameToIdLookup.value[direct.toLowerCase()];
+    return resolved ?? direct;
+}
+
 function submitBulkImport() {
-    emit("onDataSubmit", importData.value);
+    const resolved = importData.value.map((expense) => ({
+        ...expense,
+        expenseTypeId: resolveExpenseTypeId(expense),
+    }));
+    emit("onDataSubmit", resolved);
 }
 </script>

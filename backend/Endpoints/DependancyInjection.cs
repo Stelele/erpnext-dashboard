@@ -38,19 +38,24 @@ public static class DependancyInjection
 
         builder.Services.AddAuthorizationBuilder()
             .AddPermission(Permissions.ReadUsers)
+            .AddPermission(Permissions.CreateUsers)
             .AddPermission(Permissions.UpdateUsers)
             .AddPermission(Permissions.DeleteUsers)
 
             .AddPermission(Permissions.ReadSites)
+            .AddPermission(Permissions.CreateSites)
             .AddPermission(Permissions.UpdateSites)
             .AddPermission(Permissions.DeleteSites)
 
             .AddPermission(Permissions.ReadCompanies)
+            .AddPermission(Permissions.CreateCompanies)
             .AddPermission(Permissions.UpdateCompanies)
             .AddPermission(Permissions.DeleteCompanies)
 
             .AddPermission(Permissions.ReadExpenses)
-            .AddPermission(Permissions.UpdateExpenses);
+            .AddPermission(Permissions.CreateExpenses)
+            .AddPermission(Permissions.UpdateExpenses)
+            .AddPermission(Permissions.DeleteExpenses);
 
         builder.Services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
 

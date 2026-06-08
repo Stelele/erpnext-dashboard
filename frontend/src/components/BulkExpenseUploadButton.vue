@@ -63,7 +63,7 @@ const parseJSON = (file: File): Promise<UniqueExpense[]> => {
                 const expenses: UniqueExpense[] = arrayData.map((item: any, index: number) => ({
                     id: item.id ?? `import-${index}`,
                     date: item.date,
-                    expenseTypeId: item.expenseTypeId,
+                    expenseTypeId: item.expenseTypeId ?? item.expenseType ?? "",
                     amount: Number(item.amount),
                     description: item.description ?? "",
                 }));

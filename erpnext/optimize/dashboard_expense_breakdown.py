@@ -46,7 +46,7 @@ account_tree_condition = " OR ".join(conditions)
 
 query = """
     SELECT
-        gle.account AS expense_type,
+        acc.account_name AS expense_type,
         SUM(gle.debit) - SUM(gle.credit) AS total,
         COUNT(gle.name) AS count
     FROM `tabGL Entry` gle
