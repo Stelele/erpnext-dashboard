@@ -8,7 +8,7 @@ using System.Security.Cryptography;
 namespace Infrastructure.Auth0;
 
 
-public sealed class Auth0UserProvisioner(
+public class Auth0UserProvisioner(
     string domain,
     string clientId,
     string clientSecret,
@@ -21,7 +21,7 @@ public sealed class Auth0UserProvisioner(
     private readonly string _clientSecret = clientSecret;
     private readonly string _auth0AppClientId = auth0AppClientId;
 
-    public async Task<User> CreateUserInConnectionAsync(
+    public virtual async Task<User> CreateUserInConnectionAsync(
         string connectionName,
         string email,
         Guid userId,
@@ -73,7 +73,7 @@ public sealed class Auth0UserProvisioner(
         return (authClient, mgmt);
     }
 
-    public async Task DeleteUserAsync(string auth0UserId, CancellationToken ct = default)
+    public virtual async Task DeleteUserAsync(string auth0UserId, CancellationToken ct = default)
     {
         var (_, mgt) = await GetClients(ct);
         await mgt.Users.DeleteAsync(auth0UserId, ct);

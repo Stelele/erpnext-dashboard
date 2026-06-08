@@ -1,3 +1,4 @@
+using Application.Requests;
 using Application.DTOs;
 using Application.Sites;
 using MediatR;
@@ -29,7 +30,7 @@ public static class SitesEndpoints
         })
          .WithName("GetSiteById")
          .WithDisplayName("GetSiteById")
-         .Produces<ExtendedSiteResponse>(StatusCodes.Status200OK)
+         .Produces<SiteResponse>(StatusCodes.Status200OK)
          .Produces(StatusCodes.Status404NotFound)
          .WithTags(Tags.Sites)
          .RequireAuthorization(Permissions.ReadSites);
@@ -45,17 +46,18 @@ public static class SitesEndpoints
          .WithTags(Tags.Sites)
          .RequireAuthorization(Permissions.ReadSites);
 
-        app.MapPost("/sites", async (CreateSiteCommand command, ISender mediator) =>
+        app.MapPost("/sites", async (CreateSiteRequest request, ISender mediator) =>
         {
+            var command = new CreateSiteCommand(request.Name, request.Url, request.Description, request.ApiToken);
             var siteId = await mediator.Send(command);
-            return Results.Created($"/users/{siteId}", new { id = siteId });
+            return Results.Created($"/sites/{siteId}", new { id = siteId });
         })
          .WithName("CreateSite")
          .WithDisplayName("CreateSite")
-         .Accepts<CreateSiteCommand>("application/json")
+         .Accepts<CreateSiteRequest>("application/json")
          .Produces<Guid>(StatusCodes.Status201Created)
          .WithTags(Tags.Sites)
-         .RequireAuthorization(Permissions.UpdateSites);
+         .RequireAuthorization(Permissions.CreateSites);
 
         return app;
     }

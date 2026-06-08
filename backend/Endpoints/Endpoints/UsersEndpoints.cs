@@ -1,3 +1,4 @@
+using Application.Requests;
 using Application.DTOs;
 using Application.Users;
 using MediatR;
@@ -17,7 +18,7 @@ public static class UsersEndpoints
         })
          .WithName("GetUserById")
          .WithDisplayName("GetUserById")
-         .Produces<ExtendedUserResponse>(StatusCodes.Status200OK)
+         .Produces<UserResponse>(StatusCodes.Status200OK)
          .Produces(StatusCodes.Status404NotFound)
          .WithTags(Tags.Users)
          .RequireAuthorization(Permissions.ReadUsers);
@@ -28,19 +29,19 @@ public static class UsersEndpoints
             return Results.Ok(users);
         })
          .WithName("GetUsers")
-         .WithName("GetUsers")
          .Produces<List<UserResponse>>(StatusCodes.Status200OK)
          .WithTags(Tags.Users)
          .RequireAuthorization(Permissions.ReadUsers);
 
-        app.MapPost("/users", async (CreateUserCommand command, ISender mediator) =>
+        app.MapPost("/users", async (CreateUserRequest request, ISender mediator) =>
         {
+            var command = new CreateUserCommand(request.Name, request.Email, request.Companies);
             var userId = await mediator.Send(command);
             return Results.Created($"/users/{userId}", new { Id = userId });
         })
          .WithName("CreateUser")
          .WithDisplayName("CreateUser")
-         .Accepts<CreateUserCommand>("application/json")
+         .Accepts<CreateUserRequest>("application/json")
          .Produces<Guid>(StatusCodes.Status201Created)
          .WithTags(Tags.Users)
          .RequireAuthorization(Permissions.UpdateUsers);

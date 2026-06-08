@@ -5,16 +5,11 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Companies;
 
-public class GetCompanyByIdQueryHandler(
-    DashboardDbContext db
-) : IQueryHandler<GetCompanyByIdQuery, ExtendedCompanyResponse?>
+public class GetCompanyByIdQueryHandler(DashboardDbContext db) : IQueryHandler<GetCompanyByIdQuery, CompanyResponse?>
 {
-    public async Task<ExtendedCompanyResponse?> Handle(GetCompanyByIdQuery request, CancellationToken cancellationToken)
+    public async Task<CompanyResponse?> Handle(GetCompanyByIdQuery request, CancellationToken cancellationToken)
     {
-        var company = await db.Companies
-            .Include(c => c.Site)
-            .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
-        if (company == null) return null;
-        return ExtendedCompanyResponse.FromDomain(company);
+        var company = await db.Companies.FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
+        return company == null ? null : CompanyResponse.FromDomain(company);
     }
 }

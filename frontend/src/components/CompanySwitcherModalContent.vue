@@ -1,6 +1,6 @@
 <template>
     <div class="flex flex-col gap-3 p-2">
-        <template v-for="companyItem in authStore.user?.companies" :key="companyItem.id ?? companyItem.name">
+        <template v-for="companyItem in authStore.companies" :key="companyItem.id">
             <div
                 v-if="companyItem.name"
                 @click="selectCompany(companyItem.name)"
@@ -27,7 +27,7 @@
             <div class="flex-1">
                 <div class="font-medium">{{ companyItem.name }}</div>
                 <div class="text-xs text-gray-500">
-                    {{ companyItem.site?.url }}
+                    {{ siteUrls[companyItem.id] ?? '' }}
                 </div>
             </div>
             <UIcon
@@ -45,6 +45,7 @@ import { ref, watch } from "vue";
 import { useAuthStore } from "@/stores/AuthStore";
 import { useDataStore } from "@/stores/DataStore";
 import { ErpNextService } from "@/services/ErpNextService";
+import { ApiSingleton } from "@/services/api";
 
 const authStore = useAuthStore();
 const dataStore = useDataStore();
@@ -52,30 +53,40 @@ const toast = useToast();
 
 const isOpen = defineModel<boolean>({ default: false });
 const logos = ref<Record<string, string | null>>({});
+const siteUrls = ref<Record<string, string>>({});
 
 async function fetchLogos() {
     logos.value = {};
-    const companies = authStore.user?.companies || [];
+    siteUrls.value = {};
+    const companies = authStore.companies;
 
     const results = await Promise.allSettled(
         companies.map(async (companyItem) => {
-            const name = companyItem.name ?? 'Unknown';
-            const siteUrl = companyItem.site?.url;
-            const siteToken = companyItem.site?.apiToken;
-            if (!siteUrl || !siteToken) return { name, logo: null as string | null };
+            const name = companyItem.name;
+            const siteId = companyItem.siteId;
+            if (!siteId) return { id: companyItem.id, name, logo: null as string | null, url: '' };
+
+            const api = await ApiSingleton.getInstance();
+            const { data: site } = await api.GET("/sites/{id}", {
+                params: { path: { id: siteId } },
+            });
+            if (!site) return { id: companyItem.id, name, logo: null as string | null, url: '' };
 
             const logo = await ErpNextService.getCompanyLogo(
                 name,
-                siteUrl,
-                siteToken,
+                site.url,
+                site.apiToken,
             );
-            return { name, logo: logo ?? null };
+            return { id: companyItem.id, name, logo: logo ?? null, url: site.url };
         }),
     );
 
     for (const result of results) {
         if (result.status === "fulfilled") {
             logos.value[result.value.name] = result.value.logo;
+            if (result.value.url) {
+                siteUrls.value[result.value.id] = result.value.url;
+            }
         }
     }
 }

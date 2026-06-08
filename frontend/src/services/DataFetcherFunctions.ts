@@ -53,13 +53,15 @@ export async function fetchAllData(
   const stockPeriod = ["Today", "This Week"].includes(period) ? "This Week" : "Last 12 Months";
 
   const authStore = await import("@/stores/AuthStore").then((m) => m.useAuthStore());
-  const companyId = authStore.user?.companies?.find((c) => c.name === authStore.company)?.id ?? "";
+  const companyId = authStore.companies?.find((c) => c.name === authStore.company)?.id;
   const api = await ApiSingleton.getInstance();
 
-  const [expenseMappingsResult, companySettingsResult] = await Promise.all([
-    api.GET("/api/companies/{companyId}/expense-mappings", { params: { path: { companyId } } }),
-    api.GET("/api/companies/{companyId}/settings", { params: { path: { companyId } } }),
-  ]);
+  const [expenseMappingsResult, companySettingsResult] = companyId
+    ? await Promise.all([
+        api.GET("/api/companies/{companyId}/expense-mappings", { params: { path: { companyId } } }),
+        api.GET("/api/companies/{companyId}/settings", { params: { path: { companyId } } }),
+      ])
+    : [{ error: true, data: null }, { error: true, data: null }];
 
   const expenseMappings = expenseMappingsResult.error ? [] : (expenseMappingsResult.data ?? []).map((m) => ({
     expenseTypeId: m.expenseTypeId,

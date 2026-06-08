@@ -93,6 +93,16 @@ public sealed class GlobalExceptionMiddleware
                 }
             ),
 
+            NotFoundException nfe => (
+                StatusCodes.Status404NotFound,
+                new Problem
+                {
+                    Title = "Resource not found",
+                    Status = 404,
+                    Detail = nfe.Message
+                }
+            ),
+
             UnauthorizedAccessException => (
                 StatusCodes.Status401Unauthorized,
                 new Problem

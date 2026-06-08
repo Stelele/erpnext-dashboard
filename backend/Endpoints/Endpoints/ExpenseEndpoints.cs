@@ -1,5 +1,7 @@
+using Application.Requests;
 using Application.CompanyExpenseMappings;
 using Application.CompanySettings;
+using Application.DTOs;
 using Application.ExpenseTypes;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -16,21 +18,21 @@ public static class ExpenseEndpoints
 
         group.MapGet("/expense-types", async (IMediator mediator) =>
                 await mediator.Send(new GetExpenseTypesQuery()))
-            .Produces<List<Application.DTOs.ExpenseTypeResponse>>(StatusCodes.Status200OK)
+            .Produces<List<ExpenseTypeResponse>>(StatusCodes.Status200OK)
             .WithName("GetExpenseTypes")
             .RequireAuthorization(Permissions.ReadExpenses);
 
         group.MapGet("/companies/{companyId:guid}/expense-mappings", async (Guid companyId, IMediator mediator) =>
                 await mediator.Send(new GetCompanyExpenseMappingsQuery(companyId)))
-            .Produces<List<Application.DTOs.CompanyExpenseMappingResponse>>(StatusCodes.Status200OK)
+            .Produces<List<CompanyExpenseMappingResponse>>(StatusCodes.Status200OK)
             .WithName("GetCompanyExpenseMappings")
             .RequireAuthorization(Permissions.ReadExpenses);
 
-        group.MapPut("/companies/{companyId:guid}/expense-mappings", async (Guid companyId, UpsertCompanyExpenseMappingsCommand command, IMediator mediator) =>
+        group.MapPut("/companies/{companyId:guid}/expense-mappings", async (Guid companyId, UpsertCompanyExpenseMappingsRequest request, IMediator mediator) =>
             {
-                if (command.CompanyId != companyId)
-                    return Results.BadRequest();
-
+                var command = new UpsertCompanyExpenseMappingsCommand(
+                    companyId,
+                    request.Mappings.Select(m => new MappingItem(m.ExpenseTypeId, m.ErpnextAccountName)).ToList());
                 await mediator.Send(command);
                 return Results.NoContent();
             })
@@ -44,16 +46,14 @@ public static class ExpenseEndpoints
                 var settings = await mediator.Send(new GetCompanySettingsQuery(companyId));
                 return settings == null ? Results.NotFound() : Results.Ok(settings);
             })
-            .Produces<Application.DTOs.CompanySettingsResponse>(StatusCodes.Status200OK)
+            .Produces<CompanySettingsResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .WithName("GetCompanySettings")
             .RequireAuthorization(Permissions.ReadExpenses);
 
-        group.MapPut("/companies/{companyId:guid}/settings", async (Guid companyId, UpdateCompanySettingsCommand command, IMediator mediator) =>
+        group.MapPut("/companies/{companyId:guid}/settings", async (Guid companyId, UpdateCompanySettingsRequest request, IMediator mediator) =>
             {
-                if (command.CompanyId != companyId)
-                    return Results.BadRequest();
-
+                var command = new UpdateCompanySettingsCommand(companyId, request.DefaultIncomeAccountName);
                 await mediator.Send(command);
                 return Results.NoContent();
             })
@@ -62,8 +62,9 @@ public static class ExpenseEndpoints
             .WithName("UpdateCompanySettings")
             .RequireAuthorization(Permissions.UpdateExpenses);
 
-        group.MapPost("/expense-types", async (IMediator mediator, CreateExpenseTypeCommand command) =>
+        group.MapPost("/expense-types", async (IMediator mediator, CreateExpenseTypeRequest request) =>
             {
+                var command = new CreateExpenseTypeCommand(request.Name, request.Description);
                 var id = await mediator.Send(command);
                 return Results.Created($"/api/expense-types/{id}", new { id });
             })
@@ -71,23 +72,21 @@ public static class ExpenseEndpoints
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status409Conflict)
             .WithName("CreateExpenseType")
-            .RequireAuthorization(Permissions.UpdateExpenses);
+            .RequireAuthorization(Permissions.CreateExpenses);
 
         group.MapGet("/expense-types/{id:guid}", async (IMediator mediator, Guid id) =>
             {
                 var result = await mediator.Send(new GetExpenseTypeByIdQuery(id));
                 return result == null ? Results.NotFound() : Results.Ok(result);
             })
-            .Produces<Application.DTOs.ExpenseTypeResponse>(StatusCodes.Status200OK)
+            .Produces<ExpenseTypeResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .WithName("GetExpenseTypeById")
             .RequireAuthorization(Permissions.ReadExpenses);
 
-        group.MapPut("/expense-types/{id:guid}", async (IMediator mediator, Guid id, UpdateExpenseTypeCommand command) =>
+        group.MapPut("/expense-types/{id:guid}", async (IMediator mediator, Guid id, UpdateExpenseTypeRequest request) =>
             {
-                if (command.Id != id)
-                    return Results.BadRequest();
-
+                var command = new UpdateExpenseTypeCommand(id, request.Name, request.Description);
                 await mediator.Send(command);
                 return Results.NoContent();
             })

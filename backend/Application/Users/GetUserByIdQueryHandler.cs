@@ -5,17 +5,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Users;
 
-public class GetUserByIdQueryHandler(DashboardDbContext db) : IQueryHandler<GetUserByIdQuery, ExtendedUserResponse?>
+public class GetUserByIdQueryHandler(DashboardDbContext db) : IQueryHandler<GetUserByIdQuery, UserResponse?>
 {
-    public async Task<ExtendedUserResponse?> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
+    public async Task<UserResponse?> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
         var user = await db.Users
             .Include(u => u.Companies)
-                .ThenInclude(c => c.Site)
             .FirstOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
 
-        if (user == null) return null;
-
-        return ExtendedUserResponse.FromDomain(user);
+        return user == null ? null : UserResponse.FromDomain(user);
     }
 }

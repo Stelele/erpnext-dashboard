@@ -188,14 +188,6 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        BaseSiteResponse: {
-            /** Format: uuid */
-            id?: string;
-            name?: string;
-            description?: string;
-            url?: string;
-            apiToken?: string;
-        };
         CompanyExpenseMappingResponse: {
             /** Format: uuid */
             id: string;
@@ -206,11 +198,11 @@ export interface components {
         };
         CompanyResponse: {
             /** Format: uuid */
-            siteId?: string;
+            id: string;
+            name: string;
+            description: string;
             /** Format: uuid */
-            id?: string;
-            name?: string;
-            description?: string;
+            siteId: string;
         };
         CompanySettingsResponse: {
             /** Format: uuid */
@@ -219,23 +211,23 @@ export interface components {
             companyId: string;
             defaultIncomeAccountName: string;
         };
-        CreateCompanyCommand: {
+        CreateCompanyRequest: {
             /** Format: uuid */
             siteId: string;
             name: string;
             description: string;
         };
-        CreateExpenseTypeCommand: {
+        CreateExpenseTypeRequest: {
             name: string;
             description: string;
         };
-        CreateSiteCommand: {
+        CreateSiteRequest: {
             name: string;
             url: string;
             description: string;
             apiToken: string;
         };
-        CreateUserCommand: {
+        CreateUserRequest: {
             name: string;
             email: string;
             companies: string[];
@@ -246,72 +238,36 @@ export interface components {
             name: string;
             description: string;
         };
-        ExtendedCompanyResponse: {
-            site: components["schemas"]["SiteResponse"];
-            /** Format: uuid */
-            id?: string;
-            name?: string;
-            description?: string;
-        };
-        ExtendedSiteResponse: {
-            companies?: components["schemas"]["CompanyResponse"][];
-            /** Format: uuid */
-            id?: string;
-            name?: string;
-            description?: string;
-            url?: string;
-            apiToken?: string;
-        };
-        ExtendedUserResponse: {
-            companies?: components["schemas"]["SiteCompanyResponse"][];
-            /** Format: uuid */
-            id?: string;
-            name?: string;
-            email?: string;
-        };
-        MappingItem: {
+        MappingItemRequest: {
             /** Format: uuid */
             expenseTypeId: string;
             erpnextAccountName: string;
         };
-        SiteCompanyResponse: {
-            site: components["schemas"]["BaseSiteResponse"];
-            /** Format: uuid */
-            id?: string;
-            name?: string;
-            description?: string;
-        };
         SiteResponse: {
-            companies?: string[];
-            /** Format: uuid */
-            id?: string;
-            name?: string;
-            description?: string;
-            url?: string;
-            apiToken?: string;
-        };
-        UpdateCompanySettingsCommand: {
-            /** Format: uuid */
-            companyId: string;
-            defaultIncomeAccountName: string;
-        };
-        UpdateExpenseTypeCommand: {
             /** Format: uuid */
             id: string;
             name: string;
             description: string;
+            url: string;
+            apiToken: string;
+            companies: string[];
         };
-        UpsertCompanyExpenseMappingsCommand: {
-            /** Format: uuid */
-            companyId: string;
-            mappings: components["schemas"]["MappingItem"][];
+        UpdateCompanySettingsRequest: {
+            defaultIncomeAccountName: string;
+        };
+        UpdateExpenseTypeRequest: {
+            name: string;
+            description: string;
+        };
+        UpsertCompanyExpenseMappingsRequest: {
+            mappings: components["schemas"]["MappingItemRequest"][];
         };
         UserResponse: {
-            companies?: string[];
             /** Format: uuid */
-            id?: string;
-            name?: string;
-            email?: string;
+            id: string;
+            name: string;
+            email: string;
+            companies: string[];
         };
     };
     responses: never;
@@ -353,7 +309,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateCompanyCommand"];
+                "application/json": components["schemas"]["CreateCompanyRequest"];
             };
         };
         responses: {
@@ -385,7 +341,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ExtendedCompanyResponse"];
+                    "application/json": components["schemas"]["CompanyResponse"];
                 };
             };
             /** @description Not Found */
@@ -441,7 +397,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ExtendedSiteResponse"];
+                    "application/json": components["schemas"]["SiteResponse"];
                 };
             };
             /** @description Not Found */
@@ -511,7 +467,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateSiteCommand"];
+                "application/json": components["schemas"]["CreateSiteRequest"];
             };
         };
         responses: {
@@ -543,7 +499,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["ExtendedUserResponse"];
+                    "application/json": components["schemas"]["UserResponse"];
                 };
             };
             /** @description Not Found */
@@ -613,7 +569,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateUserCommand"];
+                "application/json": components["schemas"]["CreateUserRequest"];
             };
         };
         responses: {
@@ -720,7 +676,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["CreateExpenseTypeCommand"];
+                "application/json": components["schemas"]["CreateExpenseTypeRequest"];
             };
         };
         responses: {
@@ -782,7 +738,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UpsertCompanyExpenseMappingsCommand"];
+                "application/json": components["schemas"]["UpsertCompanyExpenseMappingsRequest"];
             };
         };
         responses: {
@@ -842,7 +798,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UpdateCompanySettingsCommand"];
+                "application/json": components["schemas"]["UpdateCompanySettingsRequest"];
             };
         };
         responses: {
@@ -902,7 +858,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "application/json": components["schemas"]["UpdateExpenseTypeCommand"];
+                "application/json": components["schemas"]["UpdateExpenseTypeRequest"];
             };
         };
         responses: {

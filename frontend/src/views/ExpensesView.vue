@@ -94,7 +94,7 @@ const authStore = useAuthStore();
 
 const companyId = computed(() => {
     const companyName = authStore.company;
-    return authStore.user?.companies?.find((c) => c.name === companyName)?.id ?? "";
+    return authStore.companies?.find((c) => c.name === companyName)?.id ?? "";
 });
 
 onMounted(async () => {

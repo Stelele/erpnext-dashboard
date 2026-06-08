@@ -25,49 +25,51 @@ function safeSetItem(key: string, value: string): void {
 
 export const useAuthStore = defineStore("authStore", () => {
   const selectedCompany = ref<string>("");
+  const companies = ref<components["schemas"]["CompanyResponse"][]>([]);
+  const siteUrl = ref("");
+  const siteToken = ref("");
 
   const company = computed(() => {
     if (
       selectedCompany.value &&
-      user.value?.companies?.find((c) => c.name === selectedCompany.value)
+      companies.value?.find((c) => c.name === selectedCompany.value)
     ) {
       return selectedCompany.value;
     }
-    return user.value?.companies?.[0]?.name || "";
+    return companies.value?.[0]?.name || "";
   });
 
-  const url = computed(() => {
-    const userCompany = user.value?.companies?.find(
-      (c) => c.name === company.value,
-    );
-    return userCompany?.site.url || "";
-  });
-
-  const token = computed(() => {
-    const userCompany = user.value?.companies?.find(
-      (c) => c.name === company.value,
-    );
-
-    return userCompany?.site.apiToken || "";
-  });
+  const url = computed(() => siteUrl.value);
+  const token = computed(() => siteToken.value);
 
   const showSwitcher = computed(() => {
-    return (user.value?.companies?.length || 0) > 1;
+    return companies.value.length > 1;
   });
 
   const givenName = ref("");
   const email = ref("");
   const userId = ref("");
   const accessToken = ref("");
-  const user = ref<components["schemas"]["ExtendedUserResponse"]>();
+  const user = ref<components["schemas"]["UserResponse"]>();
+
+  async function loadSiteData(siteId: string) {
+    const api = await ApiSingleton.getInstance();
+    const { data: site } = await api.GET("/sites/{id}", {
+      params: { path: { id: siteId } },
+    });
+    if (site) {
+      siteUrl.value = site.url;
+      siteToken.value = site.apiToken;
+    }
+  }
 
   async function update() {
     const { getAccessTokenSilently } = useAuth0();
 
-    const token = await getAccessTokenSilently();
-    accessToken.value = token;
+    const apiToken = await getAccessTokenSilently();
+    accessToken.value = apiToken;
 
-    const payloadBase64 = token.split(".")[1] as string;
+    const payloadBase64 = apiToken.split(".")[1] as string;
     const payload = JSON.parse(
       atob(payloadBase64.replace(/-/g, "+").replace(/_/g, "/")),
     );
@@ -86,10 +88,35 @@ export const useAuthStore = defineStore("authStore", () => {
       });
       user.value = data;
 
+      // Fetch company details to get site IDs
+      if (data?.companies?.length) {
+        const companyResponses = await Promise.all(
+          data.companies.map((id) =>
+            api.GET("/companies/{id}", { params: { path: { id } } }),
+          ),
+        );
+        companies.value = companyResponses
+          .map((r) => r.data)
+          .filter((c): c is components["schemas"]["CompanyResponse"] => !!c);
+
+        // Load site data for the selected (or first) company
+        const selected = companies.value.find(
+          (c) => c.name === selectedCompany.value,
+        ) ?? companies.value[0];
+        if (selected) {
+          await loadSiteData(selected.siteId);
+        }
+      }
+
       // Restore persisted company selection
       const persisted = safeGetItem(SELECTED_COMPANY_KEY);
-      if (persisted && data?.companies?.find((c) => c.name === persisted)) {
+      if (persisted && companies.value.find((c) => c.name === persisted)) {
         selectedCompany.value = persisted;
+        // Reload site data if we restored a different company
+        const restored = companies.value.find((c) => c.name === persisted);
+        if (restored && restored.siteId !== companies.value[0]?.siteId) {
+          await loadSiteData(restored.siteId);
+        }
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
@@ -104,6 +131,11 @@ export const useAuthStore = defineStore("authStore", () => {
     selectedCompany.value = companyName;
     safeSetItem(SELECTED_COMPANY_KEY, companyName);
 
+    const selected = companies.value.find((c) => c.name === companyName);
+    if (selected) {
+      await loadSiteData(selected.siteId);
+    }
+
     try {
       await onDataRefresh();
     } catch (error) {
@@ -114,6 +146,7 @@ export const useAuthStore = defineStore("authStore", () => {
   }
 
   return {
+    companies,
     token,
     url,
     company,

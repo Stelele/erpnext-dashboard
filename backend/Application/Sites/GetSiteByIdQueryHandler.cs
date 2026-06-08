@@ -5,18 +5,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Sites;
 
-public class GetSiteByIdQueryHandler(
-    DashboardDbContext db
-) : IQueryHandler<GetSiteByIdQuery, ExtendedSiteResponse?>
+public class GetSiteByIdQueryHandler(DashboardDbContext db) : IQueryHandler<GetSiteByIdQuery, SiteResponse?>
 {
-    public async Task<ExtendedSiteResponse?> Handle(GetSiteByIdQuery request, CancellationToken cancellationToken)
+    public async Task<SiteResponse?> Handle(GetSiteByIdQuery request, CancellationToken cancellationToken)
     {
         var site = await db.Sites
             .Include(s => s.Companies)
             .FirstOrDefaultAsync(s => s.Id == request.Id, cancellationToken);
 
-        if (site == null) return null;
-
-        return ExtendedSiteResponse.FromDomain(site);
+        return site == null ? null : SiteResponse.FromDomain(site);
     }
 }

@@ -5,9 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Sites;
 
-public class GetSitesQueryHandler(
-    DashboardDbContext db
-) : IQueryHandler<GetSitesQuery, List<SiteResponse>>
+public class GetSitesQueryHandler(DashboardDbContext db) : IQueryHandler<GetSitesQuery, List<SiteResponse>>
 {
     public async Task<List<SiteResponse>> Handle(GetSitesQuery request, CancellationToken cancellationToken)
     {
@@ -15,6 +13,6 @@ public class GetSitesQueryHandler(
             ? db.Sites.Where(s => request.Sites.Contains(s.Id))
             : db.Sites;
 
-        return [.. sites.Include(s => s.Companies).AsSplitQuery().Select(SiteResponse.FromDomain)];
+        return [.. sites.Include(s => s.Companies).Select(SiteResponse.FromDomain)];
     }
 }

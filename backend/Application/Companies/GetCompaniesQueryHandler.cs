@@ -5,16 +5,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Companies;
 
-public class GetCompaniesQueryHandler(
-    DashboardDbContext db
-) : IQueryHandler<GetCompaniesQuery, List<CompanyResponse>>
+public class GetCompaniesQueryHandler(DashboardDbContext db) : IQueryHandler<GetCompaniesQuery, List<CompanyResponse>>
 {
     public async Task<List<CompanyResponse>> Handle(GetCompaniesQuery request, CancellationToken cancellationToken)
     {
-        var companies = request.CompanyIds != null && request.CompanyIds.Length > 0
-            ? await db.Companies.Where(c => request.CompanyIds.Contains(c.Id)).ToListAsync(cancellationToken)
-            : await db.Companies.ToListAsync(cancellationToken);
+        var query = request.CompanyIds != null && request.CompanyIds.Length > 0
+            ? db.Companies.Where(c => request.CompanyIds.Contains(c.Id))
+            : db.Companies;
 
+        var companies = await query.ToListAsync(cancellationToken);
         return [.. companies.Select(CompanyResponse.FromDomain)];
     }
 }

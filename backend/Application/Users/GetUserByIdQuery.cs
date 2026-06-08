@@ -3,6 +3,4 @@ using Application.DTOs;
 
 namespace Application.Users;
 
-public record GetUserByIdQuery(
-    Guid Id
-) : IQuery<ExtendedUserResponse?>;
+public record GetUserByIdQuery(Guid Id) : IQuery<UserResponse?>;

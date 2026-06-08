@@ -3,4 +3,4 @@ using Application.DTOs;
 
 namespace Application.Companies;
 
-public record GetCompanyByIdQuery(Guid Id) : IQuery<ExtendedCompanyResponse?>;
+public record GetCompanyByIdQuery(Guid Id) : IQuery<CompanyResponse?>;
