@@ -18,6 +18,7 @@
                         variant="subtle"
                         icon="i-lucide-calendar"
                         class="w-full"
+                        :disabled="loading"
                     >
                         {{ displayDate }}
                     </UButton>
@@ -40,6 +41,7 @@
                     value-key="expenseTypeId"
                     label-key="expenseTypeName"
                     class="w-full"
+                    :disabled="loading"
                 />
             </UFormField>
 
@@ -53,6 +55,7 @@
                     v-model="state.amount"
                     class="w-full"
                     :step="0.01"
+                    :disabled="loading"
                 />
             </UFormField>
 
@@ -66,10 +69,11 @@
                     v-model="state.description"
                     class="w-full"
                     :rows="6"
+                    :disabled="loading"
                 />
             </UFormField>
 
-            <UButton type="submit" class="hover:cursor-pointer">
+            <UButton type="submit" class="hover:cursor-pointer" :loading="loading" :disabled="loading">
                 Submit
             </UButton>
         </UForm>
@@ -85,6 +89,7 @@ import type { Expense, CompanyExpenseMapping } from "@/types/Expenses";
 
 const props = defineProps<{
     mappings: CompanyExpenseMapping[];
+    loading?: boolean;
 }>();
 
 const emit = defineEmits<{

@@ -400,6 +400,15 @@ export class ErpNextService {
       .catch(() => undefined);
   }
 
+  public cancelFullPurchase(purchaseInvoice: string) {
+    return this.instance
+      .get<{ data?: { cancelled: string[]; message: string } }>("/api/v2/method/cancel_full_purchase", {
+        params: { purchase_invoice: purchaseInvoice },
+      })
+      .then((resp) => resp?.data.data)
+      .catch(() => undefined);
+  }
+
   private getDateGrouping(grouping: Grouping) {
     switch (grouping) {
       case "years":

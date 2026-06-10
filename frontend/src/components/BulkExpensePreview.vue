@@ -7,7 +7,7 @@
             class="max-h-[75vh] overflow-x-auto"
         />
         <div class="flex justify-end items-center mt-4">
-            <UButton color="primary" @click="submitBulkImport">
+            <UButton color="primary" :loading="loading" :disabled="loading" @click="submitBulkImport">
                 Submit Import
             </UButton>
         </div>
@@ -28,6 +28,7 @@ const importData = ref<UniqueExpense[]>([]);
 const props = defineProps<{
     data?: UniqueExpense[];
     mappings?: CompanyExpenseMapping[];
+    loading?: boolean;
 }>();
 const emit = defineEmits<{
     (e: "onDataSubmit", payload: UniqueExpense[]): void;

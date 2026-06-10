@@ -1,5 +1,6 @@
 <template>
   <div class="p-4">
+    <div v-if="!showConfirm">
     <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
       <div class="grid grid-cols-2 gap-4">
         <UFormField label="Supplier" name="supplier" required>
@@ -82,6 +83,37 @@
         </UButton>
       </div>
     </UForm>
+    </div>
+    <div v-else class="space-y-4">
+      <div class="text-sm text-[var(--ui-text-dimmed)]">
+        <p class="font-medium text-base mb-2">Confirm Purchase</p>
+        <p>This will create 4 documents: Purchase Order, Purchase Receipt, Purchase Invoice, and a Cash Payment Entry. <strong>Stock levels and accounting ledgers will be updated immediately.</strong></p>
+      </div>
+      <div class="bg-[var(--ui-bg-elevated)] rounded-md p-3 space-y-2 text-sm">
+        <div v-if="supplierLabel" class="flex justify-between"><span class="text-[var(--ui-text-dimmed)]">Supplier</span><span>{{ supplierLabel }}</span></div>
+        <div v-if="warehouseLabel" class="flex justify-between"><span class="text-[var(--ui-text-dimmed)]">Warehouse</span><span>{{ warehouseLabel }}</span></div>
+        <div v-if="state.invoiceNumber" class="flex justify-between"><span class="text-[var(--ui-text-dimmed)]">Invoice No.</span><span>{{ state.invoiceNumber }}</span></div>
+        <div class="flex justify-between"><span class="text-[var(--ui-text-dimmed)]">Invoice Date</span><span>{{ displayDate }}</span></div>
+        <div class="border-t border-[var(--ui-border)] pt-2 mt-2">
+          <div v-for="(item, idx) in validItems" :key="idx" class="flex justify-between">
+            <span>{{ item.item_name }}</span>
+            <span>{{ item.qty }} × {{ item.rate.toFixed(2) }} = {{ (item.qty * item.rate).toFixed(2) }}</span>
+          </div>
+        </div>
+        <div class="flex justify-between font-bold border-t border-[var(--ui-border)] pt-2">
+          <span>Total</span>
+          <span>{{ grandTotal.toFixed(2) }}</span>
+        </div>
+      </div>
+      <div class="flex justify-end gap-2">
+        <UButton color="neutral" variant="outline" @click="showConfirm = false">
+          Back
+        </UButton>
+        <UButton color="primary" :loading="submitting" @click="confirmSubmit">
+          Confirm & Submit
+        </UButton>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -93,6 +125,17 @@ import { computed, reactive, ref, shallowRef, watch, onMounted } from "vue";
 import { ErpNextService, type ItemOption, type SupplierOption, type WarehouseOption } from "@/services/ErpNextService";
 
 const toast = useToast();
+
+const showConfirm = ref(false);
+const supplierLabel = computed(() => {
+  const s = selectedSupplier.value;
+  return typeof s === 'string' ? s : s?.supplier_name || "";
+});
+const warehouseLabel = computed(() => {
+  const w = selectedWarehouse.value;
+  return typeof w === 'string' ? w : w?.name || "";
+});
+const validItems = computed(() => state.items.filter((i) => i.item_code));
 
 const emit = defineEmits<{
   onSubmit: [
@@ -200,6 +243,10 @@ function watchRow(idx: number) {
 
 watchRow(0);
 
+watch(submitting, (v) => {
+  if (v) showConfirm.value = false;
+});
+
 async function onItemOpen(idx: number) {
   if (!itemOpts.value[idx]?.length) {
     try {
@@ -250,16 +297,19 @@ async function onSubmit() {
     return;
   }
 
-  const itemsWithCode = state.items.filter((i) => i.item_code);
-  if (itemsWithCode.length === 0) {
+  if (validItems.value.length === 0) {
     toast.add({ title: "Please add at least one product", color: "error" });
     return;
   }
 
+  showConfirm.value = true;
+}
+
+function confirmSubmit() {
   emit("onSubmit", {
     supplier: typeof selectedSupplier.value === 'string' ? selectedSupplier.value : selectedSupplier.value?.name || "",
     warehouse: typeof selectedWarehouse.value === 'string' ? selectedWarehouse.value : selectedWarehouse.value?.name || "",
-      items: itemsWithCode.map((i) => ({ item_code: i.item_code, qty: i.qty, rate: i.rate, sell_rate: i.sell_rate })),
+    items: validItems.value.map((i) => ({ item_code: i.item_code, qty: i.qty, rate: i.rate, sell_rate: i.sell_rate })),
     invoice_number: state.invoiceNumber || null,
     invoice_date: moment(state.invoiceDate.toDate(getLocalTimeZone())).format("YYYY-MM-DD"),
   });

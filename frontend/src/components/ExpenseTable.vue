@@ -72,6 +72,10 @@ const props = defineProps<{
     loading: boolean;
 }>();
 
+const emit = defineEmits<{
+    cancel: [payment: Payment];
+}>();
+
 const expanded = ref({});
 
 const columns: TableColumn<Payment>[] = [
@@ -154,6 +158,29 @@ const columns: TableColumn<Payment>[] = [
         cell: ({ row }) => {
             const amount = Number.parseFloat(row.getValue("amount"));
             return formatNumber(amount, "currency");
+        },
+    },
+    {
+        id: "actions",
+        header: "",
+        meta: {
+            class: {
+                th: "w-0",
+                td: "w-0",
+            },
+        },
+        cell: ({ row }) => {
+            if (row.original.type === "Order" && row.original.status === "Submitted") {
+                return h(UButton, {
+                    color: "error",
+                    variant: "ghost",
+                    icon: "i-lucide-x",
+                    square: true,
+                    "aria-label": "Cancel purchase",
+                    onClick: () => emit("cancel", row.original),
+                });
+            }
+            return "";
         },
     },
 ];

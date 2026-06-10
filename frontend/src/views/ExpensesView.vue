@@ -32,6 +32,7 @@
                 <template #body>
                     <ExpenseForm
                         :mappings="mappings"
+                        :loading="expenseLoading"
                         @on-submit="onSubmit"
                     />
                 </template>
@@ -46,8 +47,49 @@
                     <BulkExpensePreview
                         :data="bulkPreviewData"
                         :mappings="mappings"
+                        :loading="bulkLoading"
                         @onDataSubmit="onBulkSubmit"
                     />
+                </template>
+            </UModal>
+            <UModal
+                v-model:open="openCancelConfirm"
+                title="Cancel Purchase"
+                :dismissible="false"
+            >
+                <template #body>
+                    <div class="p-4 space-y-4">
+                        <p class="text-sm">
+                            Cancel Purchase
+                            <strong>{{ pendingCancel?.id }}</strong
+                            >?
+                        </p>
+                        <p class="text-sm text-[var(--ui-text)]">
+                            This will cancel all linked documents: Purchase
+                            Order, Purchase Receipt, Purchase Invoice, and
+                            Payment Entry.
+                            <strong>This action cannot be reversed.</strong>
+                            Your stock levels will be reverted and accounting entries
+                            reversed.
+                        </p>
+                        <div class="flex justify-end gap-2">
+                            <UButton
+                                color="neutral"
+                                variant="outline"
+                                :disabled="cancelLoading"
+                                @click="openCancelConfirm = false"
+                            >
+                                Keep It
+                            </UButton>
+                            <UButton
+                                color="error"
+                                :loading="cancelLoading"
+                                @click="confirmCancel"
+                            >
+                                Cancel Purchase
+                            </UButton>
+                        </div>
+                    </div>
                 </template>
             </UModal>
         </div>
@@ -66,13 +108,14 @@
         <ExpenseTable
             :data="dataStore.paymentEntries"
             :loading="dataStore.loading"
+            @cancel="onCancelPurchase"
         />
     </DashboardLayout>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from "vue";
-import type { Expense, CompanyExpenseMapping } from "@/types/Expenses";
+import type { Expense, CompanyExpenseMapping, Payment } from "@/types/Expenses";
 import { useDataStore } from "@/stores/DataStore";
 import { useExpenseDataStore } from "@/stores/ExpenseDataStore";
 import { useAuthStore } from "@/stores/AuthStore";
@@ -80,10 +123,16 @@ import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import type { UniqueExpense } from "@/components/BulkExpenseUploadButton.vue";
 import BulkExpensePreview from "@/components/BulkExpensePreview.vue";
 import ExpenseForm from "@/components/ExpenseForm.vue";
+import { ErpNextService } from "@/services/ErpNextService";
 
 const open = ref(false);
 const openBulkUpload = ref(false);
 const openBulkPreview = ref(false);
+const openCancelConfirm = ref(false);
+const pendingCancel = ref<Payment | null>(null);
+const cancelLoading = ref(false);
+const expenseLoading = ref(false);
+const bulkLoading = ref(false);
 const bulkPreviewData = ref<UniqueExpense[]>([]);
 const mappings = ref<CompanyExpenseMapping[]>([]);
 
@@ -91,6 +140,7 @@ const toast = useToast();
 const dataStore = useDataStore();
 const expenseDataStore = useExpenseDataStore();
 const authStore = useAuthStore();
+const erpnext = new ErpNextService();
 
 const companyId = computed(() => {
     const companyName = authStore.company;
@@ -119,10 +169,12 @@ async function loadCompanyData(id: string) {
 }
 
 async function onSubmit(expense: Expense) {
-    open.value = false;
+    expenseLoading.value = true;
     const response = await dataStore.addDraftExpense(expense);
+    expenseLoading.value = false;
 
     if (response) {
+        open.value = false;
         toast.add({
             title: `Expense submitted successfully: ${response.name}`,
             color: "success",
@@ -142,7 +194,9 @@ function onDataExtracted(expenses: UniqueExpense[]) {
 }
 
 async function onBulkSubmit(expenses: UniqueExpense[]) {
+    bulkLoading.value = true;
     const results = await dataStore.bulkAddDraftExpenses(expenses);
+    bulkLoading.value = false;
 
     const successCount = results.filter((r) => r.success).length;
     const failureCount = results.filter((r) => !r.success).length;
@@ -167,5 +221,32 @@ function onError(error: string) {
         title: `Error: ${error}`,
         color: "error",
     });
+}
+
+function onCancelPurchase(payment: Payment) {
+    pendingCancel.value = payment;
+    openCancelConfirm.value = true;
+}
+
+async function confirmCancel() {
+    if (!pendingCancel.value) return;
+    cancelLoading.value = true;
+    const result = await erpnext.cancelFullPurchase(pendingCancel.value.id);
+
+    if (result) {
+        toast.add({
+            title: `Purchase ${pendingCancel.value.id} cancelled`,
+            color: "success",
+        });
+        await dataStore.update();
+    } else {
+        toast.add({
+            title: `Failed to cancel purchase ${pendingCancel.value.id}`,
+            color: "error",
+        });
+    }
+    pendingCancel.value = null;
+    cancelLoading.value = false;
+    openCancelConfirm.value = false;
 }
 </script>
