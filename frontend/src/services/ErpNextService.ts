@@ -38,6 +38,8 @@ export interface ItemOption {
   item_code: string;
   item_name: string;
   last_purchase_rate: number;
+  last_selling_rate: number;
+  description: string;
 }
 
 export interface WarehouseOption {
@@ -48,7 +50,7 @@ export interface PurchasePayload {
   company: string;
   supplier: string;
   warehouse: string;
-  items: { item_code: string; qty: number; rate: number }[];
+  items: { item_code: string; qty: number; rate: number; sell_rate: number }[];
   invoice_number?: string;
   invoice_date: string;
 }

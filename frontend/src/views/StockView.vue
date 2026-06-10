@@ -85,7 +85,7 @@ const items = computed<NumberCardProps[]>(() => [
 async function onPurchaseSubmit(payload: {
     supplier: string;
     warehouse: string;
-    items: { item_code: string; qty: number; rate: number }[];
+    items: { item_code: string; qty: number; rate: number; sell_rate: number }[];
     invoice_number: string | null;
     invoice_date: string;
 }) {

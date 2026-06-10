@@ -218,6 +218,39 @@ except Exception:
     frappe.db.rollback()
     raise
 
+# Update item prices for future purchases
+buying_pl = frappe.db.get_value("Buying Settings", None, "buying_price_list") or "Standard Buying"
+selling_pl = frappe.db.get_value("Selling Settings", None, "selling_price_list") or "Standard Selling"
+
+for item in items:
+    buy_rate = float(item.get("rate") or 0)
+    if buy_rate > 0:
+        existing_buy = frappe.db.exists("Item Price", {"item_code": item["item_code"], "price_list": buying_pl, "buying": 1})
+        if existing_buy:
+            frappe.db.set_value("Item Price", existing_buy, "price_list_rate", buy_rate)
+        else:
+            frappe.get_doc({
+                "doctype": "Item Price",
+                "item_code": item["item_code"],
+                "price_list": buying_pl,
+                "buying": 1,
+                "price_list_rate": buy_rate,
+            }).insert()
+
+    sell_rate = float(item.get("sell_rate") or 0)
+    if sell_rate > 0:
+        existing_sell = frappe.db.exists("Item Price", {"item_code": item["item_code"], "price_list": selling_pl, "selling": 1})
+        if existing_sell:
+            frappe.db.set_value("Item Price", existing_sell, "price_list_rate", sell_rate)
+        else:
+            frappe.get_doc({
+                "doctype": "Item Price",
+                "item_code": item["item_code"],
+                "price_list": selling_pl,
+                "selling": 1,
+                "price_list_rate": sell_rate,
+            }).insert()
+
 # Return result
 frappe.response["data"] = {
     "purchase_order": po.name,

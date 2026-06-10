@@ -40,20 +40,22 @@
 
       <div>
         <label class="text-sm font-medium mb-2 block">Items</label>
-        <div class="grid grid-cols-[2fr_1fr_1fr_80px_auto] gap-2 mb-2 text-xs font-medium text-[var(--ui-text-dimmed)] px-1">
+        <div class="grid grid-cols-[2fr_1fr_1fr_1fr_100px_auto] gap-2 mb-2 text-xs font-medium text-[var(--ui-text-dimmed)] px-1">
           <span>Product</span>
           <span>Qty</span>
           <span>Rate</span>
+          <span>Sell</span>
           <span>Total</span>
           <span></span>
         </div>
-        <div v-for="(_, idx) in state.items" :key="idx" class="grid grid-cols-[2fr_1fr_1fr_80px_auto] gap-2 mb-2">
+        <div v-for="(_, idx) in state.items" :key="idx" class="grid grid-cols-[2fr_1fr_1fr_1fr_100px_auto] gap-2 mb-2">
           <UInputMenu
             v-model="itemSelections[idx]"
             v-model:search-term="itemSearchTerms[idx]"
             :items="itemOpts[idx]"
             value-key="item_code"
             label-key="item_name"
+            description-key="description"
             :placeholder="itemSelections[idx]?.item_name || 'Search item...'"
             class="w-full"
             :disabled="submitting"
@@ -62,6 +64,7 @@
           />
           <UInput v-model="state.items[idx].qty" type="number" :min="1" :step="1" class="w-full" :disabled="submitting" />
           <UInput v-model="state.items[idx].rate" type="number" :min="0" :step="0.01" class="w-full" :disabled="submitting" />
+          <UInput v-model="state.items[idx].sell_rate" type="number" :min="0" :step="0.01" class="w-full" :disabled="submitting" />
           <div class="flex items-center justify-end text-sm font-medium">
             {{ ((state.items[idx].qty || 0) * (state.items[idx].rate || 0)).toFixed(2) }}
           </div>
@@ -96,7 +99,7 @@ const emit = defineEmits<{
     payload: {
       supplier: string;
       warehouse: string;
-      items: { item_code: string; qty: number; rate: number }[];
+      items: { item_code: string; qty: number; rate: number; sell_rate: number }[];
       invoice_number: string | null;
       invoice_date: string;
     },
@@ -125,6 +128,7 @@ interface PurchaseItem {
   item_name: string;
   qty: number;
   rate: number;
+  sell_rate: number;
 }
 
 const itemSelections = ref<(ItemOption | null)[]>([null]);
@@ -135,7 +139,7 @@ const itemTimers: Record<number, ReturnType<typeof setTimeout>> = {};
 const state = reactive({
   invoiceNumber: "",
   invoiceDate: shallowRef(new CalendarDate(moment().year(), moment().month() + 1, moment().date())),
-  items: [{ item_code: "", item_name: "", qty: 1, rate: 0 }] as PurchaseItem[],
+  items: [{ item_code: "", item_name: "", qty: 1, rate: 0, sell_rate: 0 }] as PurchaseItem[],
 });
 
 const schema = z.object({
@@ -148,6 +152,7 @@ const schema = z.object({
     item_name: z.string().optional(),
     qty: z.number().gt(0, "Qty must be > 0"),
     rate: z.number().gte(0, "Rate must be >= 0"),
+    sell_rate: z.number().gte(0, "Sell rate must be >= 0"),
   })).min(1, "At least one item required"),
 });
 
@@ -211,14 +216,13 @@ function onItemPicked(idx: number) {
   if (sel) {
     state.items[idx].item_code = sel.item_code;
     state.items[idx].item_name = sel.item_name;
-    if (sel.last_purchase_rate) {
-      state.items[idx].rate = sel.last_purchase_rate;
-    }
+    if (sel.last_purchase_rate) state.items[idx].rate = sel.last_purchase_rate;
+    if (sel.last_selling_rate) state.items[idx].sell_rate = sel.last_selling_rate;
   }
 }
 
 function addItem() {
-  state.items.push({ item_code: "", item_name: "", qty: 1, rate: 0 });
+  state.items.push({ item_code: "", item_name: "", qty: 1, rate: 0, sell_rate: 0 });
   itemSelections.value.push(null);
   itemOpts.value.push([]);
   itemSearchTerms.value.push("");
@@ -255,7 +259,7 @@ async function onSubmit() {
   emit("onSubmit", {
     supplier: typeof selectedSupplier.value === 'string' ? selectedSupplier.value : selectedSupplier.value?.name || "",
     warehouse: typeof selectedWarehouse.value === 'string' ? selectedWarehouse.value : selectedWarehouse.value?.name || "",
-    items: itemsWithCode.map((i) => ({ item_code: i.item_code, qty: i.qty, rate: i.rate })),
+      items: itemsWithCode.map((i) => ({ item_code: i.item_code, qty: i.qty, rate: i.rate, sell_rate: i.sell_rate })),
     invoice_number: state.invoiceNumber || null,
     invoice_date: moment(state.invoiceDate.toDate(getLocalTimeZone())).format("YYYY-MM-DD"),
   });
