@@ -85,24 +85,50 @@
     </UForm>
     </div>
     <div v-else class="space-y-4">
-      <div class="text-sm text-[var(--ui-text-dimmed)]">
+      <div class="text-sm text-[var(--ui-text)]">
         <p class="font-medium text-base mb-2">Confirm Purchase</p>
         <p>This will create 4 documents: Purchase Order, Purchase Receipt, Purchase Invoice, and a Cash Payment Entry. <strong>Stock levels and accounting ledgers will be updated immediately.</strong></p>
       </div>
-      <div class="bg-[var(--ui-bg-elevated)] rounded-md p-3 space-y-2 text-sm">
-        <div v-if="supplierLabel" class="flex justify-between"><span class="text-[var(--ui-text-dimmed)]">Supplier</span><span>{{ supplierLabel }}</span></div>
-        <div v-if="warehouseLabel" class="flex justify-between"><span class="text-[var(--ui-text-dimmed)]">Warehouse</span><span>{{ warehouseLabel }}</span></div>
-        <div v-if="state.invoiceNumber" class="flex justify-between"><span class="text-[var(--ui-text-dimmed)]">Invoice No.</span><span>{{ state.invoiceNumber }}</span></div>
-        <div class="flex justify-between"><span class="text-[var(--ui-text-dimmed)]">Invoice Date</span><span>{{ displayDate }}</span></div>
-        <div class="border-t border-[var(--ui-border)] pt-2 mt-2">
-          <div v-for="(item, idx) in validItems" :key="idx" class="flex justify-between">
-            <span>{{ item.item_name }}</span>
-            <span>{{ item.qty }} × {{ item.rate.toFixed(2) }} = {{ (item.qty * item.rate).toFixed(2) }}</span>
+      <div class="bg-[var(--ui-bg-elevated)] rounded-lg p-5 space-y-4 text-sm">
+        <div>
+          <p class="text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wide mb-3">Order Details</p>
+          <div class="space-y-2.5">
+            <div v-if="supplierLabel" class="flex justify-between">
+              <span class="text-[var(--ui-text-muted)]">Supplier</span>
+              <span class="font-medium">{{ supplierLabel }}</span>
+            </div>
+            <div v-if="warehouseLabel" class="flex justify-between">
+              <span class="text-[var(--ui-text-muted)]">Warehouse</span>
+              <span class="font-medium">{{ warehouseLabel }}</span>
+            </div>
+            <div v-if="state.invoiceNumber" class="flex justify-between">
+              <span class="text-[var(--ui-text-muted)]">Invoice No.</span>
+              <span class="font-medium">{{ state.invoiceNumber }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-[var(--ui-text-muted)]">Invoice Date</span>
+              <span class="font-medium">{{ displayDate }}</span>
+            </div>
           </div>
         </div>
-        <div class="flex justify-between font-bold border-t border-[var(--ui-border)] pt-2">
-          <span>Total</span>
-          <span>{{ grandTotal.toFixed(2) }}</span>
+
+        <USeparator />
+
+        <div>
+          <p class="text-xs font-semibold text-[var(--ui-text-muted)] uppercase tracking-wide mb-3">Items</p>
+          <div class="space-y-1.5">
+            <div v-for="(item, idx) in validItems" :key="idx" class="flex justify-between">
+              <span class="font-medium">{{ item.item_name }}</span>
+              <span class="text-[var(--ui-text-muted)]">{{ item.qty }} × {{ item.rate.toFixed(2) }} = {{ (item.qty * item.rate).toFixed(2) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <USeparator />
+
+        <div class="flex justify-between items-center">
+          <span class="font-semibold">Total</span>
+          <span class="text-base font-bold">{{ grandTotal.toFixed(2) }}</span>
         </div>
       </div>
       <div class="flex justify-end gap-2">
