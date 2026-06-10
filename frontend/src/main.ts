@@ -26,7 +26,7 @@ app.use(
     authorizationParams: {
       audience: import.meta.env.VITE_AUTH0_AUDIENCE,
       redirect_uri: window.location.origin,
-      scope: "openid profile offline_access email read:users read:sites read:companies read:expenses update:expenses",
+      scope: "openid profile email read:users read:sites read:companies read:expenses update:expenses",
     },
   }),
 );
