@@ -29,6 +29,37 @@ export type AllAccountsResponse = {
   };
 };
 
+export interface SupplierOption {
+  name: string;
+  supplier_name: string;
+}
+
+export interface ItemOption {
+  item_code: string;
+  item_name: string;
+  last_purchase_rate: number;
+}
+
+export interface WarehouseOption {
+  name: string;
+}
+
+export interface PurchasePayload {
+  company: string;
+  supplier: string;
+  warehouse: string;
+  items: { item_code: string; qty: number; rate: number }[];
+  invoice_number?: string;
+  invoice_date: string;
+}
+
+export interface PurchaseResult {
+  purchase_order: string;
+  purchase_receipt: string;
+  purchase_invoice: string;
+  payment_entry: string;
+}
+
 export class ErpNextService {
   private instance: Axios;
 
@@ -323,6 +354,48 @@ export class ErpNextService {
     } catch {
       return undefined;
     }
+  }
+
+  public searchSuppliers(query: string) {
+    const authStore = useAuthStore();
+    return this.instance
+      .get<ErpNextResponse<SupplierOption>>("/api/v2/method/search_suppliers", {
+        params: { company: authStore.company, query },
+      })
+      .then((resp) => resp?.data.data);
+  }
+
+  public searchItems(query: string) {
+    const authStore = useAuthStore();
+    return this.instance
+      .get<ErpNextResponse<ItemOption>>("/api/v2/method/search_items", {
+        params: { company: authStore.company, query },
+      })
+      .then((resp) => resp?.data.data);
+  }
+
+  public getWarehouses() {
+    const authStore = useAuthStore();
+    return this.instance
+      .get<ErpNextResponse<WarehouseOption>>("/api/v2/method/search_warehouses", {
+        params: { company: authStore.company },
+      })
+      .then((resp) => resp?.data.data);
+  }
+
+  public createFullPurchase(payload: PurchasePayload) {
+    const authStore = useAuthStore();
+    return this.instance
+      .post<{ data?: PurchaseResult }>("/api/v2/method/create_full_purchase", {
+        company: authStore.company,
+        supplier: payload.supplier,
+        warehouse: payload.warehouse,
+        items: payload.items,
+        invoice_number: payload.invoice_number || "",
+        invoice_date: payload.invoice_date,
+      })
+      .then((resp) => resp?.data.data)
+      .catch(() => undefined);
   }
 
   private getDateGrouping(grouping: Grouping) {
