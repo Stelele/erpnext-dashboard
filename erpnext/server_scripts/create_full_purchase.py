@@ -70,6 +70,7 @@ def create_purchase_receipt(po, invoice_date):
         "company": po.company,
         "supplier": po.supplier,
         "posting_date": invoice_date,
+        "posting_time": "00:00:00",
         "set_warehouse": po.set_warehouse,
         "purchase_order": po.name,
         "items": [
@@ -96,6 +97,7 @@ def create_purchase_invoice(pr, invoice_number, invoice_date):
         "company": pr.company,
         "supplier": pr.supplier,
         "posting_date": invoice_date,
+        "posting_time": "00:00:00",
         "bill_date": invoice_date,
         "purchase_receipt": pr.name,
         "update_stock": 0,
@@ -213,6 +215,11 @@ try:
     pr = create_purchase_receipt(po, invoice_date)
     pi = create_purchase_invoice(pr, invoice_number, invoice_date)
     pe = create_payment_entry(pi, invoice_date)
+
+    # Correct posting_date on docs where Frappe's set_posting_time may override it
+    for doc, doctype in [(pr, "Purchase Receipt"), (pi, "Purchase Invoice"), (pe, "Payment Entry")]:
+        frappe.db.set_value(doctype, doc.name, "posting_date", invoice_date)
+
     frappe.db.commit()
 except Exception:
     frappe.db.rollback()
