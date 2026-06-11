@@ -8,7 +8,7 @@ export interface ExpenseSubmissionResult {
   error?: Error;
 }
 
-function addDraftExpense(
+function submitExpense(
   erpNextService: ErpNextService,
   accountMappings: AccountMappings,
   expense: Expense,
@@ -20,14 +20,14 @@ function addDraftExpense(
     return Promise.resolve(undefined);
   }
 
-  return erpNextService.addDraftExpenseJournalEntry(
+  return erpNextService.submitExpenseJournalEntry(
     expense,
     incomeAccount,
     expenseAccount,
   );
 }
 
-async function bulkAddDraftExpenses(
+async function bulkSubmitExpenses(
   erpNextService: ErpNextService,
   accountMappings: AccountMappings,
   expenses: Expense[],
@@ -39,7 +39,7 @@ async function bulkAddDraftExpenses(
     const batch = expenses.slice(i, i + batchSize);
     const batchResults = await Promise.allSettled(
       batch.map(async (expense) => {
-        const response = await addDraftExpense(
+        const response = await submitExpense(
           erpNextService,
           accountMappings,
           expense,
@@ -70,4 +70,4 @@ async function bulkAddDraftExpenses(
   return results;
 }
 
-export { addDraftExpense, bulkAddDraftExpenses };
+export { submitExpense, bulkSubmitExpenses };

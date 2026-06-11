@@ -54,23 +54,28 @@
             </UModal>
             <UModal
                 v-model:open="openCancelConfirm"
-                title="Cancel Purchase"
+                :title="pendingCancel?.type === 'Expense' ? 'Cancel Expense' : 'Cancel Purchase'"
                 :dismissible="false"
             >
                 <template #body>
                     <div class="p-4 space-y-4">
                         <p class="text-sm">
-                            Cancel Purchase
+                            {{ pendingCancel?.type === 'Expense' ? 'Cancel Expense' : 'Cancel Purchase' }}
                             <strong>{{ pendingCancel?.id }}</strong
                             >?
                         </p>
-                        <p class="text-sm text-[var(--ui-text)]">
+                        <p v-if="pendingCancel?.type === 'Order'" class="text-sm text-[var(--ui-text)]">
                             This will cancel all linked documents: Purchase
                             Order, Purchase Receipt, Purchase Invoice, and
                             Payment Entry.
                             <strong>This action cannot be reversed.</strong>
                             Your stock levels will be reverted and accounting entries
                             reversed.
+                        </p>
+                        <p v-else class="text-sm text-[var(--ui-text)]">
+                            This will cancel the Journal Entry and reverse the
+                            accounting entries.
+                            <strong>This action cannot be reversed.</strong>
                         </p>
                         <div class="flex justify-end gap-2">
                             <UButton
@@ -86,7 +91,7 @@
                                 :loading="cancelLoading"
                                 @click="confirmCancel"
                             >
-                                Cancel Purchase
+                                {{ pendingCancel?.type === 'Expense' ? 'Cancel Expense' : 'Cancel Purchase' }}
                             </UButton>
                         </div>
                     </div>
@@ -231,17 +236,23 @@ function onCancelPurchase(payment: Payment) {
 async function confirmCancel() {
     if (!pendingCancel.value) return;
     cancelLoading.value = true;
-    const result = await erpnext.cancelFullPurchase(pendingCancel.value.id);
+
+    const isExpense = pendingCancel.value.type === "Expense";
+    const result = isExpense
+        ? await erpnext.cancelExpenseJournalEntry(pendingCancel.value.id)
+        : await erpnext.cancelFullPurchase(pendingCancel.value.id);
+
+    const label = isExpense ? "Expense" : "Purchase";
 
     if (result) {
         toast.add({
-            title: `Purchase ${pendingCancel.value.id} cancelled`,
+            title: `${label} ${pendingCancel.value.id} cancelled`,
             color: "success",
         });
         await dataStore.update();
     } else {
         toast.add({
-            title: `Failed to cancel purchase ${pendingCancel.value.id}`,
+            title: `Failed to cancel ${label.toLowerCase()} ${pendingCancel.value.id}`,
             color: "error",
         });
     }

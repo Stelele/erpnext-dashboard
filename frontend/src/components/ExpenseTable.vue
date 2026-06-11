@@ -170,13 +170,14 @@ const columns: TableColumn<Payment>[] = [
             },
         },
         cell: ({ row }) => {
-            if (row.original.type === "Order" && row.original.status === "Submitted") {
+            if (row.original.status === "Submitted") {
+                const label = row.original.type === "Order" ? "Cancel purchase" : "Cancel expense";
                 return h(UButton, {
                     color: "error",
                     variant: "ghost",
                     icon: "i-lucide-x",
                     square: true,
-                    "aria-label": "Cancel purchase",
+                    "aria-label": label,
                     onClick: () => emit("cancel", row.original),
                 });
             }

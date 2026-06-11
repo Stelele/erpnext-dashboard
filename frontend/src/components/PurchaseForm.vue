@@ -44,9 +44,9 @@
         <div class="grid grid-cols-[2fr_1fr_1fr_1fr_100px_auto] gap-2 mb-2 text-xs font-medium text-[var(--ui-text-dimmed)] px-1">
           <span>Product</span>
           <span>Qty</span>
-          <span>Rate</span>
-          <span>Sell</span>
-          <span>Total</span>
+          <span>Buy Rate</span>
+          <span>Sell Rate</span>
+          <span>Total Buy</span>
           <span></span>
         </div>
         <div v-for="(_, idx) in state.items" :key="idx" class="grid grid-cols-[2fr_1fr_1fr_1fr_100px_auto] gap-2 mb-2">

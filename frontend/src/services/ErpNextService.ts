@@ -324,7 +324,7 @@ export class ErpNextService {
       .then((resp) => resp?.data.data);
   }
 
-  public async addDraftExpenseJournalEntry(
+  public async submitExpenseJournalEntry(
     expense: Expense,
     incomeAccount: AccountResponse,
     expenseAccount: AccountResponse,
@@ -352,7 +352,13 @@ export class ErpNextService {
         "/api/resource/Journal Entry",
         body,
       );
-      return response.data.data;
+      const doc = response.data.data;
+
+      await this.instance.put(`/api/resource/Journal Entry/${doc.name}`, {
+        docstatus: 1,
+      });
+
+      return doc;
     } catch {
       return undefined;
     }
@@ -407,6 +413,17 @@ export class ErpNextService {
       })
       .then((resp) => resp?.data.data)
       .catch(() => undefined);
+  }
+
+  public async cancelExpenseJournalEntry(journalEntry: string) {
+    try {
+      await this.instance.put(`/api/resource/Journal Entry/${journalEntry}`, {
+        docstatus: 2,
+      });
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private getDateGrouping(grouping: Grouping) {
