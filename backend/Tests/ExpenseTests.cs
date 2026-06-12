@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Application.DTOs;
 using Application.Requests;
+using Domain.CompanySettings;
 
 namespace Tests;
 
@@ -131,7 +132,11 @@ public class ExpenseTests : IClassFixture<IntegrationTestFactory>
         await ResetAsync();
         var companyId = await CreateCompanyAsync();
 
-        var updateRequest = new UpdateCompanySettingsRequest("Custom Income Account");
+        var updateRequest = new UpdateCompanySettingsRequest(
+            "Custom Income Account",
+            PrimaryColor.Blue,
+            NeutralColor.Stone
+        );
         var updateResponse = await _client.PutAsJsonAsync($"/api/companies/{companyId}/settings", updateRequest);
         Assert.Equal(HttpStatusCode.NoContent, updateResponse.StatusCode);
 
@@ -140,6 +145,8 @@ public class ExpenseTests : IClassFixture<IntegrationTestFactory>
         var settings = await getResponse.Content.ReadFromJsonAsync<CompanySettingsResponse>();
         Assert.NotNull(settings);
         Assert.Equal("Custom Income Account", settings.DefaultIncomeAccountName);
+        Assert.Equal(PrimaryColor.Blue, settings.PrimaryColor);
+        Assert.Equal(NeutralColor.Stone, settings.NeutralColor);
     }
 
     [Fact]

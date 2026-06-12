@@ -186,6 +186,10 @@ export interface paths {
     };
 }
 export type webhooks = Record<string, never>;
+export type PrimaryColor = 'black' | 'red' | 'orange' | 'amber' | 'yellow' | 'lime' | 'green' | 'emerald' | 'teal' | 'cyan' | 'sky' | 'blue' | 'indigo' | 'violet' | 'purple' | 'fuchsia' | 'pink' | 'rose'
+
+export type NeutralColor = 'slate' | 'gray' | 'zinc' | 'neutral' | 'stone' | 'taupe' | 'mauve' | 'mist' | 'olive'
+
 export interface components {
     schemas: {
         CompanyExpenseMappingResponse: {
@@ -210,6 +214,8 @@ export interface components {
             /** Format: uuid */
             companyId: string;
             defaultIncomeAccountName: string;
+            primaryColor?: PrimaryColor | null;
+            neutralColor?: NeutralColor | null;
         };
         CreateCompanyRequest: {
             /** Format: uuid */
@@ -254,6 +260,8 @@ export interface components {
         };
         UpdateCompanySettingsRequest: {
             defaultIncomeAccountName: string;
+            primaryColor?: PrimaryColor | null;
+            neutralColor?: NeutralColor | null;
         };
         UpdateExpenseTypeRequest: {
             name: string;

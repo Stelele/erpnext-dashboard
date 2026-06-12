@@ -1,6 +1,5 @@
 using Application.Requests;
 using Application.CompanyExpenseMappings;
-using Application.CompanySettings;
 using Application.DTOs;
 using Application.ExpenseTypes;
 using MediatR;
@@ -39,27 +38,6 @@ public static class ExpenseEndpoints
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
             .WithName("UpsertCompanyExpenseMappings")
-            .RequireAuthorization(Permissions.UpdateExpenses);
-
-        group.MapGet("/companies/{companyId:guid}/settings", async (Guid companyId, IMediator mediator) =>
-            {
-                var settings = await mediator.Send(new GetCompanySettingsQuery(companyId));
-                return settings == null ? Results.NotFound() : Results.Ok(settings);
-            })
-            .Produces<CompanySettingsResponse>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound)
-            .WithName("GetCompanySettings")
-            .RequireAuthorization(Permissions.ReadExpenses);
-
-        group.MapPut("/companies/{companyId:guid}/settings", async (Guid companyId, UpdateCompanySettingsRequest request, IMediator mediator) =>
-            {
-                var command = new UpdateCompanySettingsCommand(companyId, request.DefaultIncomeAccountName);
-                await mediator.Send(command);
-                return Results.NoContent();
-            })
-            .Produces(StatusCodes.Status204NoContent)
-            .Produces(StatusCodes.Status400BadRequest)
-            .WithName("UpdateCompanySettings")
             .RequireAuthorization(Permissions.UpdateExpenses);
 
         group.MapPost("/expense-types", async (IMediator mediator, CreateExpenseTypeRequest request) =>

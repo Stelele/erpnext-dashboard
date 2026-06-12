@@ -1,3 +1,5 @@
+import type { PrimaryColor, NeutralColor } from '@/services/api/schema';
+
 export interface ExpenseType {
   id: string;
   name: string;
@@ -15,6 +17,8 @@ export interface CompanySettings {
   id: string;
   companyId: string;
   defaultIncomeAccountName: string;
+  primaryColor?: PrimaryColor | null;
+  neutralColor?: NeutralColor | null;
 }
 
 export interface Expense {

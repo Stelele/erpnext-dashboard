@@ -17,7 +17,7 @@
                 <div v-if="authStore.showSwitcher" class="border-t pt-2 mt-2">
                     <UButton
                         variant="subtle"
-                        color="success"
+                        color="primary"
                         class="w-full min-h-[44px]"
                         @click="showCompanyModal = true"
                     >

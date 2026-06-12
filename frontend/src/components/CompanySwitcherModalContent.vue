@@ -43,10 +43,12 @@ import { ref, watch } from "vue";
 import { useAuthStore } from "@/stores/AuthStore";
 import { useDataStore } from "@/stores/DataStore";
 import { getLogoProxyUrl } from "@/services/api/logo";
+import { useCompanyTheme } from "@/composables/useCompanyTheme";
 
 const authStore = useAuthStore();
 const dataStore = useDataStore();
 const toast = useToast();
+const { loadAndApply } = useCompanyTheme();
 
 const isOpen = defineModel<boolean>({ default: false });
 const siteUrls = ref<Record<string, string>>({});
@@ -64,6 +66,12 @@ async function selectCompany(companyName: string) {
         await authStore.switchCompany(companyName, async () => {
             await dataStore.update();
         });
+
+        const newCompany = authStore.companies.find((c) => c.name === companyName);
+        if (newCompany) {
+            await loadAndApply(newCompany.id);
+        }
+
         isOpen.value = false;
         toast.add({
             title: `Switched to ${companyName}`,

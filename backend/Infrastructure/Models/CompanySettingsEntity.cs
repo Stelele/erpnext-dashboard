@@ -25,6 +25,16 @@ public class CompanySettingsEntity : IEntityTypeConfiguration<CompanySettings>
             .HasMaxLength(255);
 
         builder
+            .Property(e => e.PrimaryColor)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        builder
+            .Property(e => e.NeutralColor)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        builder
             .HasIndex(e => e.CompanyId)
             .IsUnique();
 

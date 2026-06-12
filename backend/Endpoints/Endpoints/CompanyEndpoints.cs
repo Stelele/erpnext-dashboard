@@ -1,5 +1,6 @@
 using Application.Requests;
 using Application.Companies;
+using Application.CompanySettings;
 using Application.DTOs;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
@@ -61,6 +62,34 @@ public static class CompanyEndpoints
         .Accepts<CreateCompanyRequest>("application/json")
         .Produces<Guid>(StatusCodes.Status201Created)
         .RequireAuthorization(Permissions.CreateCompanies);
+
+        app.MapGet("/api/companies/{companyId:guid}/settings", async (Guid companyId, IMediator mediator) =>
+            {
+                var settings = await mediator.Send(new GetCompanySettingsQuery(companyId));
+                return settings == null ? Results.NotFound() : Results.Ok(settings);
+            })
+            .WithTags(Tags.Companies)
+            .WithName("GetCompanySettings")
+            .Produces<CompanySettingsResponse>(StatusCodes.Status200OK)
+            .Produces(StatusCodes.Status404NotFound)
+            .RequireAuthorization(Permissions.ReadCompanies);
+
+        app.MapPut("/api/companies/{companyId:guid}/settings", async (Guid companyId, UpdateCompanySettingsRequest request, IMediator mediator) =>
+            {
+                var command = new UpdateCompanySettingsCommand(
+                    companyId,
+                    request.DefaultIncomeAccountName,
+                    request.PrimaryColor,
+                    request.NeutralColor
+                );
+                await mediator.Send(command);
+                return Results.NoContent();
+            })
+            .WithTags(Tags.Companies)
+            .WithName("UpdateCompanySettings")
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status400BadRequest)
+            .RequireAuthorization(Permissions.UpdateCompanies);
 
         return app;
     }
