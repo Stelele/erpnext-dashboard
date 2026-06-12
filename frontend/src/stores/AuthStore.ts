@@ -4,6 +4,7 @@ import { ref } from "vue";
 import { computed } from "vue";
 import type { components } from "@/services/api/schema";
 import { ApiSingleton } from "@/services/api";
+import { getLogoProxyUrl } from "@/services/api/logo";
 
 const SELECTED_COMPANY_KEY = "selectedCompany";
 
@@ -28,6 +29,7 @@ export const useAuthStore = defineStore("authStore", () => {
   const companies = ref<components["schemas"]["CompanyResponse"][]>([]);
   const siteUrl = ref("");
   const siteToken = ref("");
+  const logo = ref("/logo.png");
 
   const company = computed(() => {
     if (
@@ -60,6 +62,13 @@ export const useAuthStore = defineStore("authStore", () => {
     if (site) {
       siteUrl.value = site.url;
       siteToken.value = site.apiToken;
+    }
+  }
+
+  async function loadCurrentLogo() {
+    const currentCompany = companies.value.find((c) => c.name === company.value);
+    if (currentCompany?.siteId) {
+      logo.value = getLogoProxyUrl(currentCompany.siteId, company.value);
     }
   }
 
@@ -105,6 +114,7 @@ export const useAuthStore = defineStore("authStore", () => {
         ) ?? companies.value[0];
         if (selected) {
           await loadSiteData(selected.siteId);
+          await loadCurrentLogo();
         }
       }
 
@@ -116,6 +126,7 @@ export const useAuthStore = defineStore("authStore", () => {
         const restored = companies.value.find((c) => c.name === persisted);
         if (restored && restored.siteId !== companies.value[0]?.siteId) {
           await loadSiteData(restored.siteId);
+          await loadCurrentLogo();
         }
       }
     } catch (error) {
@@ -134,6 +145,7 @@ export const useAuthStore = defineStore("authStore", () => {
     const selected = companies.value.find((c) => c.name === companyName);
     if (selected) {
       await loadSiteData(selected.siteId);
+      await loadCurrentLogo();
     }
 
     try {
@@ -149,6 +161,7 @@ export const useAuthStore = defineStore("authStore", () => {
     companies,
     token,
     url,
+    logo,
     company,
     showSwitcher,
     givenName,
