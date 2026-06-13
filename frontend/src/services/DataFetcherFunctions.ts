@@ -86,6 +86,7 @@ export async function fetchAllData(
     orderBreakdownData,
     prevExpensesData,
     expenseBreakdownData,
+    accountMappingsData,
   ] = await Promise.all([
     erpNextService.getDashboardComplete(period, prevPeriod),
     erpNextService.getDashboardPaymentEntries(period),
@@ -98,12 +99,11 @@ export async function fetchAllData(
     erpNextService.getOrderBreakdown(period),
     erpNextService.getPrevGroupedExpenses("months", 6),
     erpNextService.getExpenseBreakdown(period),
+    erpNextService.getAccountMappings(
+      expenseMappings ?? [],
+      companySettings?.defaultIncomeAccountName ?? "",
+    ),
   ]);
-
-  const accountMappingsData = await erpNextService.getAccountMappings(
-    expenseMappings ?? [],
-    companySettings?.defaultIncomeAccountName ?? "",
-  );
 
   return {
     dashboardResults,

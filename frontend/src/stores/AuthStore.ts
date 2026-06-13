@@ -90,11 +90,11 @@ export const useAuthStore = defineStore("authStore", () => {
   }
 
   async function loadAllLogos() {
-    for (const c of companies.value) {
-      if (c.siteId) {
-        await fetchLogoUrl(c.siteId, c.name);
-      }
-    }
+    await Promise.all(
+      companies.value
+        .filter((c) => c.siteId)
+        .map((c) => fetchLogoUrl(c.siteId, c.name)),
+    );
   }
 
   async function update() {
@@ -138,9 +138,10 @@ export const useAuthStore = defineStore("authStore", () => {
           (c) => c.name === selectedCompany.value,
         ) ?? companies.value[0];
         if (selected) {
-          await loadCurrentLogo();
-          await loadAllLogos();
-          await loadSiteData(selected.siteId);
+          await Promise.all([
+            (async () => { await loadCurrentLogo(); await loadAllLogos(); })(),
+            loadSiteData(selected.siteId),
+          ]);
         }
       }
 
@@ -151,8 +152,10 @@ export const useAuthStore = defineStore("authStore", () => {
         // Reload site data if we restored a different company
         const restored = companies.value.find((c) => c.name === persisted);
         if (restored && restored.siteId !== companies.value[0]?.siteId) {
-          await loadCurrentLogo();
-          await loadSiteData(restored.siteId);
+          await Promise.all([
+            loadCurrentLogo(),
+            loadSiteData(restored.siteId),
+          ]);
         }
       }
     } catch (error) {
@@ -170,8 +173,10 @@ export const useAuthStore = defineStore("authStore", () => {
 
     const selected = companies.value.find((c) => c.name === companyName);
     if (selected) {
-      await loadCurrentLogo();
-      await loadSiteData(selected.siteId);
+      await Promise.all([
+        loadCurrentLogo(),
+        loadSiteData(selected.siteId),
+      ]);
     }
 
     try {
