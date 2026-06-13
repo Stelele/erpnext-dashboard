@@ -5,6 +5,7 @@ namespace Tests;
 public class StubR2StorageService : IR2StorageService
 {
     public string BackupBucket => "test-backup";
+    public string PublicBucket => "test-public";
     public string Environment => "test";
 
     public Task UploadAsync(string bucket, string key, Stream content, string contentType, CancellationToken ct = default)

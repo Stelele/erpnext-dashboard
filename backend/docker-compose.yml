@@ -15,6 +15,8 @@ services:
       - R2__AccessKeyId={{R2_ACCESS_KEY_ID}}
       - R2__SecretAccessKey={{R2_SECRET_ACCESS_KEY}}
       - R2__BackupBucketName={{R2_BACKUP_BUCKET_NAME}}
+      - R2__PublicBucketName={{R2_PUBLIC_BUCKET_NAME}}
+      - R2__CDNBaseUrl={{R2_CDN_BASE_URL}}
       - R2__SyncIntervalMinutes={{R2_SYNC_INTERVAL}}
       - Auth0__Domain={{AUTH0_DOMAIN}}
       - Auth0__Audience={{AUTH0_AUDIENCE}}

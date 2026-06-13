@@ -12,7 +12,7 @@
                 "
             >
             <img
-                :src="getLogoProxyUrl(companyItem.siteId, companyItem.name)"
+                :src="cachedLogoUrl(companyItem.siteId, companyItem.name)"
                 :alt="companyItem.name"
                 class="w-10 h-10 rounded-full object-cover"
             />
@@ -42,7 +42,6 @@
 import { ref, watch } from "vue";
 import { useAuthStore } from "@/stores/AuthStore";
 import { useDataStore } from "@/stores/DataStore";
-import { getLogoProxyUrl } from "@/services/api/logo";
 import { useCompanyTheme } from "@/composables/useCompanyTheme";
 
 const authStore = useAuthStore();
@@ -52,6 +51,11 @@ const { loadAndApply } = useCompanyTheme();
 
 const isOpen = defineModel<boolean>({ default: false });
 const siteUrls = ref<Record<string, string>>({});
+
+function cachedLogoUrl(siteId: string, companyName: string): string {
+  const cacheKey = `${siteId}:${companyName}`;
+  return authStore.logoUrls[cacheKey] || "/logo.png";
+}
 
 
 async function selectCompany(companyName: string) {

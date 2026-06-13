@@ -135,6 +135,8 @@ jobs:
             -e 's|{{R2_ACCESS_KEY_ID}}|${{ secrets.R2_ACCESS_KEY_ID }}|g' \
             -e 's|{{R2_SECRET_ACCESS_KEY}}|${{ secrets.R2_SECRET_ACCESS_KEY }}|g' \
             -e 's|{{R2_BACKUP_BUCKET_NAME}}|${{ secrets.R2_BACKUP_BUCKET_NAME }}|g' \
+            -e 's|{{R2_PUBLIC_BUCKET_NAME}}|${{ secrets.R2_PUBLIC_BUCKET_NAME }}|g' \
+            -e 's|{{R2_CDN_BASE_URL}}|${{ secrets.R2_CDN_BASE_URL }}|g' \
             -e 's|{{R2_SYNC_INTERVAL}}|15|g' \
             -e 's|{{AUTH0_DOMAIN}}|${{ secrets.AUTH0_DOMAIN }}|g' \
             -e 's|{{AUTH0_AUDIENCE}}|${{ secrets.AUTH0_AUDIENCE }}|g' \

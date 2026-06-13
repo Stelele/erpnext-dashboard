@@ -56,6 +56,22 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/sites/{siteId}/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["GetCompanyLogo"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/sites": {
         parameters: {
             query?: never;
@@ -244,6 +260,9 @@ export interface components {
             name: string;
             description: string;
         };
+        LogoResponse: {
+            url: string;
+        };
         MappingItemRequest: {
             /** Format: uuid */
             expenseTypeId: string;
@@ -406,6 +425,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SiteResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    GetCompanyLogo: {
+        parameters: {
+            query: {
+                company?: string;
+            };
+            header?: never;
+            path: {
+                siteId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LogoResponse"];
                 };
             };
             /** @description Not Found */

@@ -8,8 +8,10 @@ public class R2StorageService : IR2StorageService
 {
     private readonly AmazonS3Client _s3Client;
     private readonly string _backupBucket;
+    private readonly string _publicBucket;
 
     public string BackupBucket => _backupBucket;
+    public string PublicBucket => _publicBucket;
     public string Environment { get; }
 
     public R2StorageService(IConfiguration configuration)
@@ -18,6 +20,7 @@ public class R2StorageService : IR2StorageService
         var accessKeyId = configuration["R2:AccessKeyId"] ?? throw new InvalidOperationException("R2:AccessKeyId is required");
         var secretAccessKey = configuration["R2:SecretAccessKey"] ?? throw new InvalidOperationException("R2:SecretAccessKey is required");
         _backupBucket = configuration["R2:BackupBucketName"] ?? throw new InvalidOperationException("R2:BackupBucketName is required");
+        _publicBucket = configuration["R2:PublicBucketName"] ?? throw new InvalidOperationException("R2:PublicBucketName is required");
 
         var config = new AmazonS3Config
         {

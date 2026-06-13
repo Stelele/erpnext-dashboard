@@ -1,12 +1,9 @@
 using Application.Requests;
 using Application.DTOs;
 using Application.Sites;
-using Infrastructure.Models;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
-using System.Net.Http;
-using System.Text.Json;
 
 namespace Api.Endpoints;
 
@@ -65,44 +62,17 @@ public static class SitesEndpoints
         app.MapGet("/sites/{siteId:guid}/logo", async (
             Guid siteId,
             string? company,
-            DashboardDbContext db,
-            IHttpClientFactory httpClientFactory) =>
+            ISender mediator) =>
         {
-            var site = await db.Sites.FindAsync(siteId);
-            if (site is null) return Results.NotFound();
+            if (string.IsNullOrEmpty(company))
+                return Results.NotFound();
 
-            var client = httpClientFactory.CreateClient();
-            var authHeader = $"token {site.ApiToken}";
-
-            // Get company logo path from ERPNext
-            var companyUrl = $"{site.Url}/api/resource/Company/{Uri.EscapeDataString(company ?? "")}";
-            var companyRequest = new HttpRequestMessage(HttpMethod.Get, companyUrl);
-            companyRequest.Headers.Add("Authorization", authHeader);
-            var companyResponse = await client.SendAsync(companyRequest);
-            if (!companyResponse.IsSuccessStatusCode) return Results.NotFound();
-
-            var companyJson = await companyResponse.Content.ReadAsStringAsync();
-            using var companyDoc = JsonDocument.Parse(companyJson);
-            var logoPath = companyDoc.RootElement
-                .GetProperty("data")
-                .GetProperty("company_logo")
-                .GetString();
-            if (string.IsNullOrEmpty(logoPath)) return Results.NotFound();
-
-            // Fetch the logo image with auth
-            var logoUrl = $"{site.Url}{logoPath}";
-            var logoRequest = new HttpRequestMessage(HttpMethod.Get, logoUrl);
-            logoRequest.Headers.Add("Authorization", authHeader);
-            var logoResponse = await client.SendAsync(logoRequest);
-            if (!logoResponse.IsSuccessStatusCode) return Results.NotFound();
-
-            var contentType = logoResponse.Content.Headers.ContentType?.MediaType ?? "image/png";
-            var imageBytes = await logoResponse.Content.ReadAsByteArrayAsync();
-            return Results.Bytes(imageBytes, contentType);
+            var logo = await mediator.Send(new GetCompanyLogoQuery(siteId, company));
+            return logo is not null ? Results.Ok(logo) : Results.NotFound();
         })
          .WithName("GetCompanyLogo")
          .WithDisplayName("GetCompanyLogo")
-         .Produces(StatusCodes.Status200OK)
+         .Produces<LogoResponse>(StatusCodes.Status200OK)
          .Produces(StatusCodes.Status404NotFound)
          .WithTags(Tags.Sites);
 

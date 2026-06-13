@@ -86,7 +86,8 @@ public class IntegrationTestFactory : WebApplicationFactory<Program>
 
             // Remove hosted services (DatabaseSyncService)
             var hostedServices = services
-                .Where(d => typeof(IHostedService).IsAssignableFrom(d.ServiceType))
+                .Where(d => typeof(IHostedService).IsAssignableFrom(d.ServiceType)
+                         || d.ServiceType == typeof(DatabaseSyncService))
                 .ToList();
             foreach (var hosted in hostedServices)
                 services.Remove(hosted);
