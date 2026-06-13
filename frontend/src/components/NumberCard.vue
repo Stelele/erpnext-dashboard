@@ -52,35 +52,21 @@ const formatedValue = computed(() => {
     if (Number.isNaN(props.value)) {
         return "-";
     }
-
     if (Math.abs(props.value) - Math.floor(Math.abs(props.value)) === 0) {
         return props.value;
     }
-
     return props.value.toFixed(2);
 });
 
 const icon = computed(() => {
-    if (props.direction === "up") {
-        return "i-lucide-arrow-up-right";
-    }
-
-    if (props.direction === "down") {
-        return "i-lucide-arrow-down-right";
-    }
-
+    if (props.direction === "up") return "i-lucide-arrow-up-right";
+    if (props.direction === "down") return "i-lucide-arrow-down-right";
     return "i-lucide-arrow-right";
 });
 
 const trendColor = computed(() => {
-    if (props.direction === "up") {
-        return colorMode.value === "dark" ? "#00DC82" : "#00DC82";
-    }
-
-    if (props.direction === "down") {
-        return colorMode.value === "dark" ? "#F43F5E" : "#F87171";
-    }
-
+    if (props.direction === "up") return "#00DC82";
+    if (props.direction === "down") return colorMode.value === "dark" ? "#F43F5E" : "#F87171";
     return colorMode.value === "dark" ? "#64748B" : "#94A3B8";
 });
 </script>

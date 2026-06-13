@@ -1,5 +1,6 @@
 import colors from 'tailwindcss/colors'
 import type { PrimaryColor, NeutralColor } from '@/services/api/schema'
+import { useChartColors } from './useChartColors'
 
 function applyPrimaryPalette(colorName: PrimaryColor | null | undefined): void {
   if (!colorName) {
@@ -55,6 +56,8 @@ function clearPalette(semanticName: 'primary' | 'neutral'): void {
 }
 
 export function useCompanyTheme() {
+  const { loadChartColors } = useChartColors()
+
   async function loadAndApply(companyId: string): Promise<void> {
     const { useDataStore } = await import('@/stores/DataStore')
     const dataStore = useDataStore()
@@ -62,6 +65,7 @@ export function useCompanyTheme() {
 
     applyPrimaryPalette(settings?.primaryColor ?? undefined)
     applyNeutralPalette(settings?.neutralColor ?? undefined)
+    await loadChartColors(settings?.primaryColor ?? undefined)
   }
 
   return { loadAndApply }

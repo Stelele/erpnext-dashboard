@@ -70,11 +70,13 @@ const chartData = computed<ChartData<"doughnut">>(() => {
         const dataSet = dataSets[i];
         if (!dataSet) continue;
 
+        const neutral900 = getComputedStyle(document.documentElement).getPropertyValue('--ui-color-neutral-900').trim()
+
         data.datasets.push({
             label: dataSet.label,
             data: dataSet.data,
             backgroundColor: dataSet.data.map((_, idx) => getChartJsColor(idx)),
-            borderColor: colorMode.value === "dark" ? "#0f172b" : undefined,
+            borderColor: neutral900 || "#0f172b",
         });
     }
 

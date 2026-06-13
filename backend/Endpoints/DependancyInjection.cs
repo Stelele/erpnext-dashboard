@@ -19,7 +19,8 @@ public static class DependancyInjection
             .MapCompanyEndpoints()
             .MapSitesEndpoints()
             .MapUsersEndpoints()
-            .MapExpenseEndpoints();
+            .MapExpenseEndpoints()
+            .MapThemeEndpoints();
 
         app.UseCors("AllowFrontend");
 
