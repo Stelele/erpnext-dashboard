@@ -1,8 +1,11 @@
 ﻿using Application.Abstractions;
+using Application.Caching;
 using FluentValidation;
 
 namespace Application.Companies;
 
+[InvalidateCache(Category = "companies")]
+[InvalidateCache(Category = "company")]
 public record CreateCompanyCommand(
     Guid SiteId,
     string Name,

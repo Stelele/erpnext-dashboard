@@ -28,11 +28,24 @@ public static class DependancyInjection
             throw;
         }
 
+        // Pre-warm EF Core to avoid cold-start penalty on first request
+        try
+        {
+            db.Companies.FirstOrDefault();
+            db.CompanySettings.FirstOrDefault();
+            app.Logger.LogInformation("EF Core warmed up successfully");
+        }
+        catch (Exception ex)
+        {
+            app.Logger.LogWarning(ex, "EF Core warm-up query failed (non-critical)");
+        }
+
         return app;
     }
 
     public static WebApplicationBuilder AddInfrastructure(this WebApplicationBuilder builder)
     {
+        builder.Services.AddMemoryCache();
         builder.Services.AddHttpClient();
         builder.Services.AddSingleton<IR2StorageService, R2StorageService>();
 

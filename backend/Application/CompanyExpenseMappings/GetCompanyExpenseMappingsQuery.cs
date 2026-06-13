@@ -1,4 +1,5 @@
 using Application.Abstractions;
+using Application.Caching;
 using Application.DTOs;
 using Infrastructure.Models;
 using MediatR;
@@ -6,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.CompanyExpenseMappings;
 
+[Cache(DurationMinutes = 10, KeyPrefix = "expense_mappings")]
 public record GetCompanyExpenseMappingsQuery(Guid CompanyId) : IQuery<List<CompanyExpenseMappingResponse>>;
 
 internal class GetCompanyExpenseMappingsQueryHandler(DashboardDbContext db) : IQueryHandler<GetCompanyExpenseMappingsQuery, List<CompanyExpenseMappingResponse>>

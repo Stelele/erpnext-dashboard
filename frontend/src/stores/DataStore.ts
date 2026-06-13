@@ -26,6 +26,7 @@ export const useDataStore = defineStore("dataStore", () => {
   } as AccountMappings);
   const paymentEntries = ref<Payment[]>([]);
   const stockDetails = ref<StockDetail[]>([]);
+  const settingsCache = new Map<string, CompanySettings | null>();
 
   const currentPeriod = ref<Period>("This Month");
   const lastRefresh = ref("");
@@ -75,12 +76,16 @@ export const useDataStore = defineStore("dataStore", () => {
   }
 
   async function getCompanySettings(companyId: string): Promise<CompanySettings | null> {
+    if (settingsCache.has(companyId)) {
+      return settingsCache.get(companyId)!;
+    }
     const api = await ApiSingleton.getInstance();
     const { data, error } = await api.GET("/api/companies/{companyId}/settings", {
       params: { path: { companyId } },
     });
-    if (error) return null;
-    return data ?? null;
+    const result = error ? null : (data ?? null);
+    settingsCache.set(companyId, result);
+    return result;
   }
 
   async function initAccountMappings(

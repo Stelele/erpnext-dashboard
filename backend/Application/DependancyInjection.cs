@@ -1,4 +1,5 @@
-﻿using Application.PipelineBehaviours;
+﻿using Application.Caching;
+using Application.PipelineBehaviours;
 using Application.Users;
 using FluentValidation;
 using MediatR;
@@ -23,6 +24,9 @@ namespace Application
             });
             builder.Services.AddValidatorsFromAssembly(typeof(CreateUserCommand).Assembly);
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+
+            builder.Services.AddSingleton<CategoryCacheTokenStore>();
+            builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CachePipelineBehavior<,>));
 
             return builder;
         }

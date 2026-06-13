@@ -9,7 +9,9 @@ public class GetCompanyByIdQueryHandler(DashboardDbContext db) : IQueryHandler<G
 {
     public async Task<CompanyResponse?> Handle(GetCompanyByIdQuery request, CancellationToken cancellationToken)
     {
-        var company = await db.Companies.FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
+        var company = await db.Companies
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == request.Id, cancellationToken);
         return company == null ? null : CompanyResponse.FromDomain(company);
     }
 }
