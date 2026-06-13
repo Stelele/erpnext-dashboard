@@ -133,6 +133,12 @@ export const useAuthStore = defineStore("authStore", () => {
           .map((r) => r.data)
           .filter((c): c is components["schemas"]["CompanyResponse"] => !!c);
 
+        // Restore persisted company selection before loading data
+        const persisted = safeGetItem(SELECTED_COMPANY_KEY);
+        if (persisted && companies.value.find((c) => c.name === persisted)) {
+          selectedCompany.value = persisted;
+        }
+
         // Load site data for the selected (or first) company
         const selected = companies.value.find(
           (c) => c.name === selectedCompany.value,
@@ -141,20 +147,6 @@ export const useAuthStore = defineStore("authStore", () => {
           await Promise.all([
             (async () => { await loadCurrentLogo(); await loadAllLogos(); })(),
             loadSiteData(selected.siteId),
-          ]);
-        }
-      }
-
-      // Restore persisted company selection
-      const persisted = safeGetItem(SELECTED_COMPANY_KEY);
-      if (persisted && companies.value.find((c) => c.name === persisted)) {
-        selectedCompany.value = persisted;
-        // Reload site data if we restored a different company
-        const restored = companies.value.find((c) => c.name === persisted);
-        if (restored && restored.siteId !== companies.value[0]?.siteId) {
-          await Promise.all([
-            loadCurrentLogo(),
-            loadSiteData(restored.siteId),
           ]);
         }
       }
