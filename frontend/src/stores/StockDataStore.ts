@@ -120,6 +120,7 @@ export const useStockDataStore = defineStore("stockDataStore", () => {
   function parseDashboardResults(results: any[]) {
     const stockGroupData: StockGroupData[] = [];
     let stockSummaryData: StockSummaryData = { total_value: 0, selling_value: 0 };
+    stockByItemGroup.value = { labels: [], datasets: [] };
 
     results.forEach(row => {
       switch (row.metric_type) {

@@ -244,6 +244,8 @@ export const useOverViewDataStore = defineStore("overViewDataStore", () => {
 
   function parseDashboardResults(results: any[]) {
     const monthData: DashboardInterval[] = [];
+    salesByCategory.value = { labels: [], datasets: [] };
+    prev6MonthsSales.value = { labels: [], datasets: [] };
 
     results.forEach(row => {
       switch (row.metric_type) {

@@ -34,13 +34,14 @@ export const useDataStore = defineStore("dataStore", () => {
   async function getData() {
     const erpNextService = new ErpNextService();
     const result = await fetchAllData(currentPeriod.value, erpNextService);
-
+    
+    await clear();
     lastRefresh.value = moment().format("DD-MMM-YY HH:mm");
-
+    
     accountMappings.value = result.accountMappings;
     paymentEntries.value = result.paymentEntries;
     stockDetails.value = result.stockDetails;
-
+    
     overviewStore.parseDashboardResults(result.dashboardResults);
     overviewStore.applyBarChart(
       { ...result.barChartData, fromDate: result.barChartConfig.fromDate, toDate: result.barChartConfig.toDate },

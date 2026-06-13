@@ -84,6 +84,7 @@ export const useExpenseDataStore = defineStore("ExpenseDataStore", () => {
 
   function parseDashboardResults(results: any[]) {
     const prevExpenseData: DashboardInterval[] = [];
+    prev6MonthsExpenses.value = { labels: [], datasets: [] };
 
     results.forEach(row => {
       if (row.metric_type === "expenses_by_month") {
