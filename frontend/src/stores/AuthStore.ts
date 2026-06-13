@@ -124,14 +124,10 @@ export const useAuthStore = defineStore("authStore", () => {
 
       // Fetch company details to get site IDs
       if (data?.companies?.length) {
-        const companyResponses = await Promise.all(
-          data.companies.map((id) =>
-            api.GET("/companies/{id}", { params: { path: { id } } }),
-          ),
-        );
-        companies.value = companyResponses
-          .map((r) => r.data)
-          .filter((c): c is components["schemas"]["CompanyResponse"] => !!c);
+        const { data: allCompanies } = await api.GET("/companies", {
+          params: { query: { companyIds: data.companies } },
+        });
+        companies.value = allCompanies ?? [];
 
         // Restore persisted company selection before loading data
         const persisted = safeGetItem(SELECTED_COMPANY_KEY);

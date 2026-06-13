@@ -27,6 +27,7 @@ export const useDataStore = defineStore("dataStore", () => {
   const paymentEntries = ref<Payment[]>([]);
   const stockDetails = ref<StockDetail[]>([]);
   const settingsCache = new Map<string, CompanySettings | null>();
+  const mappingsCache = new Map<string, CompanyExpenseMapping[]>();
 
   const currentPeriod = ref<Period>("This Month");
   const lastRefresh = ref("");
@@ -34,7 +35,10 @@ export const useDataStore = defineStore("dataStore", () => {
 
   async function getData() {
     const erpNextService = new ErpNextService();
-    const result = await fetchAllData(currentPeriod.value, erpNextService);
+    const authStore = await import("@/stores/AuthStore").then((m) => m.useAuthStore());
+    const companyId = authStore.companies?.find((c) => c.name === authStore.company)?.id;
+    const settings = companyId ? await getCompanySettings(companyId) : null;
+    const result = await fetchAllData(currentPeriod.value, erpNextService, settings?.defaultIncomeAccountName ?? "");
     
     await clear();
     lastRefresh.value = moment().format("DD-MMM-YY HH:mm");
@@ -67,12 +71,16 @@ export const useDataStore = defineStore("dataStore", () => {
   }
 
   async function getCompanyExpenseMappings(companyId: string): Promise<CompanyExpenseMapping[]> {
+    if (mappingsCache.has(companyId)) {
+      return mappingsCache.get(companyId)!;
+    }
     const api = await ApiSingleton.getInstance();
     const { data, error } = await api.GET("/api/companies/{companyId}/expense-mappings", {
       params: { path: { companyId } },
     });
-    if (error) return [];
-    return data ?? [];
+    const result = error ? [] : (data ?? []);
+    mappingsCache.set(companyId, result);
+    return result;
   }
 
   async function getCompanySettings(companyId: string): Promise<CompanySettings | null> {

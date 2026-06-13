@@ -45,6 +45,7 @@ export interface DataFetchResult {
 export async function fetchAllData(
   period: Period,
   erpNextService: ErpNextService,
+  defaultIncomeAccountName: string,
 ): Promise<DataFetchResult> {
   const prevPeriod = getPreviousPeriod(period);
   const barChartConfig = getBarChartConfig(period);
@@ -56,23 +57,17 @@ export async function fetchAllData(
   const companyId = authStore.companies?.find((c) => c.name === authStore.company)?.id;
   const api = await ApiSingleton.getInstance();
 
-  const [expenseMappingsResult, companySettingsResult] = companyId
+  const [expenseMappingsResult] = companyId
     ? await Promise.all([
         api.GET("/api/companies/{companyId}/expense-mappings", { params: { path: { companyId } } }),
-        api.GET("/api/companies/{companyId}/settings", { params: { path: { companyId } } }),
       ])
-    : [{ error: true, data: null }, { error: true, data: null }];
+    : [{ error: true, data: null }];
 
   const expenseMappings = expenseMappingsResult.error ? [] : (expenseMappingsResult.data ?? []).map((m) => ({
     expenseTypeId: m.expenseTypeId,
     expenseTypeName: m.expenseTypeName,
     erpnextAccountName: m.erpnextAccountName,
   }));
-  const companySettings = companySettingsResult.error ? null : {
-    id: companySettingsResult.data!.id,
-    companyId: companySettingsResult.data!.companyId,
-    defaultIncomeAccountName: companySettingsResult.data!.defaultIncomeAccountName,
-  };
 
   const [
     dashboardResults,
@@ -101,7 +96,7 @@ export async function fetchAllData(
     erpNextService.getExpenseBreakdown(period),
     erpNextService.getAccountMappings(
       expenseMappings ?? [],
-      companySettings?.defaultIncomeAccountName ?? "",
+      defaultIncomeAccountName,
     ),
   ]);
 
