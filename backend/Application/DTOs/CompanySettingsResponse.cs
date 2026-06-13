@@ -8,7 +8,8 @@ public record CompanySettingsResponse(
     Guid CompanyId,
     string DefaultIncomeAccountName,
     PrimaryColor? PrimaryColor,
-    NeutralColor? NeutralColor
+    NeutralColor? NeutralColor,
+    ThemeMode? ThemeMode
 )
 {
     public static CompanySettingsResponse FromDomain(CompanySettingsEntity settings) =>
@@ -17,6 +18,7 @@ public record CompanySettingsResponse(
             settings.CompanyId,
             settings.DefaultIncomeAccountName,
             settings.PrimaryColor,
-            settings.NeutralColor
+            settings.NeutralColor,
+            settings.ThemeMode
         );
 }

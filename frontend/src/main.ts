@@ -11,11 +11,6 @@ import { createHead } from "@unhead/vue/client";
 
 addCollection(lucide);
 
-// Force dark mode permanently
-localStorage.setItem('vueuse-color-scheme', 'dark');
-document.documentElement.classList.add('dark');
-document.documentElement.classList.remove('light');
-
 const app = createApp(App);
 const pinia = createPinia();
 const head = createHead();

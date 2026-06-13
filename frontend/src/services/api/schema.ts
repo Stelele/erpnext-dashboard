@@ -206,6 +206,8 @@ export type PrimaryColor = 'black' | 'red' | 'orange' | 'amber' | 'yellow' | 'li
 
 export type NeutralColor = 'slate' | 'gray' | 'zinc' | 'neutral' | 'stone' | 'taupe' | 'mauve' | 'mist' | 'olive'
 
+export type ThemeMode = 'dark' | 'light'
+
 export interface components {
     schemas: {
         CompanyExpenseMappingResponse: {
@@ -232,6 +234,7 @@ export interface components {
             defaultIncomeAccountName: string;
             primaryColor?: PrimaryColor | null;
             neutralColor?: NeutralColor | null;
+            themeMode?: ThemeMode | null;
         };
         CreateCompanyRequest: {
             /** Format: uuid */
@@ -281,6 +284,7 @@ export interface components {
             defaultIncomeAccountName: string;
             primaryColor?: PrimaryColor | null;
             neutralColor?: NeutralColor | null;
+            themeMode?: ThemeMode | null;
         };
         UpdateExpenseTypeRequest: {
             name: string;

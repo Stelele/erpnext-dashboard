@@ -10,3 +10,9 @@ public enum NeutralColor
 {
     Slate, Gray, Zinc, Neutral, Stone, Taupe, Mauve, Mist, Olive
 }
+
+public enum ThemeMode
+{
+    Dark,
+    Light
+}

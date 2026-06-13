@@ -80,7 +80,8 @@ public static class CompanyEndpoints
                     companyId,
                     request.DefaultIncomeAccountName,
                     request.PrimaryColor,
-                    request.NeutralColor
+                    request.NeutralColor,
+                    request.ThemeMode
                 );
                 await mediator.Send(command);
                 return Results.NoContent();

@@ -35,6 +35,11 @@ public class CompanySettingsEntity : IEntityTypeConfiguration<CompanySettings>
             .HasMaxLength(50);
 
         builder
+            .Property(e => e.ThemeMode)
+            .HasConversion<string>()
+            .HasMaxLength(50);
+
+        builder
             .HasIndex(e => e.CompanyId)
             .IsUnique();
 

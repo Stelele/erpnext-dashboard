@@ -9,6 +9,7 @@ public class CompanySettings : Base
     public string DefaultIncomeAccountName { get; set; } = "Sales";
     public PrimaryColor? PrimaryColor { get; set; }
     public NeutralColor? NeutralColor { get; set; }
+    public ThemeMode? ThemeMode { get; set; }
 
     public Company Company { get; set; } = null!;
 }

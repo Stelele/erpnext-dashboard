@@ -1,5 +1,5 @@
 import colors from 'tailwindcss/colors'
-import type { PrimaryColor, NeutralColor } from '@/services/api/schema'
+import type { PrimaryColor, NeutralColor, ThemeMode } from '@/services/api/schema'
 import { useChartColors } from './useChartColors'
 
 function applyPrimaryPalette(colorName: PrimaryColor | null | undefined): void {
@@ -33,13 +33,17 @@ function applyNeutralPalette(colorName: NeutralColor | null | undefined): void {
       document.documentElement.style.setProperty(`--ui-color-neutral-${shade}`, value)
     }
   }
-  // Derive inverted text from neutral-900 with zero chroma to avoid tint clashes
-  const neutral900 = palette['900'] as string | undefined
-  if (neutral900) {
-    const match = neutral900.match(/oklch\(([\d.]+)%\s+[\d.]+\s+[\d.]+\)/)
-    if (match) {
-      document.documentElement.style.setProperty('--ui-text-inverted', `oklch(${match[1]}% 0 0)`)
-    }
+}
+
+function applyThemeMode(mode: ThemeMode | null | undefined): void {
+  if (mode === 'light') {
+    document.documentElement.classList.remove('dark')
+    document.documentElement.style.colorScheme = 'light'
+    localStorage.setItem('vueuse-color-scheme', 'light')
+  } else {
+    document.documentElement.classList.add('dark')
+    document.documentElement.style.colorScheme = 'dark'
+    localStorage.setItem('vueuse-color-scheme', 'dark')
   }
 }
 
@@ -65,6 +69,7 @@ export function useCompanyTheme() {
 
     applyPrimaryPalette(settings?.primaryColor ?? undefined)
     applyNeutralPalette(settings?.neutralColor ?? undefined)
+    applyThemeMode(settings?.themeMode ?? undefined)
     await loadChartColors(settings?.primaryColor ?? undefined)
   }
 
