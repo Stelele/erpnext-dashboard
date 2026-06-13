@@ -16,8 +16,8 @@
                         <div class="w-full h-full flex gap-2 items-center p-1">
                             <img
                                 :src="authStore.logo"
-                                class="object-contain h-20"
-                                alt="Njeremoto Logo"
+                                class="object-contain h-12"
+                                :alt="`${authStore.company} Logo`"
                             />
                         </div>
                     </router-link>
@@ -72,7 +72,7 @@
         <UDrawer v-model:open="drawerOpen" direction="left">
             <template #header>
                 <div class="flex items-center gap-2">
-                    <img :src="authStore.logo" class="h-8 object-contain" alt="Logo" />
+                    <img :src="authStore.logo" class="h-8 object-contain" :alt="`${authStore.company} Logo`" />
                     <h2 class="font-bold text-lg">{{ authStore.company }}</h2>
                 </div>
             </template>

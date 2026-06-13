@@ -65,7 +65,7 @@ export const useAuthStore = defineStore("authStore", () => {
     }
   }
 
-  async function loadCurrentLogo() {
+  function loadCurrentLogo() {
     const currentCompany = companies.value.find((c) => c.name === company.value);
     if (currentCompany?.siteId) {
       logo.value = getLogoProxyUrl(currentCompany.siteId, company.value);
@@ -113,8 +113,8 @@ export const useAuthStore = defineStore("authStore", () => {
           (c) => c.name === selectedCompany.value,
         ) ?? companies.value[0];
         if (selected) {
+          loadCurrentLogo();
           await loadSiteData(selected.siteId);
-          await loadCurrentLogo();
         }
       }
 
@@ -125,8 +125,8 @@ export const useAuthStore = defineStore("authStore", () => {
         // Reload site data if we restored a different company
         const restored = companies.value.find((c) => c.name === persisted);
         if (restored && restored.siteId !== companies.value[0]?.siteId) {
+          loadCurrentLogo();
           await loadSiteData(restored.siteId);
-          await loadCurrentLogo();
         }
       }
     } catch (error) {
@@ -144,8 +144,8 @@ export const useAuthStore = defineStore("authStore", () => {
 
     const selected = companies.value.find((c) => c.name === companyName);
     if (selected) {
+      loadCurrentLogo();
       await loadSiteData(selected.siteId);
-      await loadCurrentLogo();
     }
 
     try {

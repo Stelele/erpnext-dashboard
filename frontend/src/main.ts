@@ -7,6 +7,7 @@ import ui from "@nuxt/ui/vue-plugin";
 import { addCollection } from "@iconify/vue";
 import lucide from "@iconify-json/lucide/icons.json";
 import { createAuth0 } from "@auth0/auth0-vue";
+import { createHead } from "@unhead/vue/client";
 
 addCollection(lucide);
 
@@ -17,6 +18,7 @@ document.documentElement.classList.remove('light');
 
 const app = createApp(App);
 const pinia = createPinia();
+const head = createHead();
 
 app.use(
   createAuth0({
@@ -34,5 +36,6 @@ app.use(
 app.use(router);
 app.use(ui);
 app.use(pinia);
+app.use(head);
 
 app.mount("#app");
