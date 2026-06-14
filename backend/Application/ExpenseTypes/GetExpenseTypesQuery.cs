@@ -1,5 +1,4 @@
 using Application.Abstractions;
-using Application.Caching;
 using Application.DTOs;
 using Infrastructure.Models;
 using MediatR;
@@ -7,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.ExpenseTypes;
 
-[Cache(DurationMinutes = 10, KeyPrefix = "expense_types")]
 public record GetExpenseTypesQuery : IQuery<List<ExpenseTypeResponse>>;
 
 internal class GetExpenseTypesQueryHandler(DashboardDbContext db) : IQueryHandler<GetExpenseTypesQuery, List<ExpenseTypeResponse>>

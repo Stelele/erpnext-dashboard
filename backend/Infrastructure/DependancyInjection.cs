@@ -45,7 +45,6 @@ public static class DependancyInjection
 
     public static WebApplicationBuilder AddInfrastructure(this WebApplicationBuilder builder)
     {
-        builder.Services.AddMemoryCache();
         builder.Services.AddHttpClient();
         builder.Services.AddSingleton<IR2StorageService, R2StorageService>();
 

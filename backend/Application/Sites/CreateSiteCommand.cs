@@ -1,10 +1,8 @@
 ﻿using Application.Abstractions;
-using Application.Caching;
 using FluentValidation;
 
 namespace Application.Sites;
 
-[InvalidateCache(Category = "sites")]
 public record CreateSiteCommand(
     string Name,
     string Url,

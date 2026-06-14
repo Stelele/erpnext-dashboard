@@ -1,5 +1,4 @@
 using Application.Abstractions;
-using Application.Caching;
 using Domain.Exceptions;
 using Domain.ExpenseTypes;
 using FluentValidation;
@@ -8,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.ExpenseTypes;
 
-[InvalidateCache(Category = "expense_types")]
 public record CreateExpenseTypeCommand(
     string Name,
     string Description

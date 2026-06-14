@@ -1,11 +1,8 @@
 using Application.Abstractions;
-using Application.Caching;
 using FluentValidation;
 
 namespace Application.Users;
 
-[InvalidateCache(Category = "companies")]
-[InvalidateCache(Category = "company")]
 public record RemoveUserFromCompanyCommand(
     Guid UserId,
     Guid CompanyId

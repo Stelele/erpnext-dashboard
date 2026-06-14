@@ -1,5 +1,4 @@
 using Application.Abstractions;
-using Application.Caching;
 using Application.Users;
 using Domain.CompanySettings;
 using CompanySettingsEntity = Domain.CompanySettings.CompanySettings;
@@ -8,7 +7,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.CompanySettings;
 
-[InvalidateCache(Category = "settings")]
 public record UpdateCompanySettingsCommand(
     Guid CompanyId,
     string DefaultIncomeAccountName,

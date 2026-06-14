@@ -1,5 +1,4 @@
 using Application.Abstractions;
-using Application.Caching;
 using Domain.Exceptions;
 using FluentValidation;
 using Infrastructure.Models;
@@ -7,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.ExpenseTypes;
 
-[InvalidateCache(Category = "expense_types")]
 public record UpdateExpenseTypeCommand(
     Guid Id,
     string Name,
