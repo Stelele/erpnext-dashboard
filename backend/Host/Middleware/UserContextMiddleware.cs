@@ -1,6 +1,7 @@
 using Application.Users;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace Host.Middleware;
 
@@ -17,18 +18,22 @@ public class UserContextMiddleware
     {
         if (context.User.Identity?.IsAuthenticated == true)
         {
-            var userIdClaim = context.User.FindFirst("https://meta.dashboard.com/user_id");
-            if (userIdClaim != null && Guid.TryParse(userIdClaim.Value, out var userId))
+            var namespaceClaim = context.User.FindFirst("https://meta.dashboard.com/");
+            if (namespaceClaim != null)
             {
-                var user = await db.Users
-                    .AsNoTracking()
-                    .Include(u => u.Companies)
-                    .FirstOrDefaultAsync(u => u.Id == userId);
-
-                if (user != null)
+                using var doc = JsonDocument.Parse(namespaceClaim.Value);
+                if (doc.RootElement.TryGetProperty("user_id", out var uid) && uid.TryGetGuid(out var userId))
                 {
-                    userContext.UserId = user.Id;
-                    userContext.CompanyIds = user.Companies.Select(c => c.Id).ToList();
+                    var user = await db.Users
+                        .AsNoTracking()
+                        .Include(u => u.Companies)
+                        .FirstOrDefaultAsync(u => u.Id == userId);
+
+                    if (user != null)
+                    {
+                        userContext.UserId = user.Id;
+                        userContext.CompanyIds = user.Companies.Select(c => c.Id).ToList();
+                    }
                 }
             }
         }
