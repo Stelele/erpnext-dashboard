@@ -51,7 +51,7 @@ export const useExpenseDataStore = defineStore("ExpenseDataStore", () => {
 
     const labels = Object.keys(mapped).filter(k => (mapped[k] ?? 0) > 0);
     labels.sort();
-    const values = labels.map(k => mapped[k]);
+    const values = labels.map(k => mapped[k] ?? 0);
 
     expenseBreakdown.value = {
       labels,

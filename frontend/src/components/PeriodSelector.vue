@@ -26,13 +26,11 @@ const dateRange = computed(() => {
     return `${moment(dataStore.dateRange.start).format("DD MMM YY")} - ${moment(dataStore.dateRange.end).format("DD MMM YY")}`;
 });
 
-const dropdownItems = computed<DropdownMenuItem[]>(() => [
+const dropdownItems = computed<DropdownMenuItem[]>(() => 
     filterItems.value.map(item => ({
         ...item,
-        type: "item" as const,
         color: dataStore.currentPeriod === item.label ? "primary" : "neutral",
         icon: dataStore.currentPeriod === item.label ? "i-lucide-check" : undefined,
         class: "min-h-[44px]",
-    })),
-]);
+    })));
 </script>

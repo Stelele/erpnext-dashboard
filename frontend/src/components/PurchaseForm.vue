@@ -5,7 +5,7 @@
       <div class="grid grid-cols-2 gap-4">
         <UFormField label="Supplier" name="supplier" required>
           <UInputMenu
-            v-model="selectedSupplier"
+            v-model="selectedSupplier as any"
             :items="supplierItems"
             value-key="name"
             label-key="supplier_name"
@@ -16,7 +16,7 @@
         </UFormField>
         <UFormField label="Warehouse" name="warehouse" required>
           <UInputMenu
-            v-model="selectedWarehouse"
+            v-model="selectedWarehouse as any"
             :items="warehouseOpts"
             value-key="name"
             label-key="name"
@@ -49,9 +49,9 @@
           <span>Total Buy</span>
           <span></span>
         </div>
-        <div v-for="(_, idx) in state.items" :key="idx" class="grid grid-cols-[2fr_1fr_1fr_1fr_100px_auto] gap-2 mb-2">
+        <div v-for="(item, idx) in state.items" :key="idx" class="grid grid-cols-[2fr_1fr_1fr_1fr_100px_auto] gap-2 mb-2">
           <UInputMenu
-            v-model="itemSelections[idx]"
+            v-model="itemSelections[idx] as any"
             v-model:search-term="itemSearchTerms[idx]"
             :items="itemOpts[idx]"
             value-key="item_code"
@@ -63,11 +63,11 @@
             @update:open="(open: boolean) => { if (open) onItemOpen(idx) }"
             @update:model-value="() => onItemPicked(idx)"
           />
-          <UInput v-model="state.items[idx].qty" type="number" :min="1" :step="1" class="w-full" :disabled="submitting" />
-          <UInput v-model="state.items[idx].rate" type="number" :min="0" :step="0.01" class="w-full" :disabled="submitting" />
-          <UInput v-model="state.items[idx].sell_rate" type="number" :min="0" :step="0.01" class="w-full" :disabled="submitting" />
+          <UInput v-model="item.qty" type="number" :min="1" :step="1" class="w-full" :disabled="submitting" />
+          <UInput v-model="item.rate" type="number" :min="0" :step="0.01" class="w-full" :disabled="submitting" />
+          <UInput v-model="item.sell_rate" type="number" :min="0" :step="0.01" class="w-full" :disabled="submitting" />
           <div class="flex items-center justify-end text-sm font-medium">
-            {{ ((state.items[idx].qty || 0) * (state.items[idx].rate || 0)).toFixed(2) }}
+            {{ ((item.qty || 0) * (item.rate || 0)).toFixed(2) }}
           </div>
           <UButton color="error" variant="ghost" icon="i-lucide-x" size="sm" :disabled="submitting" @click="removeItem(idx)" />
         </div>
@@ -239,7 +239,8 @@ onMounted(async () => {
     if (warehouses?.length) {
       warehouseItems.value = warehouses;
       const stores = warehouses.find((w) => w.name.toLowerCase().includes("stores"));
-      selectedWarehouse.value = { name: (stores || warehouses[0]).name };
+      const first = warehouses[0];
+      if (first) selectedWarehouse.value = { name: (stores || first).name };
     }
   } catch { /* ignore */ }
 
@@ -260,7 +261,7 @@ function watchRow(idx: number) {
     if (itemTimers[idx]) clearTimeout(itemTimers[idx]);
     itemTimers[idx] = setTimeout(async () => {
       try {
-        const results = await erpnext.searchItems(term);
+        const results = await erpnext.searchItems(term || "");
         if (results) itemOpts.value[idx] = results;
       } catch { /* ignore */ }
     }, 300);
@@ -287,10 +288,12 @@ function onItemPicked(idx: number) {
   if (!itemCode) return;
   const sel = itemOpts.value[idx]?.find((i) => i.item_code === itemCode);
   if (sel) {
-    state.items[idx].item_code = sel.item_code;
-    state.items[idx].item_name = sel.item_name;
-    if (sel.last_purchase_rate) state.items[idx].rate = sel.last_purchase_rate;
-    if (sel.last_selling_rate) state.items[idx].sell_rate = sel.last_selling_rate;
+    const target = state.items[idx];
+    if (!target) return;
+    target.item_code = sel.item_code;
+    target.item_name = sel.item_name;
+    if (sel.last_purchase_rate) target.rate = sel.last_purchase_rate;
+    if (sel.last_selling_rate) target.sell_rate = sel.last_selling_rate;
   }
 }
 

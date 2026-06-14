@@ -120,20 +120,20 @@ const { logout } = useAuth0();
 const drawerOpen = ref(false);
 const settingsDrawerOpen = ref(false);
 
-function isActive(to: string) {
-    if (to === "/") return route.path === "/" || route.path === "/overview";
-    return route.path.startsWith(to);
+function isActive(to: string | undefined | Record<string, unknown>) {
+    if (!to) return false;
+    const path = typeof to === "string" ? to : "";
+    if (path === "/") return route.path === "/" || route.path === "/overview";
+    return route.path.startsWith(path);
 }
 
 const profileMenuItems = computed<DropdownMenuItem[]>(() => [
-    [
-        {
-            label: "Logout",
-            icon: "i-lucide-log-out",
-            onSelect: () =>
-                logout({ logoutParams: { returnTo: window.location.origin } }),
-        },
-    ],
+    {
+        label: "Logout",
+        icon: "i-lucide-log-out",
+        onSelect: () =>
+            logout({ logoutParams: { returnTo: window.location.origin } }),
+    },
 ]);
 
 const dateRange = computed(() => {

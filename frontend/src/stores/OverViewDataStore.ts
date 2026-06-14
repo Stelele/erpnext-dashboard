@@ -129,7 +129,10 @@ export const useOverViewDataStore = defineStore("overViewDataStore", () => {
         return moment(label, "YYYY-MM").format("MMM YY");
       }
       if (grouping === "quarter") {
-        const [year, qStr] = label.split("-Q");
+        const parts = label.split("-Q");
+        if (parts.length !== 2) return label;
+        const year = parts[0]!;
+        const qStr = parts[1]!;
         const q = parseInt(qStr, 10);
         const y = parseInt(year, 10);
         const qStart = moment().year(y).quarter(q).startOf("quarter");

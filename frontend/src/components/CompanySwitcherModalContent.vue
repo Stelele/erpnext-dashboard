@@ -39,7 +39,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { ref } from "vue";
 import { useAuthStore } from "@/stores/AuthStore";
 import { useDataStore } from "@/stores/DataStore";
 import { useCompanyTheme } from "@/composables/useCompanyTheme";

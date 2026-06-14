@@ -1,11 +1,11 @@
 import type { Period } from "@/utils/PeriodUtilities";
 import { getPreviousPeriod } from "@/utils/PeriodUtilities";
 import { getBarChartConfig, getBarChartTitle } from "@/utils/ChartConfigUtilities";
-import type { ErpNextService, AccountMappings } from "@/services/ErpNextService";
+import type { ErpNextService } from "@/services/ErpNextService";
+import type { AccountMappings } from "@/types/Expenses";
 import type { Payment, CompanyExpenseMapping } from "@/types/Expenses";
 import type { StockDetail, DailyStockValue, StockValueSummary } from "@/types/StockDetail";
 import type { GroupSummary } from "@/types/MonthSales";
-import moment from "moment";
 import { CachedApiClient } from "@/services/cache/CachedApiClient";
 
 interface ExpenseTypeData {
@@ -59,7 +59,8 @@ export async function fetchAllData(
   const cacheClient = CachedApiClient.getInstance();
   const cachedMappings = companyId ? await cacheClient.getCompanyExpenseMappings(companyId) : [];
 
-  const expenseMappings = cachedMappings.map((m) => ({
+  const expenseMappings: CompanyExpenseMapping[] = cachedMappings.map((m) => ({
+    id: m.id,
     expenseTypeId: m.expenseTypeId,
     expenseTypeName: m.expenseTypeName,
     erpnextAccountName: m.erpnextAccountName,

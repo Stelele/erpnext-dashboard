@@ -24,7 +24,7 @@
                             :variant="dataStore.currentPeriod === item.label ? 'subtle' : 'ghost'"
                             :color="dataStore.currentPeriod === item.label ? 'primary' : 'neutral'"
                             class="w-full justify-start min-h-[44px]"
-                            @click="item.onSelect?.()"
+                            @click="item.onSelect?.($event)"
                         >
                             {{ item.label }}
                         </UButton>
