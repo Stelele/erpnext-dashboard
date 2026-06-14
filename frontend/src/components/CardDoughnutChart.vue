@@ -76,7 +76,7 @@ const chartData = computed<ChartData<"doughnut">>(() => {
             label: dataSet.label,
             data: dataSet.data,
             backgroundColor: dataSet.data.map((_, idx) => getChartJsColor(idx)),
-            borderColor: colorMode.value === "dark" ? "#0f172b" : undefined,
+            borderColor: colorMode.value === "dark" ? neutral900 : undefined,
         });
     }
 

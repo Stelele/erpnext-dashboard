@@ -11,7 +11,7 @@ import { useOverViewDataStore } from "./OverViewDataStore";
 import { useExpenseDataStore } from "./ExpenseDataStore";
 import { useStockDataStore } from "./StockDataStore";
 import { useSalesDataStore } from "./SalesDataStore";
-import { ApiSingleton } from "@/services/api";
+import { CachedApiClient } from "@/services/cache/CachedApiClient";
 
 export const useDataStore = defineStore("dataStore", () => {
   const overviewStore = useOverViewDataStore();
@@ -26,9 +26,6 @@ export const useDataStore = defineStore("dataStore", () => {
   } as AccountMappings);
   const paymentEntries = ref<Payment[]>([]);
   const stockDetails = ref<StockDetail[]>([]);
-  const settingsCache = new Map<string, CompanySettings | null>();
-  const mappingsCache = new Map<string, CompanyExpenseMapping[]>();
-
   const currentPeriod = ref<Period>("This Month");
   const lastRefresh = ref("");
   const dateRange = computed(() => getPeriodDateRange(currentPeriod.value));
@@ -71,29 +68,13 @@ export const useDataStore = defineStore("dataStore", () => {
   }
 
   async function getCompanyExpenseMappings(companyId: string): Promise<CompanyExpenseMapping[]> {
-    if (mappingsCache.has(companyId)) {
-      return mappingsCache.get(companyId)!;
-    }
-    const api = await ApiSingleton.getInstance();
-    const { data, error } = await api.GET("/api/companies/{companyId}/expense-mappings", {
-      params: { path: { companyId } },
-    });
-    const result = error ? [] : (data ?? []);
-    mappingsCache.set(companyId, result);
-    return result;
+    const client = CachedApiClient.getInstance();
+    return client.getCompanyExpenseMappings(companyId);
   }
 
   async function getCompanySettings(companyId: string): Promise<CompanySettings | null> {
-    if (settingsCache.has(companyId)) {
-      return settingsCache.get(companyId)!;
-    }
-    const api = await ApiSingleton.getInstance();
-    const { data, error } = await api.GET("/api/companies/{companyId}/settings", {
-      params: { path: { companyId } },
-    });
-    const result = error ? null : (data ?? null);
-    settingsCache.set(companyId, result);
-    return result;
+    const client = CachedApiClient.getInstance();
+    return await client.getCompanySettings(companyId) ?? null;
   }
 
   async function initAccountMappings(

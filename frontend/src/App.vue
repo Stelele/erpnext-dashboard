@@ -7,6 +7,8 @@ import { onBeforeMount, computed } from "vue";
 import { useAuthStore } from "./stores/AuthStore";
 import { update } from "./utils/UpdateData";
 import { useCompanyTheme } from "./composables/useCompanyTheme";
+import { useCacheSync } from "./composables/useCacheSync";
+import { CachedApiClient } from "./services/cache/CachedApiClient";
 import { useHead } from "@unhead/vue";
 import moment from "moment";
 
@@ -17,6 +19,7 @@ moment.updateLocale("en", {
 });
 
 const authStore = useAuthStore();
+const { startSync } = useCacheSync();
 
 useHead(
     computed(() => ({
@@ -34,6 +37,12 @@ const { loadAndApply } = useCompanyTheme();
 
 onBeforeMount(async () => {
     await authStore.update();
+
+    const cacheClient = CachedApiClient.getInstance();
+    await cacheClient.init();
+    await cacheClient.bootstrap();
+
+    startSync();
     update();
 
     const currentCompany = authStore.companies.find(

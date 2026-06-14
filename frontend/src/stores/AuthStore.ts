@@ -3,7 +3,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 import { computed } from "vue";
 import type { components } from "@/services/api/schema";
-import { ApiSingleton } from "@/services/api";
+import { CachedApiClient } from "@/services/cache/CachedApiClient";
 
 const SELECTED_COMPANY_KEY = "selectedCompany";
 
@@ -55,10 +55,8 @@ export const useAuthStore = defineStore("authStore", () => {
   const user = ref<components["schemas"]["UserResponse"]>();
 
   async function loadSiteData(siteId: string) {
-    const api = await ApiSingleton.getInstance();
-    const { data: site } = await api.GET("/sites/{id}", {
-      params: { path: { id: siteId } },
-    });
+    const client = CachedApiClient.getInstance();
+    const site = await client.getSite(siteId);
     if (site) {
       siteUrl.value = site.url;
       siteToken.value = site.apiToken;
@@ -69,17 +67,10 @@ export const useAuthStore = defineStore("authStore", () => {
     const cacheKey = `${siteId}:${companyName}`;
     if (logoUrls.value[cacheKey]) return logoUrls.value[cacheKey];
 
-    try {
-      const api = await ApiSingleton.getInstance();
-      const { data } = await api.GET("/sites/{siteId}/logo", {
-        params: { path: { siteId }, query: { company: companyName } },
-      });
-      const url = data?.url || "/logo.png";
-      logoUrls.value[cacheKey] = url;
-      return url;
-    } catch {
-      return "/logo.png";
-    }
+    const client = CachedApiClient.getInstance();
+    const url = await client.getSiteLogo(siteId, companyName);
+    logoUrls.value[cacheKey] = url;
+    return url;
   }
 
   async function loadCurrentLogo() {
@@ -116,18 +107,16 @@ export const useAuthStore = defineStore("authStore", () => {
     userId.value = meta?.user_id || "";
 
     try {
-      const api = await ApiSingleton.getInstance();
-      const { data } = await api.GET("/users/{id}", {
-        params: { path: { id: userId.value } },
-      });
+      const client = CachedApiClient.getInstance();
+      const data = await client.getUser(userId.value);
       user.value = data;
 
       // Fetch company details to get site IDs
       if (data?.companies?.length) {
-        const { data: allCompanies } = await api.GET("/companies", {
-          params: { query: { companyIds: data.companies } },
-        });
-        companies.value = allCompanies ?? [];
+        const allCompanies = await client.getUserCompanies();
+        companies.value = allCompanies.filter(
+          (c) => data.companies?.includes(c.id) ?? false
+        );
 
         // Restore persisted company selection before loading data
         const persisted = safeGetItem(SELECTED_COMPANY_KEY);

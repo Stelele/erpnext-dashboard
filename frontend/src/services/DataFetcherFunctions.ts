@@ -6,7 +6,7 @@ import type { Payment, CompanyExpenseMapping } from "@/types/Expenses";
 import type { StockDetail, DailyStockValue, StockValueSummary } from "@/types/StockDetail";
 import type { GroupSummary } from "@/types/MonthSales";
 import moment from "moment";
-import { ApiSingleton } from "@/services/api";
+import { CachedApiClient } from "@/services/cache/CachedApiClient";
 
 interface ExpenseTypeData {
   expense_type: string;
@@ -55,15 +55,11 @@ export async function fetchAllData(
 
   const authStore = await import("@/stores/AuthStore").then((m) => m.useAuthStore());
   const companyId = authStore.companies?.find((c) => c.name === authStore.company)?.id;
-  const api = await ApiSingleton.getInstance();
 
-  const [expenseMappingsResult] = companyId
-    ? await Promise.all([
-        api.GET("/api/companies/{companyId}/expense-mappings", { params: { path: { companyId } } }),
-      ])
-    : [{ error: true, data: null }];
+  const cacheClient = CachedApiClient.getInstance();
+  const cachedMappings = companyId ? await cacheClient.getCompanyExpenseMappings(companyId) : [];
 
-  const expenseMappings = expenseMappingsResult.error ? [] : (expenseMappingsResult.data ?? []).map((m) => ({
+  const expenseMappings = cachedMappings.map((m) => ({
     expenseTypeId: m.expenseTypeId,
     expenseTypeName: m.expenseTypeName,
     erpnextAccountName: m.erpnextAccountName,
