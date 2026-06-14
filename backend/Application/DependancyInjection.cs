@@ -26,6 +26,8 @@ namespace Application
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
             builder.Services.AddSingleton<CategoryCacheTokenStore>();
+            builder.Services.AddScoped<UserContext>();
+            builder.Services.AddScoped<IUserContext>(sp => sp.GetRequiredService<UserContext>());
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CachePipelineBehavior<,>));
 
             return builder;

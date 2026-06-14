@@ -40,7 +40,7 @@ onBeforeMount(async () => {
 
     const cacheClient = CachedApiClient.getInstance();
     await cacheClient.init();
-    await cacheClient.bootstrap();
+    await cacheClient.bootstrap(authStore.userId);
 
     startSync();
     update();

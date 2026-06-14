@@ -1,3 +1,4 @@
+using Application.Users;
 using MediatR;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
@@ -6,7 +7,8 @@ namespace Application.Caching;
 
 public class CachePipelineBehavior<TRequest, TResponse>(
     IMemoryCache cache,
-    CategoryCacheTokenStore tokenStore
+    CategoryCacheTokenStore tokenStore,
+    IUserContext userContext
 ) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
@@ -17,7 +19,7 @@ public class CachePipelineBehavior<TRequest, TResponse>(
     {
         if (typeof(TRequest).GetCustomAttributes(typeof(CacheAttribute), false).FirstOrDefault() is CacheAttribute cacheAttr)
         {
-            var key = BuildKey(cacheAttr.KeyPrefix, request);
+            var key = BuildKey(cacheAttr.KeyPrefix, request, userContext.UserId);
             if (cache.TryGetValue<TResponse>(key, out var cached) && cached is not null)
                 return cached;
 
@@ -41,7 +43,7 @@ public class CachePipelineBehavior<TRequest, TResponse>(
         return commandResult;
     }
 
-    private static string BuildKey(string prefix, object request)
+    private static string BuildKey(string prefix, object request, Guid userId)
     {
         var values = request.GetType().GetProperties()
             .OrderBy(p => p.Name)
@@ -53,6 +55,6 @@ public class CachePipelineBehavior<TRequest, TResponse>(
                 string s => s,
                 var v => v.ToString() ?? ""
             });
-        return $"{prefix}:{string.Join(":", values)}";
+        return $"{prefix}:{userId}:" + string.Join(":", values);
     }
 }

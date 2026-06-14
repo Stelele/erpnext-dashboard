@@ -1,5 +1,6 @@
 using Application.Abstractions;
 using Application.Caching;
+using Application.Users;
 using Domain.CompanySettings;
 using CompanySettingsEntity = Domain.CompanySettings.CompanySettings;
 using Infrastructure.Models;
@@ -16,10 +17,13 @@ public record UpdateCompanySettingsCommand(
     ThemeMode? ThemeMode = null
 ) : ICommand;
 
-internal class UpdateCompanySettingsCommandHandler(DashboardDbContext db) : ICommandHandler<UpdateCompanySettingsCommand>
+internal class UpdateCompanySettingsCommandHandler(DashboardDbContext db, IUserContext userContext) : ICommandHandler<UpdateCompanySettingsCommand>
 {
     public async Task Handle(UpdateCompanySettingsCommand request, CancellationToken ct)
     {
+        if (userContext.CompanyIds.Count > 0 && !userContext.CompanyIds.Contains(request.CompanyId))
+            throw new UnauthorizedAccessException();
+
         var settings = await db.CompanySettings
             .FirstOrDefaultAsync(s => s.CompanyId == request.CompanyId, ct);
 

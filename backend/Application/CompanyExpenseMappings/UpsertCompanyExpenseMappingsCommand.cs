@@ -1,5 +1,6 @@
 using Application.Abstractions;
 using Application.Caching;
+using Application.Users;
 using Domain.CompanyExpenseMappings;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
@@ -14,10 +15,13 @@ public record UpsertCompanyExpenseMappingsCommand(
 
 public record MappingItem(Guid ExpenseTypeId, string ErpnextAccountName);
 
-internal class UpsertCompanyExpenseMappingsCommandHandler(DashboardDbContext db) : ICommandHandler<UpsertCompanyExpenseMappingsCommand>
+internal class UpsertCompanyExpenseMappingsCommandHandler(DashboardDbContext db, IUserContext userContext) : ICommandHandler<UpsertCompanyExpenseMappingsCommand>
 {
     public async Task Handle(UpsertCompanyExpenseMappingsCommand request, CancellationToken ct)
     {
+        if (userContext.CompanyIds.Count > 0 && !userContext.CompanyIds.Contains(request.CompanyId))
+            throw new UnauthorizedAccessException();
+
         var existing = await db.CompanyExpenseMappings
             .Where(m => m.CompanyId == request.CompanyId)
             .ToListAsync(ct);

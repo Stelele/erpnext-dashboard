@@ -6,6 +6,7 @@ using Infrastructure;
 using Infrastructure.Auth0;
 using Infrastructure.Models;
 using Infrastructure.Services;
+using Application.Users;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -70,6 +71,10 @@ public class IntegrationTestFactory : WebApplicationFactory<Program>
             });
 
             services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
+
+            // Register IUserContext for tests (stays empty — handlers skip filtering when CompanyIds is empty)
+            services.AddScoped<Application.Users.UserContext>();
+            services.AddScoped<Application.Users.IUserContext>(sp => sp.GetRequiredService<Application.Users.UserContext>());
 
             // Replace external dependencies with stubs
             services.AddSingleton<IR2StorageService, StubR2StorageService>();

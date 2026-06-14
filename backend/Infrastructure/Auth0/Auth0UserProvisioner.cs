@@ -67,7 +67,7 @@ public class Auth0UserProvisioner(
             ClientSecret = _clientSecret,
             Audience = _mgmtAudience
         }, ct);
-        logger.LogInformation($"Obtained Auth0 management API token: {token.AccessToken}");
+        logger.LogInformation("Obtained Auth0 management API token");
 
         var mgmt = new ManagementApiClient(token.AccessToken, new Uri(_mgmtAudience));
         return (authClient, mgmt);

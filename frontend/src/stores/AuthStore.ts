@@ -113,10 +113,7 @@ export const useAuthStore = defineStore("authStore", () => {
 
       // Fetch company details to get site IDs
       if (data?.companies?.length) {
-        const allCompanies = await client.getUserCompanies();
-        companies.value = allCompanies.filter(
-          (c) => data.companies?.includes(c.id) ?? false
-        );
+        companies.value = await client.getUserCompanies();
 
         // Restore persisted company selection before loading data
         const persisted = safeGetItem(SELECTED_COMPANY_KEY);

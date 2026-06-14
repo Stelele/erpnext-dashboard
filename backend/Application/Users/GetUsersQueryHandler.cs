@@ -5,14 +5,18 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.Users;
 
-public class GetUsersQueryHandler(DashboardDbContext db) : IQueryHandler<GetUsersQuery, List<UserResponse>>
+public class GetUsersQueryHandler(DashboardDbContext db, IUserContext userContext) : IQueryHandler<GetUsersQuery, List<UserResponse>>
 {
     public async Task<List<UserResponse>> Handle(GetUsersQuery request, CancellationToken cancellationToken)
     {
-        var users = request.UserIds != null && request.UserIds.Length > 0
-            ? db.Users.Where(u => request.UserIds.Contains(u.Id))
-            : db.Users;
+        var query = db.Users.Include(u => u.Companies).AsQueryable();
 
-        return [.. users.Include(u => u.Companies).Select(UserResponse.FromDomain)];
+        if (userContext.CompanyIds.Count > 0)
+            query = query.Where(u => u.Id == userContext.UserId);
+
+        if (request.UserIds != null && request.UserIds.Length > 0)
+            query = query.Where(u => request.UserIds.Contains(u.Id));
+
+        return [.. query.Select(UserResponse.FromDomain)];
     }
 }

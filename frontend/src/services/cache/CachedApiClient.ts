@@ -33,12 +33,18 @@ export class CachedApiClient {
     return this.api!;
   }
 
-  async bootstrap(onProgress?: (current: number, total: number) => void): Promise<void> {
+  async bootstrap(userId?: string, onProgress?: (current: number, total: number) => void): Promise<void> {
     const api = await this.ensureApi();
     const db = getCacheDB();
     const meta = await db.meta.get("singleton");
 
-    if (meta?.dbVersion === CURRENT_SCHEMA_VERSION) {
+    if (userId && meta?.userId && meta.userId !== userId) {
+      await db.delete();
+      await db.open();
+    }
+
+    const refreshedMeta = await db.meta.get("singleton");
+    if (refreshedMeta?.dbVersion === CURRENT_SCHEMA_VERSION && refreshedMeta?.userId === userId) {
       return;
     }
 
@@ -106,6 +112,7 @@ export class CachedApiClient {
       key: "singleton",
       dbVersion: CURRENT_SCHEMA_VERSION,
       lastFullSync: new Date().toISOString(),
+      userId: userId || "",
     });
   }
 

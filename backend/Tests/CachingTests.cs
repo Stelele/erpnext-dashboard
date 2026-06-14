@@ -17,6 +17,8 @@ public class CachingTests : IClassFixture<IntegrationTestFactory>
         _client = factory.CreateClient();
     }
 
+    private static readonly string EmptyGuid = Guid.Empty.ToString();
+
     private async Task ResetAsync() => await _factory.ResetDatabaseAsync();
 
     [Fact]
@@ -31,7 +33,7 @@ public class CachingTests : IClassFixture<IntegrationTestFactory>
         Assert.Equal(HttpStatusCode.OK, resp1.StatusCode);
 
         var cache = _factory.Services.GetRequiredService<IMemoryCache>();
-        var cacheKey = $"company:{companyId}";
+        var cacheKey = $"company:{EmptyGuid}:{companyId}";
         Assert.True(cache.TryGetValue(cacheKey, out _), "Cache key should exist after first call");
 
         var sw2 = Stopwatch.StartNew();
@@ -54,7 +56,7 @@ public class CachingTests : IClassFixture<IntegrationTestFactory>
 
         var cache = _factory.Services.GetRequiredService<IMemoryCache>();
         var sortedIds = new[] { companyId, otherId }.OrderBy(id => id.ToString());
-        var expectedKey = $"companies:{string.Join(",", sortedIds)}";
+        var expectedKey = $"companies:{EmptyGuid}:{string.Join(",", sortedIds)}";
         Assert.True(cache.TryGetValue(expectedKey, out _), "Composite cache key should exist");
     }
 
@@ -70,7 +72,7 @@ public class CachingTests : IClassFixture<IntegrationTestFactory>
         Assert.Equal(HttpStatusCode.NoContent, deleteResp.StatusCode);
 
         var cache = _factory.Services.GetRequiredService<IMemoryCache>();
-        var cacheKey = $"company:{companyId}";
+        var cacheKey = $"company:{EmptyGuid}:{companyId}";
         Assert.False(cache.TryGetValue(cacheKey, out _), "Cache key should be evicted after delete");
     }
 
@@ -84,13 +86,13 @@ public class CachingTests : IClassFixture<IntegrationTestFactory>
         await _client.GetAsync($"/companies");
 
         var cache = _factory.Services.GetRequiredService<IMemoryCache>();
-        Assert.True(cache.TryGetValue($"company:{companyId}", out _));
-        Assert.True(cache.TryGetValue("companies:", out _));
+        Assert.True(cache.TryGetValue($"company:{EmptyGuid}:{companyId}", out _));
+        Assert.True(cache.TryGetValue($"companies:{EmptyGuid}:", out _));
 
         await _client.DeleteAsync($"/companies/{companyId}");
 
-        Assert.False(cache.TryGetValue($"company:{companyId}", out _));
-        Assert.False(cache.TryGetValue("companies:", out _));
+        Assert.False(cache.TryGetValue($"company:{EmptyGuid}:{companyId}", out _));
+        Assert.False(cache.TryGetValue($"companies:{EmptyGuid}:", out _));
     }
 
     [Fact]
@@ -102,12 +104,12 @@ public class CachingTests : IClassFixture<IntegrationTestFactory>
         await _client.GetAsync($"/api/companies/{companyId}/settings");
 
         var cache = _factory.Services.GetRequiredService<IMemoryCache>();
-        Assert.True(cache.TryGetValue($"settings:{companyId}", out _));
+        Assert.True(cache.TryGetValue($"settings:{EmptyGuid}:{companyId}", out _));
 
         var update = new { DefaultIncomeAccountName = "NewAccount" };
         await _client.PutAsJsonAsync($"/api/companies/{companyId}/settings", update);
 
-        Assert.False(cache.TryGetValue($"settings:{companyId}", out _),
+        Assert.False(cache.TryGetValue($"settings:{EmptyGuid}:{companyId}", out _),
             "Settings cache should be evicted after update");
     }
 
@@ -120,7 +122,7 @@ public class CachingTests : IClassFixture<IntegrationTestFactory>
         Assert.Equal(HttpStatusCode.OK, resp.StatusCode);
 
         var cache = _factory.Services.GetRequiredService<IMemoryCache>();
-        Assert.True(cache.TryGetValue("expense_types:", out _), "Parameterless query should cache with empty value segment");
+        Assert.True(cache.TryGetValue($"expense_types:{EmptyGuid}:", out _), "Parameterless query should cache with empty value segment");
     }
 
     [Fact]

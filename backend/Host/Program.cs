@@ -35,6 +35,12 @@ app.MapScalarApiReference();
 
 app.UseHttpsRedirection();
 app.UseMiddleware<GlobalExceptionMiddleware>();
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
+app.UseCors("AllowFrontend");
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseMiddleware<UserContextMiddleware>();
 
 app
     .MapApi()

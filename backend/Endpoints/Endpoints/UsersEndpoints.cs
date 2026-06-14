@@ -44,7 +44,7 @@ public static class UsersEndpoints
          .Accepts<CreateUserRequest>("application/json")
          .Produces<Guid>(StatusCodes.Status201Created)
          .WithTags(Tags.Users)
-         .RequireAuthorization(Permissions.UpdateUsers);
+         .RequireAuthorization(Permissions.CreateUsers);
 
         app.MapDelete("/users/{id}", async (Guid id, ISender mediator) =>
         {

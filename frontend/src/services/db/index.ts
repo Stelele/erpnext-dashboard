@@ -1,12 +1,13 @@
 import Dexie, { type Table } from "dexie";
 import type { components } from "@/services/api/schema";
 
-export const CURRENT_SCHEMA_VERSION = 2;
+export const CURRENT_SCHEMA_VERSION = 3;
 
 export interface CacheMetaEntry {
   key: string;
   dbVersion: number;
   lastFullSync: string;
+  userId?: string;
 }
 
 export interface LogoEntry {

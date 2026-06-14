@@ -12,17 +12,12 @@ public static class DependancyInjection
 {
     public static WebApplication MapApi(this WebApplication app)
     {
-        app.UseAuthentication();
-        app.UseAuthorization();
-
         app
             .MapCompanyEndpoints()
             .MapSitesEndpoints()
             .MapUsersEndpoints()
             .MapExpenseEndpoints()
             .MapThemeEndpoints();
-
-        app.UseCors("AllowFrontend");
 
         return app;
     }
@@ -65,7 +60,7 @@ public static class DependancyInjection
             options.AddPolicy("AllowFrontend", policy =>
             {
                 policy
-                    .AllowAnyOrigin()
+                    .WithOrigins(builder.Configuration["Cors:AllowedOrigin"] ?? "http://localhost:5173")
                     .AllowAnyHeader()
                     .AllowAnyMethod();
             });
