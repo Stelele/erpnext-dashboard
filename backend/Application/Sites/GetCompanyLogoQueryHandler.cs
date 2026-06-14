@@ -3,6 +3,7 @@ using Application.DTOs;
 using Infrastructure.Models;
 using Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http;
 using System.Text.Json;
@@ -13,9 +14,12 @@ public class GetCompanyLogoQueryHandler(
     DashboardDbContext db,
     IHttpClientFactory httpClientFactory,
     IR2StorageService r2,
+    IMemoryCache cache,
     IConfiguration configuration
 ) : IQueryHandler<GetCompanyLogoQuery, LogoResponse?>
 {
+    private static readonly TimeSpan LogoCacheTtl = TimeSpan.FromHours(24);
+
     public async Task<LogoResponse?> Handle(GetCompanyLogoQuery request, CancellationToken ct)
     {
         var safeCompanyName = request.Company.Replace('/', '_').Replace('\\', '_').Replace(' ', '_');
@@ -28,9 +32,18 @@ public class GetCompanyLogoQueryHandler(
             && !cdnBaseUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase))
             cdnBaseUrl = $"https://{cdnBaseUrl}";
 
-        if (await r2.ObjectExistsAsync(r2.PublicBucket, r2Key, ct))
+        // Check in-memory cache first (avoids slow R2 ObjectExists call)
+        if (cache.TryGetValue(r2Key, out _))
             return new LogoResponse($"{cdnBaseUrl}/{r2Key}");
 
+        // Check R2
+        if (await r2.ObjectExistsAsync(r2.PublicBucket, r2Key, ct))
+        {
+            cache.Set(r2Key, true, LogoCacheTtl);
+            return new LogoResponse($"{cdnBaseUrl}/{r2Key}");
+        }
+
+        // Not in R2 — fetch from ERPNext
         var site = await db.Sites.FirstOrDefaultAsync(s => s.Id == request.SiteId, ct);
         if (site is null) return null;
 
@@ -62,6 +75,8 @@ public class GetCompanyLogoQueryHandler(
         var imageStream = await logoResponse.Content.ReadAsStreamAsync(ct);
 
         await r2.UploadAsync(r2.PublicBucket, r2Key, imageStream, contentType, ct);
+
+        cache.Set(r2Key, true, LogoCacheTtl);
 
         return new LogoResponse($"{cdnBaseUrl}/{r2Key}");
     }

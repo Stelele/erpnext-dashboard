@@ -1,4 +1,5 @@
 using Application.Abstractions;
+using Application.Caching;
 using Application.Users;
 using Domain.CompanyExpenseMappings;
 using Infrastructure.Models;
@@ -6,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Application.CompanyExpenseMappings;
 
+[InvalidateCache(Category = "expense_mappings")]
 public record UpsertCompanyExpenseMappingsCommand(
     Guid CompanyId,
     List<MappingItem> Mappings

@@ -1,10 +1,12 @@
 using Application.Abstractions;
+using Application.Caching;
 using Application.DTOs;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.ExpenseTypes;
 
+[Cache(DurationMinutes = 10, KeyPrefix = "expense_types")]
 public record GetExpenseTypeByIdQuery(Guid Id) : IQuery<ExpenseTypeResponse?>;
 
 public class GetExpenseTypeByIdQueryHandler(DashboardDbContext db) : IQueryHandler<GetExpenseTypeByIdQuery, ExpenseTypeResponse?>

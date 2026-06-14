@@ -1,10 +1,12 @@
 using Application.Abstractions;
+using Application.Caching;
 using Application.ChartColors;
 using Application.DTOs;
 using Domain.CompanySettings;
 
 namespace Application.Theme;
 
+[Cache(DurationMinutes = 1440, KeyPrefix = "chart_colors")]
 public record GetChartColorsQuery(PrimaryColor PrimaryColor) : IQuery<ChartColorsResponse?>;
 
 internal class GetChartColorsQueryHandler : IQueryHandler<GetChartColorsQuery, ChartColorsResponse?>

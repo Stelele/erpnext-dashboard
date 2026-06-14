@@ -1,10 +1,12 @@
 using Application.Abstractions;
+using Application.Caching;
 using Domain.Exceptions;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.ExpenseTypes;
 
+[InvalidateCache(Category = "expense_types")]
 public record DeleteExpenseTypeCommand(Guid Id) : ICommand;
 
 public class DeleteExpenseTypeCommandHandler(DashboardDbContext db) : ICommandHandler<DeleteExpenseTypeCommand>
