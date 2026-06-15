@@ -116,6 +116,7 @@ async function onPurchaseSubmit(payload: {
 
     if (result) {
         openPurchase.value = false;
+        dataStore.update();
         toast.add({
             title: `Purchase submitted: PO ${result.purchase_order}, PI ${result.purchase_invoice}`,
             color: "success",
