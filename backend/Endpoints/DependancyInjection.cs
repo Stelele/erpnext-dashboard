@@ -55,12 +55,17 @@ public static class DependancyInjection
 
         builder.Services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
 
+        
+
         builder.Services.AddCors(options =>
         {
             options.AddPolicy("AllowFrontend", policy =>
             {
+                string[] origins = builder.Configuration["Cors:AllowedOrigin"]?.Split(';')
+                    ?? throw new InvalidOperationException("Allowed origin is not configured.");
+
                 policy
-                    .WithOrigins(builder.Configuration["Cors:AllowedOrigin"] ?? "http://localhost:5173")
+                    .WithOrigins(origins)
                     .AllowAnyHeader()
                     .AllowAnyMethod();
             });
