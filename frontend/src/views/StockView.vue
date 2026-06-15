@@ -5,6 +5,7 @@
                 v-model:open="openPurchase"
                 title="Quick Purchase Entry"
                 :dismissible="false"
+                :fullscreen="isMobile"
                 :ui="{ content: 'sm:max-w-2xl' }"
             >
                 <UButton
@@ -56,13 +57,26 @@ import { useDataStore } from "@/stores/DataStore";
 import { useStockDataStore } from "@/stores/StockDataStore";
 import { useAuthStore } from "@/stores/AuthStore";
 import { ErpNextService } from "@/services/ErpNextService";
-import { ref, computed } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 
 const dataStore = useDataStore();
 const stockDataStore = useStockDataStore();
 const authStore = useAuthStore();
 
 const openPurchase = ref(false);
+const isMobile = ref(false);
+
+function syncMobile(mq: MediaQueryList | MediaQueryListEvent) {
+  isMobile.value = mq.matches;
+}
+
+onMounted(() => {
+  const mq = window.matchMedia('(max-width: 767px)');
+  syncMobile(mq);
+  mq.addEventListener('change', syncMobile);
+  onUnmounted(() => mq.removeEventListener('change', syncMobile));
+});
+
 const purchaseLoading = ref(false);
 const toast = useToast();
 const erpnext = new ErpNextService();

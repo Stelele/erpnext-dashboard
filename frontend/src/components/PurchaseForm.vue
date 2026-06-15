@@ -2,34 +2,94 @@
   <div class="p-4">
     <div v-if="!showConfirm">
     <UForm :schema="schema" :state="state" class="space-y-4" @submit="onSubmit">
-      <div class="grid grid-cols-2 gap-4">
-        <UFormField label="Supplier" name="supplier" required>
-          <UInputMenu
+
+      <!-- Desktop: current 2-col header + 6-col items grid -->
+      <div class="hidden md:block space-y-4">
+        <div class="grid grid-cols-2 gap-4">
+          <UFormField label="Supplier" name="supplier" required>
+            <UInputMenu
+              v-model="selectedSupplier as any"
+              :items="supplierItems"
+              value-key="name"
+              label-key="supplier_name"
+              placeholder="Search supplier..."
+              class="w-full"
+              :disabled="submitting"
+            />
+          </UFormField>
+          <UFormField label="Invoice No.">
+            <UInput v-model="state.invoiceNumber" placeholder="Optional" class="w-full" :disabled="submitting" />
+          </UFormField>
+          <UFormField label="Invoice Date">
+            <UPopover>
+              <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" class="w-full" :disabled="submitting">
+                {{ displayDate }}
+              </UButton>
+              <template #content>
+                <UCalendar v-model="state.invoiceDate" class="p-2" />
+              </template>
+            </UPopover>
+          </UFormField>
+        </div>
+
+        <div>
+          <label class="text-sm font-medium mb-2 block">Items</label>
+          <div class="grid grid-cols-[2fr_1fr_1fr_1fr_100px_auto] gap-2 mb-2 text-xs font-medium text-[var(--ui-text-dimmed)] px-1">
+            <span>Product</span>
+            <span>Qty</span>
+            <span>Buy Rate</span>
+            <span>Sell Rate</span>
+            <span>Total Buy</span>
+            <span></span>
+          </div>
+          <div v-for="(item, idx) in state.items" :key="idx" class="grid grid-cols-[2fr_1fr_1fr_1fr_100px_auto] gap-2 mb-2">
+            <UInputMenu
+              v-model="itemSelections[idx] as any"
+              v-model:search-term="itemSearchTerms[idx]"
+              :items="itemOpts[idx]"
+              value-key="item_code"
+              label-key="item_name"
+              description-key="description"
+              :placeholder="itemSelections[idx]?.item_name || 'Search item...'"
+              class="w-full"
+              :disabled="submitting"
+              @update:open="(open: boolean) => { if (open) onItemOpen(idx) }"
+              @update:model-value="() => onItemPicked(idx)"
+            />
+            <UInput v-model="item.qty" type="number" :min="1" :step="1" class="w-full" :disabled="submitting" />
+            <UInput v-model="item.rate" type="number" :min="0" :step="0.01" class="w-full" :disabled="submitting" />
+            <UInput v-model="item.sell_rate" type="number" :min="0" :step="0.01" class="w-full" :disabled="submitting" />
+            <div class="flex items-center justify-end text-sm font-medium">
+              {{ ((item.qty || 0) * (item.rate || 0)).toFixed(2) }}
+            </div>
+            <UButton color="error" variant="ghost" icon="i-lucide-x" size="sm" :disabled="submitting" @click="removeItem(idx)" />
+          </div>
+          <UButton variant="outline" icon="i-lucide-plus" size="sm" class="w-full" :disabled="submitting" @click="addItem">
+            Add Item
+          </UButton>
+        </div>
+      </div>
+
+      <!-- Mobile: stacked single-column + UCards for items -->
+      <div class="md:hidden space-y-4">
+        <UFormField label="Supplier" name="supplier" required size="xs">
+          <USelectMenu
             v-model="selectedSupplier as any"
             :items="supplierItems"
             value-key="name"
             label-key="supplier_name"
-            placeholder="Search supplier..."
-            class="w-full"
+            placeholder="Select supplier..."
+            size="xs"
+            :search-input="{ placeholder: 'Search...' }"
             :disabled="submitting"
           />
         </UFormField>
-        <UFormField label="Warehouse" name="warehouse" required>
-          <UInputMenu
-            v-model="selectedWarehouse as any"
-            :items="warehouseOpts"
-            value-key="name"
-            label-key="name"
-            class="w-full"
-            :disabled="submitting"
-          />
-        </UFormField>
-        <UFormField label="Invoice No.">
+        <UFormField label="Invoice No." size="xs">
           <UInput v-model="state.invoiceNumber" placeholder="Optional" class="w-full" :disabled="submitting" />
         </UFormField>
-        <UFormField label="Invoice Date">
+        <UFormField label="Invoice Date" size="xs">
           <UPopover>
-            <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" class="w-full" :disabled="submitting">
+            <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" class="w-full justify-start" :disabled="submitting">
               {{ displayDate }}
             </UButton>
             <template #content>
@@ -37,45 +97,61 @@
             </template>
           </UPopover>
         </UFormField>
-      </div>
 
-      <div>
-        <label class="text-sm font-medium mb-2 block">Items</label>
-        <div class="grid grid-cols-[2fr_1fr_1fr_1fr_100px_auto] gap-2 mb-2 text-xs font-medium text-[var(--ui-text-dimmed)] px-1">
-          <span>Product</span>
-          <span>Qty</span>
-          <span>Buy Rate</span>
-          <span>Sell Rate</span>
-          <span>Total Buy</span>
-          <span></span>
-        </div>
-        <div v-for="(item, idx) in state.items" :key="idx" class="grid grid-cols-[2fr_1fr_1fr_1fr_100px_auto] gap-2 mb-2">
-          <UInputMenu
-            v-model="itemSelections[idx] as any"
-            v-model:search-term="itemSearchTerms[idx]"
-            :items="itemOpts[idx]"
-            value-key="item_code"
-            label-key="item_name"
-            description-key="description"
-            :placeholder="itemSelections[idx]?.item_name || 'Search item...'"
-            class="w-full"
-            :disabled="submitting"
-            @update:open="(open: boolean) => { if (open) onItemOpen(idx) }"
-            @update:model-value="() => onItemPicked(idx)"
-          />
-          <UInput v-model="item.qty" type="number" :min="1" :step="1" class="w-full" :disabled="submitting" />
-          <UInput v-model="item.rate" type="number" :min="0" :step="0.01" class="w-full" :disabled="submitting" />
-          <UInput v-model="item.sell_rate" type="number" :min="0" :step="0.01" class="w-full" :disabled="submitting" />
-          <div class="flex items-center justify-end text-sm font-medium">
-            {{ ((item.qty || 0) * (item.rate || 0)).toFixed(2) }}
+        <div>
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-sm font-medium">Items</span>
+            <UButton variant="outline" icon="i-lucide-plus" size="xs" :disabled="submitting" @click="addItem">Add</UButton>
           </div>
-          <UButton color="error" variant="ghost" icon="i-lucide-x" size="sm" :disabled="submitting" @click="removeItem(idx)" />
+
+          <div class="space-y-3">
+            <UCard v-for="(item, idx) in state.items" :key="idx">
+              <template #header>
+                <div class="flex justify-between items-center gap-2">
+                  <USelectMenu
+                    v-model="itemSelections[idx] as any"
+                    v-model:search-term="itemSearchTerms[idx]"
+                    :items="itemOpts[idx]"
+                    value-key="item_code"
+                    label-key="item_name"
+                    description-key="description"
+                    :placeholder="itemSelections[idx]?.item_name || 'Search product...'"
+                    size="xs"
+                    :ignore-filter="true"
+                    :search-input="{ placeholder: 'Search products...' }"
+                    class="flex-1"
+                    :disabled="submitting"
+                    @update:open="(open: boolean) => { if (open) onItemOpen(idx) }"
+                    @update:model-value="() => onItemPicked(idx)"
+                  />
+                  <UButton color="error" variant="ghost" icon="i-lucide-x" size="sm" :disabled="submitting" @click="removeItem(idx)" />
+                </div>
+              </template>
+
+              <div class="grid grid-cols-3 gap-2">
+                <UFormField label="Qty" size="xs">
+                  <UInput v-model="item.qty" type="number" :min="1" :step="1" :disabled="submitting" />
+                </UFormField>
+                <UFormField label="Buy Rate" size="xs">
+                  <UInput v-model="item.rate" type="number" :min="0" :step="0.01" :disabled="submitting" />
+                </UFormField>
+                <UFormField label="Sell Rate" size="xs">
+                  <UInput v-model="item.sell_rate" type="number" :min="0" :step="0.01" :disabled="submitting" />
+                </UFormField>
+              </div>
+
+              <template #footer>
+                <div class="text-right text-xs">
+                  <span class="text-[var(--ui-text-muted)]">Total Buy: </span>
+                  <span class="font-medium">{{ ((item.qty || 0) * (item.rate || 0)).toFixed(2) }}</span>
+                </div>
+              </template>
+            </UCard>
+          </div>
         </div>
-        <UButton variant="outline" icon="i-lucide-plus" size="sm" class="w-full" :disabled="submitting" @click="addItem">
-          Add Item
-        </UButton>
       </div>
 
+      <!-- Shared footer (rendered on both layouts — inside UForm) -->
       <div class="flex justify-between items-center pt-4 border-t border-[var(--ui-border)]">
         <span class="text-lg font-bold">Total: {{ grandTotal.toFixed(2) }}</span>
         <UButton type="submit" color="primary" :loading="submitting" :disabled="submitting">
@@ -96,10 +172,6 @@
             <div v-if="supplierLabel" class="flex justify-between">
               <span class="text-[var(--ui-text-muted)]">Supplier</span>
               <span class="font-medium">{{ supplierLabel }}</span>
-            </div>
-            <div v-if="warehouseLabel" class="flex justify-between">
-              <span class="text-[var(--ui-text-muted)]">Warehouse</span>
-              <span class="font-medium">{{ warehouseLabel }}</span>
             </div>
             <div v-if="state.invoiceNumber" class="flex justify-between">
               <span class="text-[var(--ui-text-muted)]">Invoice No.</span>
@@ -156,10 +228,6 @@ const showConfirm = ref(false);
 const supplierLabel = computed(() => {
   const s = selectedSupplier.value;
   return typeof s === 'string' ? s : s?.supplier_name || "";
-});
-const warehouseLabel = computed(() => {
-  const w = selectedWarehouse.value;
-  return typeof w === 'string' ? w : w?.name || "";
 });
 const validItems = computed(() => state.items.filter((i) => i.item_code));
 
