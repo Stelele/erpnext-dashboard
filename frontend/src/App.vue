@@ -3,7 +3,7 @@
 </template>
 
 <script setup lang="ts">
-import { onBeforeMount, computed } from "vue";
+import { onBeforeMount, computed, ref, watch } from "vue";
 import { useAuthStore } from "./stores/AuthStore";
 import { update } from "./utils/UpdateData";
 import { useCompanyTheme } from "./composables/useCompanyTheme";
@@ -20,20 +20,78 @@ moment.updateLocale("en", {
 
 const authStore = useAuthStore();
 const { startSync } = useCacheSync();
+const { loadAndApply, currentPrimaryColor } = useCompanyTheme();
+
+function buildManifestJson(name: string, iconSrc: string, themeColor: string): string {
+    const manifest = {
+        name: `${name} Dashboard`,
+        short_name: name,
+        start_url: "/",
+        scope: "/",
+        display: "standalone" as const,
+        theme_color: themeColor,
+        background_color: themeColor,
+        icons: [
+            {
+                src: iconSrc,
+                sizes: "192x192",
+                type: "image/png",
+                purpose: "any maskable",
+            },
+            {
+                src: iconSrc,
+                sizes: "512x512",
+                type: "image/png",
+                purpose: "any maskable",
+            },
+        ],
+    };
+    return JSON.stringify(manifest);
+}
+
+const manifestBlobUrl = ref<string | null>(null);
+
+watch(
+    [() => authStore.company, () => authStore.logo, currentPrimaryColor],
+    ([company, logo, themeColor]) => {
+        if (manifestBlobUrl.value) {
+            URL.revokeObjectURL(manifestBlobUrl.value);
+            manifestBlobUrl.value = null;
+        }
+        if (company && logo) {
+            const json = buildManifestJson(company, logo, themeColor);
+            const blob = new Blob([json], { type: "application/manifest+json" });
+            manifestBlobUrl.value = URL.createObjectURL(blob);
+        }
+    },
+    { immediate: true },
+);
 
 useHead(
     computed(() => ({
         title: authStore.company
             ? `${authStore.company} Dashboard`
             : "njeremoto-dashboard",
+        meta: [
+            {
+                name: "theme-color",
+                content: currentPrimaryColor.value,
+            },
+            {
+                name: "apple-mobile-web-app-title",
+                content: authStore.company || "njeremoto-dashboard",
+            },
+        ],
         link: [
             { rel: "icon", href: authStore.logo, type: "image/x-icon" },
             { rel: "shortcut icon", href: authStore.logo, type: "image/x-icon" },
+            { rel: "apple-touch-icon", href: authStore.logo },
+            ...(manifestBlobUrl.value
+                ? [{ rel: "manifest", href: manifestBlobUrl.value }]
+                : []),
         ],
     })),
 );
-
-const { loadAndApply } = useCompanyTheme();
 
 onBeforeMount(async () => {
     await authStore.update();

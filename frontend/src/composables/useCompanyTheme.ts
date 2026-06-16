@@ -1,13 +1,18 @@
+import { ref } from 'vue'
 import colors from 'tailwindcss/colors'
 import type { PrimaryColor, NeutralColor, ThemeMode } from '@/services/api/schema'
 import { useChartColors } from './useChartColors'
 
+const currentPrimaryColor = ref('#111827')
+
 function applyPrimaryPalette(colorName: PrimaryColor | null | undefined): void {
   if (!colorName) {
+    currentPrimaryColor.value = '#111827'
     clearPalette('primary')
     return
   }
   if (colorName === 'black') {
+    currentPrimaryColor.value = '#000000'
     document.documentElement.style.setProperty('--ui-primary', 'black')
     for (let shade = 50; shade <= 950; shade += 50) {
       document.documentElement.style.removeProperty(`--ui-color-primary-${shade}`)
@@ -16,6 +21,7 @@ function applyPrimaryPalette(colorName: PrimaryColor | null | undefined): void {
   }
   const palette = (colors as Record<string, Record<string, string> | string>)[colorName]
   if (typeof palette === 'object') {
+    currentPrimaryColor.value = palette['500'] || '#111827'
     for (const [shade, value] of Object.entries(palette)) {
       document.documentElement.style.setProperty(`--ui-color-primary-${shade}`, value)
     }
@@ -73,5 +79,5 @@ export function useCompanyTheme() {
     await loadChartColors(settings?.primaryColor ?? undefined)
   }
 
-  return { loadAndApply }
+  return { loadAndApply, currentPrimaryColor }
 }
