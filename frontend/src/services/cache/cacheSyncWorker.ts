@@ -22,23 +22,35 @@ async function syncAll(): Promise<void> {
 
   // Fetch reference data (parallel)
   const results = await Promise.allSettled([
-    (async () => {
-      const { data } = await api.GET("/users", {});
-      if (data) await db.users.bulkPut(data as never);
-    })(),
-    (async () => {
-      const { data } = await api.GET("/companies", {});
-      if (data) await db.companies.bulkPut(data as never);
-    })(),
-    (async () => {
-      const { data } = await api.GET("/sites", {});
-      if (data) await db.sites.bulkPut(data as never);
-    })(),
-    (async () => {
-      const { data } = await api.GET("/api/expense-types", {});
-      if (data) await db.expenseTypes.bulkPut(data as never);
-    })(),
-  ]);
+      (async () => {
+        const { data } = await api.GET("/users", {});
+        if (data) {
+          await db.users.clear();
+          await db.users.bulkPut(data as never);
+        }
+      })(),
+      (async () => {
+        const { data } = await api.GET("/companies", {});
+        if (data) {
+          await db.companies.clear();
+          await db.companies.bulkPut(data as never);
+        }
+      })(),
+      (async () => {
+        const { data } = await api.GET("/sites", {});
+        if (data) {
+          await db.sites.clear();
+          await db.sites.bulkPut(data as never);
+        }
+      })(),
+      (async () => {
+        const { data } = await api.GET("/api/expense-types", {});
+        if (data) {
+          await db.expenseTypes.clear();
+          await db.expenseTypes.bulkPut(data as never);
+        }
+      })(),
+    ]);
 
   // Report errors from reference data fetches
   for (const result of results) {
@@ -52,6 +64,9 @@ async function syncAll(): Promise<void> {
     const companies = await db.companies.toArray();
     const totalEndpoints = 4 + companies.length;
     self.postMessage({ type: "SYNC_PROGRESS", current: 4, total: totalEndpoints });
+
+    await db.expenseMappings.clear();
+    await db.companySettings.clear();
 
     for (const company of companies) {
       try {
@@ -100,6 +115,7 @@ self.onmessage = (event: MessageEvent) => {
 
     case "START_SYNC":
       if (intervalId) clearInterval(intervalId);
+      syncAll();
       intervalId = setInterval(
         syncAll,
         5 * 60 * 1000 + Math.random() * 30000,

@@ -52,28 +52,34 @@ export class CachedApiClient {
       async () => {
         const { data } = await api.GET("/users", {});
         if (data) {
+          await db.users.clear();
           await db.users.bulkPut(Array.isArray(data) ? data as UserResponse[] : [data as unknown as UserResponse]);
         }
       },
       async () => {
         const { data } = await api.GET("/companies", {});
         if (data) {
+          await db.companies.clear();
           await db.companies.bulkPut(Array.isArray(data) ? data as CompanyResponse[] : [data as unknown as CompanyResponse]);
         }
       },
       async () => {
         const { data } = await api.GET("/sites", {});
         if (data) {
+          await db.sites.clear();
           await db.sites.bulkPut(Array.isArray(data) ? data as SiteResponse[] : [data as unknown as SiteResponse]);
         }
       },
       async () => {
         const { data } = await api.GET("/api/expense-types", {});
         if (data) {
+          await db.expenseTypes.clear();
           await db.expenseTypes.bulkPut(Array.isArray(data) ? data as ExpenseTypeResponse[] : [data as unknown as ExpenseTypeResponse]);
         }
       },
       async () => {
+        await db.expenseMappings.clear();
+        await db.companySettings.clear();
         const companies = await db.companies.toArray();
         for (const company of companies) {
           try {
