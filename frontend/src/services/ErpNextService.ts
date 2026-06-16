@@ -382,6 +382,27 @@ export class ErpNextService {
       .then((resp) => resp?.data.data);
   }
 
+  public createItem(itemName: string, itemGroup: string, buyingPrice: number, sellingPrice: number) {
+    const authStore = useAuthStore();
+    return this.instance
+      .post<{ data?: ItemOption }>("/api/v2/method/create_item", {
+        company: authStore.company,
+        item_name: itemName,
+        item_group: itemGroup,
+        buying_price: buyingPrice,
+        selling_price: sellingPrice,
+      })
+      .then((resp) => resp?.data.data);
+  }
+
+  public getItemGroups() {
+    return this.instance
+      .get<{ data: { name: string }[] }>("/api/resource/Item Group", {
+        params: { fields: '["name"]', limit_page_length: 500 },
+      })
+      .then((resp) => resp?.data.data || []);
+  }
+
   public getWarehouses() {
     const authStore = useAuthStore();
     return this.instance

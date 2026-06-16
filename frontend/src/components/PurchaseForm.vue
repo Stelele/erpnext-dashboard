@@ -6,6 +6,16 @@
       <!-- Desktop: current 2-col header + 6-col items grid -->
       <div class="hidden md:block space-y-4">
         <div class="grid grid-cols-2 gap-4">
+          <UFormField label="Invoice Date">
+            <UPopover>
+              <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" class="w-full" :disabled="submitting">
+                {{ displayDate }}
+              </UButton>
+              <template #content>
+                <UCalendar v-model="state.invoiceDate" class="p-2" />
+              </template>
+            </UPopover>
+          </UFormField>
           <UFormField label="Supplier" name="supplier" required>
             <UInputMenu
               v-model="selectedSupplier as any"
@@ -17,19 +27,10 @@
               :disabled="submitting"
             />
           </UFormField>
-          <UFormField label="Invoice No.">
+          <UFormField label="Invoice No." class="col-span-2">
             <UInput v-model="state.invoiceNumber" placeholder="Optional" class="w-full" :disabled="submitting" />
           </UFormField>
-          <UFormField label="Invoice Date">
-            <UPopover>
-              <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" class="w-full" :disabled="submitting">
-                {{ displayDate }}
-              </UButton>
-              <template #content>
-                <UCalendar v-model="state.invoiceDate" class="p-2" />
-              </template>
-            </UPopover>
-          </UFormField>
+          
         </div>
 
         <div>
@@ -52,6 +53,7 @@
               description-key="description"
               :placeholder="itemSelections[idx]?.item_name || 'Search item...'"
               class="w-full"
+              :ignore-filter="true"
               :disabled="submitting"
               @update:open="(open: boolean) => { if (open) onItemOpen(idx) }"
               @update:model-value="() => onItemPicked(idx)"
@@ -72,22 +74,7 @@
 
       <!-- Mobile: stacked single-column + UCards for items -->
       <div class="md:hidden space-y-4">
-        <UFormField label="Supplier" name="supplier" required size="xs">
-          <USelectMenu
-            v-model="selectedSupplier as any"
-            :items="supplierItems"
-            value-key="name"
-            label-key="supplier_name"
-            placeholder="Select supplier..."
-            size="xs"
-            :search-input="{ placeholder: 'Search...' }"
-            :disabled="submitting"
-          />
-        </UFormField>
-        <UFormField label="Invoice No." size="xs">
-          <UInput v-model="state.invoiceNumber" placeholder="Optional" class="w-full" :disabled="submitting" />
-        </UFormField>
-        <UFormField label="Invoice Date" size="xs">
+        <UFormField label="Invoice Date">
           <UPopover>
             <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" class="w-full justify-start" :disabled="submitting">
               {{ displayDate }}
@@ -96,6 +83,21 @@
               <UCalendar v-model="state.invoiceDate" class="p-2" />
             </template>
           </UPopover>
+        </UFormField>
+        <UFormField label="Supplier" name="supplier" required>
+          <USelectMenu
+            v-model="selectedSupplier as any"
+            :items="supplierItems"
+            value-key="name"
+            label-key="supplier_name"
+            placeholder="Select supplier..."
+            class="w-full"
+            :search-input="{ placeholder: 'Search...' }"
+            :disabled="submitting"
+          />
+        </UFormField>
+        <UFormField label="Invoice No.">
+          <UInput v-model="state.invoiceNumber" placeholder="Optional" class="w-full" :disabled="submitting" />
         </UFormField>
 
         <div>
@@ -108,22 +110,21 @@
             <UCard v-for="(item, idx) in state.items" :key="idx">
               <template #header>
                 <div class="flex justify-between items-center gap-2">
-                  <USelectMenu
-                    v-model="itemSelections[idx] as any"
-                    v-model:search-term="itemSearchTerms[idx]"
-                    :items="itemOpts[idx]"
-                    value-key="item_code"
-                    label-key="item_name"
-                    description-key="description"
-                    :placeholder="itemSelections[idx]?.item_name || 'Search product...'"
-                    size="xs"
-                    :ignore-filter="true"
-                    :search-input="{ placeholder: 'Search products...' }"
-                    class="flex-1"
-                    :disabled="submitting"
-                    @update:open="(open: boolean) => { if (open) onItemOpen(idx) }"
-                    @update:model-value="() => onItemPicked(idx)"
-                  />
+                    <USelectMenu
+                      v-model="itemSelections[idx] as any"
+                      v-model:search-term="itemSearchTerms[idx]"
+                      :items="itemOpts[idx]"
+                      value-key="item_code"
+                      label-key="item_name"
+                      description-key="description"
+                      :placeholder="itemSelections[idx]?.item_name || 'Search product...'"
+                      :ignore-filter="true"
+                      :search-input="{ placeholder: 'Search products...' }"
+                      class="flex-1"
+                      :disabled="submitting"
+                      @update:open="(open: boolean) => { if (open) onItemOpen(idx) }"
+                      @update:model-value="() => onItemPicked(idx)"
+                    />
                   <UButton color="error" variant="ghost" icon="i-lucide-x" size="sm" :disabled="submitting" @click="removeItem(idx)" />
                 </div>
               </template>
@@ -213,6 +214,7 @@
       </div>
     </div>
   </div>
+    <CreateItemModal v-model:open="createItemModalOpen" @on-created="onNewItemCreated" />
 </template>
 
 <script setup lang="ts">
@@ -221,6 +223,7 @@ import * as z from "zod";
 import moment from "moment";
 import { computed, reactive, ref, shallowRef, watch, onMounted } from "vue";
 import { ErpNextService, type ItemOption, type SupplierOption, type WarehouseOption } from "@/services/ErpNextService";
+import CreateItemModal from "@/components/CreateItemModal.vue";
 
 const toast = useToast();
 
@@ -272,6 +275,8 @@ const itemSelections = ref<(ItemOption | null)[]>([null]);
 const itemOpts = ref<ItemOption[][]>([[]]);
 const itemSearchTerms = ref<string[]>([""]);
 const itemTimers: Record<number, ReturnType<typeof setTimeout>> = {};
+const createItemModalOpen = ref(false);
+const activeCreateItemRow = ref<number>(-1);
 
 const state = reactive({
   invoiceNumber: "",
@@ -320,7 +325,10 @@ onMounted(async () => {
   // Preload items for first row
   try {
     const items = await erpnext.searchItems("");
-    if (items) itemOpts.value[0] = items;
+    if (items) {
+      itemOpts.value[0] = items;
+      ensureCreateNewOption(0);
+    }
   } catch { /* ignore */ }
 });
 
@@ -349,11 +357,35 @@ async function onItemOpen(idx: number) {
       if (results) itemOpts.value[idx] = results;
     } catch { /* ignore */ }
   }
+  ensureCreateNewOption(idx);
+}
+
+function ensureCreateNewOption(idx: number) {
+  const opts = itemOpts.value[idx];
+  if (!opts || !Array.isArray(opts)) return;
+  const hasCreateNew = opts.some((o) => (o as any).item_code === "__create_new__");
+  if (!hasCreateNew) {
+    opts.push({
+      item_code: "__create_new__",
+      item_name: "+ Create New Item",
+      last_purchase_rate: 0,
+      last_selling_rate: 0,
+      description: "",
+    } as ItemOption);
+  }
 }
 
 function onItemPicked(idx: number) {
   const itemCode = itemSelections.value[idx] as unknown as string;
   if (!itemCode) return;
+
+  if (itemCode === "__create_new__") {
+    itemSelections.value[idx] = null;
+    activeCreateItemRow.value = idx;
+    createItemModalOpen.value = true;
+    return;
+  }
+
   const sel = itemOpts.value[idx]?.find((i) => i.item_code === itemCode);
   if (sel) {
     const target = state.items[idx];
@@ -363,6 +395,26 @@ function onItemPicked(idx: number) {
     if (sel.last_purchase_rate) target.rate = sel.last_purchase_rate;
     if (sel.last_selling_rate) target.sell_rate = sel.last_selling_rate;
   }
+}
+
+function onNewItemCreated(item: ItemOption) {
+  const idx = activeCreateItemRow.value;
+  if (idx < 0 || idx >= state.items.length) return;
+  const target = state.items[idx];
+  if (!target) return;
+  target.item_code = item.item_code;
+  target.item_name = item.item_name;
+  if (item.last_purchase_rate) target.rate = item.last_purchase_rate;
+  if (item.last_selling_rate) target.sell_rate = item.last_selling_rate;
+  itemSelections.value[idx] = item.item_code as any;
+
+  // Refresh item options for this row so the new item appears in search
+  erpnext.searchItems("").then((results) => {
+    if (results) {
+      itemOpts.value[idx] = results;
+      ensureCreateNewOption(idx);
+    }
+  }).catch(() => { /* ignore */ });
 }
 
 function addItem() {
