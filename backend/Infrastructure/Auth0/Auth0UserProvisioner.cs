@@ -1,5 +1,6 @@
 ﻿using Auth0.AuthenticationApi;
 using Auth0.AuthenticationApi.Models;
+using Auth0.Core.Exceptions;
 using Auth0.ManagementApi;
 using Auth0.ManagementApi.Models;
 using Microsoft.Extensions.Logging;
@@ -46,12 +47,20 @@ public class Auth0UserProvisioner(
         };
 
         var auth0User = await mgmt.Users.CreateAsync(request, ct);
-        await authClient.ChangePasswordAsync(new ChangePasswordRequest
+        try
         {
-            ClientId = _auth0AppClientId,
-            Email = email,
-            Connection = connectionName
-        });
+            await authClient.ChangePasswordAsync(new ChangePasswordRequest
+            {
+                ClientId = _auth0AppClientId,
+                Email = email,
+                Connection = connectionName
+            });
+        }
+        catch (ErrorApiException ex)
+        {
+            logger.LogWarning(ex, "Failed to send password reset email for user {Email}. Auth0 API error: {Auth0Error} - {Auth0Message}",
+                email, ex.ApiError?.Error, ex.ApiError?.Message);
+        }
 
         return auth0User;
     }

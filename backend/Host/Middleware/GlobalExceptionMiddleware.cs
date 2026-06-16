@@ -1,4 +1,5 @@
-﻿using Domain.Exceptions;
+﻿using Auth0.Core.Exceptions;
+using Domain.Exceptions;
 using FluentValidation;
 using System.Text.Json;
 
@@ -25,7 +26,15 @@ public sealed class GlobalExceptionMiddleware
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception");
+            if (ex is ErrorApiException auth0Ex)
+            {
+                _logger.LogError(ex, "Auth0 API error. Status: {HttpStatus}, Error: {Auth0Error}, Message: {Auth0Message}",
+                    (int)auth0Ex.StatusCode, auth0Ex.ApiError?.Error, auth0Ex.ApiError?.Message);
+            }
+            else
+            {
+                _logger.LogError(ex, "Unhandled exception");
+            }
 
             await HandleExceptionAsync(context, ex);
         }
@@ -109,6 +118,16 @@ public sealed class GlobalExceptionMiddleware
                 {
                     Title = "Unauthorized",
                     Status = 401
+                }
+            ),
+
+            ErrorApiException aex => (
+                (int)aex.StatusCode,
+                new Problem
+                {
+                    Title = aex.ApiError?.Error ?? "Auth0 API error",
+                    Status = (int)aex.StatusCode,
+                    Detail = aex.ApiError?.Message
                 }
             ),
 

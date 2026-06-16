@@ -4,12 +4,14 @@ using Domain.Users;
 using Infrastructure.Auth0;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Users;
 
 public class CreateUserCommandHandler(
     DashboardDbContext db,
-    Auth0UserProvisioner provisioner
+    Auth0UserProvisioner provisioner,
+    ILogger<CreateUserCommandHandler> logger
 ) : ICommandHandler<CreateUserCommand, Guid>
 {
     public async Task<Guid> Handle(CreateUserCommand request, CancellationToken cancellationToken)
@@ -36,8 +38,25 @@ public class CreateUserCommandHandler(
 
         user.Auth0UserId = auth0User.UserId;
 
-        await db.Users.AddAsync(user, cancellationToken);
-        await db.SaveChangesAsync(cancellationToken);
+        try
+        {
+            await db.Users.AddAsync(user, cancellationToken);
+            await db.SaveChangesAsync(cancellationToken);
+        }
+        catch (Exception) when (auth0User?.UserId is not null)
+        {
+            try
+            {
+                await provisioner.DeleteUserAsync(auth0User.UserId, CancellationToken.None);
+            }
+            catch (Exception cleanupEx)
+            {
+                logger.LogWarning(cleanupEx, "Failed to clean up Auth0 user {Auth0UserId} after database save failure",
+                    auth0User.UserId);
+            }
+
+            throw;
+        }
 
         return user.Id;
     }
