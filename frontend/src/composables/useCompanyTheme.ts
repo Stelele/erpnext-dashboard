@@ -41,15 +41,23 @@ function applyNeutralPalette(colorName: NeutralColor | null | undefined): void {
   }
 }
 
+function safeSetTheme(value: string): void {
+  try {
+    localStorage.setItem('vueuse-color-scheme', value)
+  } catch {
+    // Ignore in private browsing / storage disabled
+  }
+}
+
 function applyThemeMode(mode: ThemeMode | null | undefined): void {
   if (mode === 'light') {
     document.documentElement.classList.remove('dark')
     document.documentElement.style.colorScheme = 'light'
-    localStorage.setItem('vueuse-color-scheme', 'light')
+    safeSetTheme('light')
   } else {
     document.documentElement.classList.add('dark')
     document.documentElement.style.colorScheme = 'dark'
-    localStorage.setItem('vueuse-color-scheme', 'dark')
+    safeSetTheme('dark')
   }
 }
 

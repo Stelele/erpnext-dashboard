@@ -71,7 +71,6 @@ export class ErpNextService {
       baseURL: authStore.url,
       headers: {
         Authorization: `token ${authStore.token}`,
-        "Content-Type": "application/json",
       },
     });
   }

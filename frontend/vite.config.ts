@@ -40,15 +40,6 @@ export default defineConfig(({ mode }) => ({
         navigateFallback: "/index.html",
         runtimeCaching: [
           {
-            urlPattern: ({ url }) => url.pathname.startsWith("/api"),
-            handler: "NetworkFirst",
-            options: {
-              cacheName: "api-cache",
-              networkTimeoutSeconds: 5,
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-          {
             urlPattern: ({ request }) => request.destination === "image",
             handler: "StaleWhileRevalidate",
             options: {
