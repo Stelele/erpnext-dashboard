@@ -364,10 +364,19 @@ export class ErpNextService {
   }
 
   public searchSuppliers(query: string) {
-    const authStore = useAuthStore();
+    const filters: unknown[] = [["disabled", "=", 0]];
+    if (query) {
+      filters.push(["supplier_name", "like", `%${query}%`]);
+    }
     return this.instance
-      .get<ErpNextResponse<SupplierOption>>("/api/v2/method/search_suppliers", {
-        params: { company: authStore.company, query },
+      .get<ErpNextResponse<SupplierOption>>("/api/resource/Supplier", {
+        params: {
+          fields: JSON.stringify(["name", "supplier_name"]),
+          filters: JSON.stringify(filters),
+          limit_page_length: 200,
+          order_by: "supplier_name",
+          _: Date.now(),
+        },
       })
       .then((resp) => resp?.data.data);
   }

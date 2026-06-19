@@ -25,7 +25,7 @@
               placeholder="Search supplier..."
               class="w-full"
               :disabled="submitting"
-              @update:open="(open: boolean) => { if (open) ensureCreateNewSupplierOption() }"
+              @update:open="(open: boolean) => { if (open) fetchSuppliers(); }"
               @update:model-value="onSupplierPicked"
             />
           </UFormField>
@@ -96,7 +96,7 @@
             class="w-full"
             :search-input="{ placeholder: 'Search...' }"
             :disabled="submitting"
-            @update:open="(open: boolean) => { if (open) ensureCreateNewSupplierOption() }"
+            @update:open="(open: boolean) => { if (open) fetchSuppliers(); }"
             @update:model-value="onSupplierPicked"
           />
         </UFormField>
@@ -381,6 +381,16 @@ function ensureCreateNewOption(idx: number) {
       description: "",
     } as ItemOption);
   }
+}
+
+async function fetchSuppliers() {
+  try {
+    const suppliers = await erpnext.searchSuppliers("");
+    if (suppliers) {
+      supplierItems.value = suppliers;
+      ensureCreateNewSupplierOption();
+    }
+  } catch { /* ignore */ }
 }
 
 function ensureCreateNewSupplierOption() {
