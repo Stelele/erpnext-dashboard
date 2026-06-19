@@ -372,6 +372,14 @@ export class ErpNextService {
       .then((resp) => resp?.data.data);
   }
 
+  public createSupplier(supplierName: string) {
+    return this.instance
+      .post<{ data?: SupplierOption }>("/api/resource/Supplier", {
+        supplier_name: supplierName,
+      })
+      .then((resp) => resp?.data.data);
+  }
+
   public searchItems(query: string) {
     const authStore = useAuthStore();
     return this.instance

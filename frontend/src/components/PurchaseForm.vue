@@ -25,6 +25,8 @@
               placeholder="Search supplier..."
               class="w-full"
               :disabled="submitting"
+              @update:open="(open: boolean) => { if (open) ensureCreateNewSupplierOption() }"
+              @update:model-value="onSupplierPicked"
             />
           </UFormField>
           <UFormField label="Invoice No." class="col-span-2">
@@ -94,6 +96,8 @@
             class="w-full"
             :search-input="{ placeholder: 'Search...' }"
             :disabled="submitting"
+            @update:open="(open: boolean) => { if (open) ensureCreateNewSupplierOption() }"
+            @update:model-value="onSupplierPicked"
           />
         </UFormField>
         <UFormField label="Invoice No.">
@@ -215,6 +219,7 @@
     </div>
   </div>
     <CreateItemModal v-model:open="createItemModalOpen" @on-created="onNewItemCreated" />
+    <CreateSupplierModal v-model:open="createSupplierModalOpen" @on-created="onNewSupplierCreated" />
 </template>
 
 <script setup lang="ts">
@@ -224,6 +229,7 @@ import moment from "moment";
 import { computed, reactive, ref, shallowRef, watch, onMounted } from "vue";
 import { ErpNextService, type ItemOption, type SupplierOption, type WarehouseOption } from "@/services/ErpNextService";
 import CreateItemModal from "@/components/CreateItemModal.vue";
+import CreateSupplierModal from "@/components/CreateSupplierModal.vue";
 
 const toast = useToast();
 
@@ -277,6 +283,7 @@ const itemSearchTerms = ref<string[]>([""]);
 const itemTimers: Record<number, ReturnType<typeof setTimeout>> = {};
 const createItemModalOpen = ref(false);
 const activeCreateItemRow = ref<number>(-1);
+const createSupplierModalOpen = ref(false);
 
 const state = reactive({
   invoiceNumber: "",
@@ -320,6 +327,7 @@ onMounted(async () => {
   try {
     const suppliers = await erpnext.searchSuppliers("");
     if (suppliers) supplierItems.value = suppliers;
+    ensureCreateNewSupplierOption();
   } catch { /* ignore */ }
 
   // Preload items for first row
@@ -375,6 +383,16 @@ function ensureCreateNewOption(idx: number) {
   }
 }
 
+function ensureCreateNewSupplierOption() {
+  const hasCreateNew = supplierItems.value.some((s) => (s as any).name === "__create_new__");
+  if (!hasCreateNew) {
+    supplierItems.value.push({
+      name: "__create_new__",
+      supplier_name: "+ Create New Supplier",
+    } as SupplierOption);
+  }
+}
+
 function onItemPicked(idx: number) {
   const itemCode = itemSelections.value[idx] as unknown as string;
   if (!itemCode) return;
@@ -397,6 +415,13 @@ function onItemPicked(idx: number) {
   }
 }
 
+function onSupplierPicked() {
+  if ((selectedSupplier.value as any) === "__create_new__") {
+    selectedSupplier.value = null;
+    createSupplierModalOpen.value = true;
+  }
+}
+
 function onNewItemCreated(item: ItemOption) {
   const idx = activeCreateItemRow.value;
   if (idx < 0 || idx >= state.items.length) return;
@@ -413,6 +438,16 @@ function onNewItemCreated(item: ItemOption) {
     if (results) {
       itemOpts.value[idx] = results;
       ensureCreateNewOption(idx);
+    }
+  }).catch(() => { /* ignore */ });
+}
+
+function onNewSupplierCreated(supplier: SupplierOption) {
+  selectedSupplier.value = supplier;
+  erpnext.searchSuppliers("").then((results) => {
+    if (results) {
+      supplierItems.value = results;
+      ensureCreateNewSupplierOption();
     }
   }).catch(() => { /* ignore */ });
 }
