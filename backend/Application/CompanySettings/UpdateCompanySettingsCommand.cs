@@ -14,7 +14,9 @@ public record UpdateCompanySettingsCommand(
     string DefaultIncomeAccountName,
     PrimaryColor? PrimaryColor = null,
     NeutralColor? NeutralColor = null,
-    ThemeMode? ThemeMode = null
+    ThemeMode? ThemeMode = null,
+    string? PackSizeMap = null,
+    string? AccountFilters = null
 ) : ICommand;
 
 internal class UpdateCompanySettingsCommandHandler(DashboardDbContext db, IUserContext userContext) : ICommandHandler<UpdateCompanySettingsCommand>
@@ -36,6 +38,8 @@ internal class UpdateCompanySettingsCommandHandler(DashboardDbContext db, IUserC
                 PrimaryColor = request.PrimaryColor,
                 NeutralColor = request.NeutralColor,
                 ThemeMode = request.ThemeMode,
+                PackSizeMap = request.PackSizeMap,
+                AccountFilters = request.AccountFilters,
             };
             db.CompanySettings.Add(settings);
         }
@@ -45,6 +49,8 @@ internal class UpdateCompanySettingsCommandHandler(DashboardDbContext db, IUserC
             settings.PrimaryColor = request.PrimaryColor;
             settings.NeutralColor = request.NeutralColor;
             settings.ThemeMode = request.ThemeMode;
+            settings.PackSizeMap = request.PackSizeMap;
+            settings.AccountFilters = request.AccountFilters;
             settings.UpdatedOn = DateTimeOffset.UtcNow;
         }
 

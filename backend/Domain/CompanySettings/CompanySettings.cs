@@ -10,6 +10,8 @@ public class CompanySettings : Base
     public PrimaryColor? PrimaryColor { get; set; }
     public NeutralColor? NeutralColor { get; set; }
     public ThemeMode? ThemeMode { get; set; }
+    public string? PackSizeMap { get; set; }
+    public string? AccountFilters { get; set; }
 
     public Company Company { get; set; } = null!;
 }

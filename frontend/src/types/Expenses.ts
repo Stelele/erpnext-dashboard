@@ -20,6 +20,8 @@ export interface CompanySettings {
   primaryColor?: PrimaryColor | null;
   neutralColor?: NeutralColor | null;
   themeMode?: ThemeMode | null;
+  packSizeMap?: string | null;
+  accountFilters?: string | null;
 }
 
 export interface Expense {

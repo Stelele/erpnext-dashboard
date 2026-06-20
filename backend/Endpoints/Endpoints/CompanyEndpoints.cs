@@ -81,7 +81,9 @@ public static class CompanyEndpoints
                     request.DefaultIncomeAccountName,
                     request.PrimaryColor,
                     request.NeutralColor,
-                    request.ThemeMode
+                    request.ThemeMode,
+                    request.PackSizeMap,
+                    request.AccountFilters
                 );
                 await mediator.Send(command);
                 return Results.NoContent();

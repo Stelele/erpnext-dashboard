@@ -40,6 +40,14 @@ public class CompanySettingsEntity : IEntityTypeConfiguration<CompanySettings>
             .HasMaxLength(50);
 
         builder
+            .Property(e => e.PackSizeMap)
+            .HasMaxLength(4000);
+
+        builder
+            .Property(e => e.AccountFilters)
+            .HasMaxLength(4000);
+
+        builder
             .HasIndex(e => e.CompanyId)
             .IsUnique();
 

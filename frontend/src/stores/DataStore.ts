@@ -35,6 +35,8 @@ export const useDataStore = defineStore("dataStore", () => {
     const authStore = await import("@/stores/AuthStore").then((m) => m.useAuthStore());
     const companyId = authStore.companies?.find((c) => c.name === authStore.company)?.id;
     const settings = companyId ? await getCompanySettings(companyId) : null;
+    erpNextService.packSizeMap = settings?.packSizeMap;
+    erpNextService.accountFilters = settings?.accountFilters;
     const result = await fetchAllData(currentPeriod.value, erpNextService, settings?.defaultIncomeAccountName ?? "");
     
     await clear();
@@ -80,8 +82,13 @@ export const useDataStore = defineStore("dataStore", () => {
   async function initAccountMappings(
     expenseMappings: CompanyExpenseMapping[],
     incomeAccountName: string,
+    companyId?: string,
   ) {
     const erpNextService = new ErpNextService();
+    if (companyId) {
+      const settings = await getCompanySettings(companyId);
+      erpNextService.accountFilters = settings?.accountFilters;
+    }
     accountMappings.value = await erpNextService.getAccountMappings(
       expenseMappings,
       incomeAccountName,

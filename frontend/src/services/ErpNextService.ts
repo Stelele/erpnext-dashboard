@@ -22,10 +22,10 @@ import type {
   StockValueSummary,
 } from "@/types/StockDetail";
 
-type ErpNextResponse<T> = { data: T[] };
+type ErpNextResponse<T> = { message: T[] };
 export type Grouping = "years" | "months" | "days";
 export type AllAccountsResponse = {
-  data: {
+  message: {
     expense: AccountResponse[];
     income: AccountResponse[];
   };
@@ -67,6 +67,8 @@ export interface PurchaseResult {
 
 export class ErpNextService {
   private instance: Axios;
+  public packSizeMap?: string | null;
+  public accountFilters?: string | null;
 
   public constructor() {
     const authStore = useAuthStore();
@@ -104,7 +106,7 @@ export class ErpNextService {
 
     return this.instance
       .get<ErpNextResponse<GroupSummary>>(
-        "/api/v2/method/grouped_sales_summary",
+        "/api/method/awesome_dashboard.api.dashboard.grouped_sales_summary",
         {
           params: {
             from_date: dateRange.start,
@@ -116,7 +118,7 @@ export class ErpNextService {
           },
         },
       )
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
   }
 
   public getStockValueSummary(period: Period = "Today") {
@@ -125,7 +127,7 @@ export class ErpNextService {
 
     return this.instance
       .get<ErpNextResponse<StockValueSummary>>(
-        "/api/v2/method/get_average_stock_value",
+        "/api/method/awesome_dashboard.api.stock.get_average_stock_value",
         {
           params: {
             from_date: dateRange.start,
@@ -137,7 +139,7 @@ export class ErpNextService {
           },
         },
       )
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
   }
 
   public getDailyStockValueSummary(grouping: Grouping, diff: number) {
@@ -145,7 +147,7 @@ export class ErpNextService {
 
     return this.instance
       .get<ErpNextResponse<DailyStockValue>>(
-        "/api/v2/method/get_daily_stock_value",
+        "/api/method/awesome_dashboard.api.stock.get_daily_stock_value",
         {
           params: {
             from_date: moment()
@@ -157,20 +159,28 @@ export class ErpNextService {
           },
         },
       )
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
   }
 
   public getStockLevels() {
     const authStore = useAuthStore();
 
+    const params: Record<string, unknown> = {
+      company: authStore.company,
+      warehouse: "Stores",
+    };
+
+    if (this.packSizeMap) {
+      try {
+        params.pack_size_map = JSON.parse(this.packSizeMap);
+      } catch { /* ignore invalid JSON */ }
+    }
+
     return this.instance
-      .get<ErpNextResponse<StockDetail>>("/api/v2/method/get_stock_levels", {
-        params: {
-          company: authStore.company,
-          warehouse: "Stores",
-        },
+      .get<ErpNextResponse<StockDetail>>("/api/method/awesome_dashboard.api.stock.get_stock_levels", {
+        params,
       })
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
   }
 
   public getPrevGroupedExpenses(grouping: Grouping, diff: number) {
@@ -179,7 +189,7 @@ export class ErpNextService {
 
     return this.instance
       .get<ErpNextResponse<GroupSummary>>(
-        "/api/v2/method/grouped_expenses_summary",
+        "/api/method/awesome_dashboard.api.dashboard.grouped_expenses_summary",
         {
           params: {
             from_date: moment()
@@ -192,47 +202,64 @@ export class ErpNextService {
           },
         },
       )
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
   }
 
   public getOrderBreakdown(period: Period) {
     const authStore = useAuthStore();
     const dateRange = getPeriodDateRange(period);
     return this.instance
-      .get("/api/v2/method/dashboard_order_breakdown", {
+      .get("/api/method/awesome_dashboard.api.dashboard.dashboard_order_breakdown", {
         params: {
           from_date: dateRange.start,
           to_date: dateRange.end,
           company: authStore.company,
         },
       })
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
   }
 
   public getExpenseBreakdown(period: Period) {
     const authStore = useAuthStore();
     const dateRange = getPeriodDateRange(period);
     return this.instance
-      .get("/api/v2/method/dashboard_expense_breakdown", {
+      .get("/api/method/awesome_dashboard.api.dashboard.dashboard_expense_breakdown", {
         params: {
           from_date: dateRange.start,
           to_date: dateRange.end,
           company: authStore.company,
         },
       })
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
   }
 
   public async getAllAccounts() {
     const authStore = useAuthStore();
 
     const accounts = await this.instance
-      .get<AllAccountsResponse>("/api/v2/method/account_names", {
+      .get<AllAccountsResponse>("/api/method/awesome_dashboard.api.finance.account_names", {
         params: {
           company: authStore.company,
         },
       })
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
+
+    if (this.accountFilters && accounts) {
+      let excludeList: string[] = [];
+      try {
+        excludeList = JSON.parse(this.accountFilters);
+      } catch { /* ignore invalid JSON */ }
+
+      if (excludeList.length > 0) {
+        const excludeSet = new Set(excludeList.map((a) => a.toLowerCase()));
+        accounts.expense = accounts.expense.filter(
+          (a) => !excludeSet.has(a.account_name.toLowerCase()),
+        );
+        accounts.income = accounts.income.filter(
+          (a) => !excludeSet.has(a.account_name.toLowerCase()),
+        );
+      }
+    }
 
     return accounts;
   }
@@ -266,7 +293,7 @@ export class ErpNextService {
     const prevDateRange = prevPeriod ? getPeriodDateRange(prevPeriod) : getPeriodDateRange(period);
 
     return this.instance
-      .get("/api/v2/method/dashboard_complete", {
+      .get("/api/method/awesome_dashboard.api.dashboard.dashboard_complete", {
         params: {
           from_date: dateRange.start,
           to_date: dateRange.end,
@@ -279,13 +306,13 @@ export class ErpNextService {
           ),
         },
       })
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
   }
 
   public getDashboardBarChart(fromDate: string, toDate: string, grouping: "day" | "week" | "month" | "quarter") {
     const authStore = useAuthStore();
     return this.instance
-      .get("/api/v2/method/dashboard_bar_chart", {
+      .get("/api/method/awesome_dashboard.api.dashboard.dashboard_bar_chart", {
         params: {
           from_date: fromDate,
           to_date: toDate,
@@ -293,7 +320,7 @@ export class ErpNextService {
           company: authStore.company,
         },
       })
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
   }
 
   public getDashboardSalesAggregated(period: Period = "Today") {
@@ -301,14 +328,14 @@ export class ErpNextService {
     const dateRange = getPeriodDateRange(period);
 
     return this.instance
-      .get("/api/v2/method/dashboard_sales_aggregated", {
+      .get("/api/method/awesome_dashboard.api.dashboard.dashboard_sales_aggregated", {
         params: {
           from_date: dateRange.start,
           to_date: dateRange.end,
           company: authStore.company,
         },
       })
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
   }
 
   public getDashboardPaymentEntries(period: Period = "Today") {
@@ -316,14 +343,14 @@ export class ErpNextService {
     const dateRange = getPeriodDateRange(period);
 
     return this.instance
-      .get("/api/v2/method/dashboard_payment_entries", {
+      .get("/api/method/awesome_dashboard.api.dashboard.dashboard_payment_entries", {
         params: {
           from_date: dateRange.start,
           to_date: dateRange.end,
           company: authStore.company,
         },
       })
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
   }
 
   public async submitExpenseJournalEntry(
@@ -395,23 +422,23 @@ export class ErpNextService {
   public searchItems(query: string) {
     const authStore = useAuthStore();
     return this.instance
-      .get<ErpNextResponse<ItemOption>>("/api/v2/method/search_items", {
+      .get<ErpNextResponse<ItemOption>>("/api/method/awesome_dashboard.api.item.search_items", {
         params: { company: authStore.company, query },
       })
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
   }
 
   public createItem(itemName: string, itemGroup: string, buyingPrice: number, sellingPrice: number) {
     const authStore = useAuthStore();
     return this.instance
-      .post<{ data?: ItemOption }>("/api/v2/method/create_item", {
+      .post<{ message?: ItemOption }>("/api/method/awesome_dashboard.api.item.create_item", {
         company: authStore.company,
         item_name: itemName,
         item_group: itemGroup,
         buying_price: buyingPrice,
         selling_price: sellingPrice,
       })
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
   }
 
   public getItemGroups() {
@@ -425,16 +452,16 @@ export class ErpNextService {
   public getWarehouses() {
     const authStore = useAuthStore();
     return this.instance
-      .get<ErpNextResponse<WarehouseOption>>("/api/v2/method/search_warehouses", {
+      .get<ErpNextResponse<WarehouseOption>>("/api/method/awesome_dashboard.api.lookup.search_warehouses", {
         params: { company: authStore.company },
       })
-      .then((resp) => resp?.data.data);
+      .then((resp) => resp?.data.message);
   }
 
   public createFullPurchase(payload: PurchasePayload) {
     const authStore = useAuthStore();
     return this.instance
-      .post<{ data?: PurchaseResult }>("/api/v2/method/create_full_purchase", {
+      .post<{ message?: PurchaseResult }>("/api/method/awesome_dashboard.api.purchase.create_full_purchase", {
         company: authStore.company,
         supplier: payload.supplier,
         warehouse: payload.warehouse,
@@ -442,16 +469,16 @@ export class ErpNextService {
         invoice_number: payload.invoice_number || "",
         invoice_date: payload.invoice_date,
       })
-      .then((resp) => resp?.data.data)
+      .then((resp) => resp?.data.message)
       .catch(() => undefined);
   }
 
   public cancelFullPurchase(purchaseInvoice: string) {
     return this.instance
-      .get<{ data?: { cancelled: string[]; message: string } }>("/api/v2/method/cancel_full_purchase", {
+      .get<{ message?: { cancelled: string[]; message: string } }>("/api/method/awesome_dashboard.api.purchase.cancel_full_purchase", {
         params: { purchase_invoice: purchaseInvoice },
       })
-      .then((resp) => resp?.data.data)
+      .then((resp) => resp?.data.message)
       .catch(() => undefined);
   }
 
@@ -483,8 +510,8 @@ export class ErpNextService {
   ) {
     const authStore = useAuthStore();
     try {
-      const response = await this.instance.post<{ data?: { journal_entry: string } }>(
-        "/api/v2/method/amend_expense_journal_entry",
+      const response = await this.instance.post<{ message?: { journal_entry: string } }>(
+        "/api/method/awesome_dashboard.api.finance.amend_expense_journal_entry",
         {
           journal_entry: originalId,
           amount: expense.amount,
@@ -495,7 +522,7 @@ export class ErpNextService {
           company: authStore.company,
         }
       );
-      return response.data.data?.journal_entry;
+      return response.data.message?.journal_entry;
     } catch {
       return undefined;
     }
@@ -503,7 +530,7 @@ export class ErpNextService {
 
   public amendFullPurchase(payload: AmendPurchasePayload) {
     return this.instance
-      .post<{ data?: PurchaseResult }>("/api/v2/method/amend_full_purchase", {
+      .post<{ message?: PurchaseResult }>("/api/method/awesome_dashboard.api.purchase.amend_full_purchase", {
         purchase_invoice: payload.originalId,
         company: payload.company,
         supplier: payload.supplier,
@@ -512,7 +539,7 @@ export class ErpNextService {
         invoice_number: payload.invoice_number || "",
         invoice_date: payload.invoice_date,
       })
-      .then((resp) => resp?.data.data)
+      .then((resp) => resp?.data.message)
       .catch(() => undefined);
   }
 

@@ -20,9 +20,6 @@ njeremoto-dashboard/
 ├── backend/
 │   ├── Api/           # .NET 10 API
 │   └── Env/           # Docker Compose configuration
-├── erpnext/           # ERPNext integration scripts
-│   ├── optimize/      # Database optimization scripts
-│   └── server_scripts/ # Server-side automation
 ├── designs/           # Database schema & wireframes
 └── .github/
     └── workflows/      # CI/CD pipelines
@@ -97,63 +94,14 @@ Triggers:
 
 ## ERPNext Integration
 
-### Purchase Cycle API
+This dashboard consumes endpoints provided by the [awesome_dashboard](https://github.com/Stelele/awesome_dashboard_scripts) Frappe app. Install it on your ERPNext site:
 
-Simplifies purchase entry for single-user businesses by creating the full purchase cycle (Purchase Order → Purchase Receipt → Purchase Invoice → Payment) in one API call.
-
-**Endpoint:** `POST /api/method/runservermethod?script_name=create_full_purchase`
-
-**Authentication:** Requires valid Frappe session or API key/token
-
-**Parameters:**
-| Parameter | Type | Required | Description |
-|-----------|------|----------|-------------|
-| company | string | Yes | Company name |
-| supplier | string | Yes | Supplier name |
-| warehouse | string | Yes | Receiving warehouse |
-| items | array | Yes | Array of `{item_code, qty, rate}` objects |
-| invoice_number | string | Yes | Supplier's invoice number |
-| invoice_date | string | Yes | Supplier's invoice date (YYYY-MM-DD) |
-
-**Example Request:**
-```json
-{
-  "company": "My Company",
-  "supplier": "ABC Suppliers",
-  "warehouse": "Stores - MC",
-  "items": [
-    {"item_code": "ITEM-001", "qty": 10, "rate": 100},
-    {"item_code": "ITEM-002", "qty": 5, "rate": 200}
-  ],
-  "invoice_number": "SUP-INV-2024-001",
-  "invoice_date": "2024-01-15"
-}
+```bash
+bench get-app https://github.com/Stelele/awesome_dashboard_scripts
+bench --site your-site install-app awesome_dashboard
 ```
 
-**Success Response (200):**
-```json
-{
-  "data": {
-    "purchase_order": "PO-00001",
-    "purchase_receipt": "PR-00001",
-    "purchase_invoice": "PI-00001",
-    "payment_entry": "PE-00001"
-  }
-}
-```
-
-**Error Response (400/500):**
-```json
-{
-  "exc": "[\"frappe.exceptions.ValidationError: Supplier 'XYZ' does not exist\"]"
-}
-```
-
-**Notes:**
-- Payment is always made via Cash mode of payment
-- Requires "Cash" Mode of Payment to exist in ERPNext
-- Full transaction rollback: if any step fails, all changes are reverted
-- Duplicate invoice numbers are rejected
+The app provides all server-side endpoints for sales, purchases, expenses, stock, and journal entry operations used by this dashboard.
 
 ## License
 

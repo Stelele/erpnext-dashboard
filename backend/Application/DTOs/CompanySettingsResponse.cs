@@ -9,7 +9,9 @@ public record CompanySettingsResponse(
     string DefaultIncomeAccountName,
     PrimaryColor? PrimaryColor,
     NeutralColor? NeutralColor,
-    ThemeMode? ThemeMode
+    ThemeMode? ThemeMode,
+    string? PackSizeMap,
+    string? AccountFilters
 )
 {
     public static CompanySettingsResponse FromDomain(CompanySettingsEntity settings) =>
@@ -19,6 +21,8 @@ public record CompanySettingsResponse(
             settings.DefaultIncomeAccountName,
             settings.PrimaryColor,
             settings.NeutralColor,
-            settings.ThemeMode
+            settings.ThemeMode,
+            settings.PackSizeMap,
+            settings.AccountFilters
         );
 }

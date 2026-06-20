@@ -7,7 +7,9 @@ public record UpdateCompanySettingsRequest(
     string DefaultIncomeAccountName,
     PrimaryColor? PrimaryColor = null,
     NeutralColor? NeutralColor = null,
-    ThemeMode? ThemeMode = null
+    ThemeMode? ThemeMode = null,
+    string? PackSizeMap = null,
+    string? AccountFilters = null
 );
 
 public class UpdateCompanySettingsRequestValidator : AbstractValidator<UpdateCompanySettingsRequest>
