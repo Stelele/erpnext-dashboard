@@ -91,7 +91,14 @@ export const useAuthStore = defineStore("authStore", () => {
   async function update() {
     const { getAccessTokenSilently } = useAuth0();
 
-    const apiToken = await getAccessTokenSilently();
+    let apiToken: string;
+    try {
+      apiToken = await getAccessTokenSilently();
+    } catch {
+      accessToken.value = "";
+      return;
+    }
+
     accessToken.value = apiToken;
 
     const payloadBase64 = apiToken.split(".")[1] as string;

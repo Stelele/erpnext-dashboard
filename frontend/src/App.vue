@@ -9,7 +9,9 @@ import { update } from "./utils/UpdateData";
 import { useCompanyTheme } from "./composables/useCompanyTheme";
 import { useCacheSync } from "./composables/useCacheSync";
 import { CachedApiClient } from "./services/cache/CachedApiClient";
+import { ApiSingleton } from "./services/api";
 import { useHead } from "@unhead/vue";
+import { useAuth0 } from "@auth0/auth0-vue";
 import moment from "moment";
 
 moment.updateLocale("en", {
@@ -21,6 +23,14 @@ moment.updateLocale("en", {
 const authStore = useAuthStore();
 const { startSync } = useCacheSync();
 const { loadAndApply, currentPrimaryColor } = useCompanyTheme();
+const { error, logout } = useAuth0();
+
+watch(error, (err) => {
+  if (err?.error === "login_required") {
+    ApiSingleton.reset();
+    logout({ logoutParams: { returnTo: window.location.origin } });
+  }
+});
 
 function buildManifestJson(name: string, iconSrc: string, themeColor: string): string {
     const manifest = {

@@ -22,4 +22,8 @@ export class ApiSingleton {
 
     return api;
   }
+
+  public static reset() {
+    this.instance = null;
+  }
 }
