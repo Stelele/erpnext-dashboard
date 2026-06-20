@@ -7,6 +7,38 @@ import { CachedApiClient } from "@/services/cache/CachedApiClient";
 
 const SELECTED_COMPANY_KEY = "selectedCompany";
 
+let tokenRefreshTimer: ReturnType<typeof setTimeout> | null = null;
+
+function parseExp(token: string): number | null {
+  try {
+    const payloadBase64 = token.split(".")[1];
+    if (!payloadBase64) return null;
+    const payload = JSON.parse(
+      atob(payloadBase64.replace(/-/g, "+").replace(/_/g, "/")),
+    );
+    return payload.exp ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function clearRefreshTimer() {
+  if (tokenRefreshTimer !== null) {
+    clearTimeout(tokenRefreshTimer);
+    tokenRefreshTimer = null;
+  }
+}
+
+function scheduleTokenRefresh(expSeconds: number, refreshFn: () => Promise<void>) {
+  clearRefreshTimer();
+  const refreshBeforeMs = 2 * 60 * 1000;
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  const delayMs = Math.max(30_000, (expSeconds - nowSeconds) * 1000 - refreshBeforeMs);
+  tokenRefreshTimer = setTimeout(() => {
+    refreshFn().catch(() => {});
+  }, delayMs);
+}
+
 function safeGetItem(key: string): string | null {
   try {
     return localStorage.getItem(key);
@@ -88,18 +120,43 @@ export const useAuthStore = defineStore("authStore", () => {
     );
   }
 
+  let _getAccessTokenSilently: (() => Promise<string>) | null = null;
+
+  function getAccessTokenSilently(): Promise<string> {
+    if (_getAccessTokenSilently) return _getAccessTokenSilently();
+    return Promise.reject(new Error("Auth0 not initialized"));
+  }
+
+  function onTokenReceived(apiToken: string) {
+    accessToken.value = apiToken;
+    const exp = parseExp(apiToken);
+    if (exp) {
+      scheduleTokenRefresh(exp, refreshToken);
+    }
+  }
+
+  async function refreshToken() {
+    try {
+      const fresh = await getAccessTokenSilently();
+      onTokenReceived(fresh);
+    } catch {
+      accessToken.value = "";
+    }
+  }
+
   async function update() {
-    const { getAccessTokenSilently } = useAuth0();
+    const auth0 = useAuth0();
+    _getAccessTokenSilently = auth0.getAccessTokenSilently;
 
     let apiToken: string;
     try {
-      apiToken = await getAccessTokenSilently();
+      apiToken = await _getAccessTokenSilently();
     } catch {
       accessToken.value = "";
       return;
     }
 
-    accessToken.value = apiToken;
+    onTokenReceived(apiToken);
 
     const payloadBase64 = apiToken.split(".")[1] as string;
     const payload = JSON.parse(
@@ -185,5 +242,6 @@ export const useAuthStore = defineStore("authStore", () => {
     selectedCompany,
     update,
     switchCompany,
+    refreshToken,
   };
 });

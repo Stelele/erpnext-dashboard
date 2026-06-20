@@ -21,7 +21,7 @@ moment.updateLocale("en", {
 });
 
 const authStore = useAuthStore();
-const { startSync } = useCacheSync();
+const { startSync, updateToken } = useCacheSync();
 const { loadAndApply, currentPrimaryColor } = useCompanyTheme();
 const { error, logout } = useAuth0();
 
@@ -29,6 +29,12 @@ watch(error, (err) => {
   if (err?.error === "login_required") {
     ApiSingleton.reset();
     logout({ logoutParams: { returnTo: window.location.origin } });
+  }
+});
+
+watch(() => authStore.accessToken, (token) => {
+  if (token) {
+    updateToken(token);
   }
 });
 

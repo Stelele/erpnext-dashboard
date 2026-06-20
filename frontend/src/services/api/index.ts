@@ -4,18 +4,44 @@ import { useAuthStore } from "@/stores/AuthStore";
 
 export type Client = ReturnType<typeof createClient<paths>>;
 
+function createAuthFetch(): typeof globalThis.fetch {
+  return async (input: Request) => {
+    const authStore = useAuthStore();
+
+    const headers = new Headers(input.headers);
+    if (!headers.has("Authorization") && authStore.accessToken) {
+      headers.set("Authorization", `Bearer ${authStore.accessToken}`);
+    }
+
+    const req = new Request(input, { headers });
+
+    let response = await fetch(req);
+
+    if (response.status === 401 || response.status === 403) {
+      try {
+        await authStore.refreshToken();
+      } catch {
+        return response;
+      }
+
+      headers.set("Authorization", `Bearer ${authStore.accessToken || ""}`);
+      const retryReq = new Request(input, { headers });
+      response = await fetch(retryReq);
+    }
+
+    return response;
+  };
+}
+
 export class ApiSingleton {
   private static instance: Client | null = null;
 
   public static async getInstance() {
     if (this.instance) return this.instance;
-    const authStore = useAuthStore();
 
     const api = createClient<paths>({
       baseUrl: import.meta.env.VITE_API_URL,
-      headers: {
-        Authorization: `Bearer ${authStore.accessToken}`,
-      },
+      fetch: createAuthFetch(),
     });
 
     this.instance = api;
