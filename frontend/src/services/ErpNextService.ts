@@ -13,6 +13,7 @@ import type {
   AccountMappings,
   AccountResponse,
   PurchaseInvoiceResponse,
+  AmendPurchasePayload,
 } from "@/types/Expenses";
 import type { JournalEntry } from "@/types/JournalEntry";
 import type {
@@ -54,6 +55,7 @@ export interface PurchasePayload {
   items: { item_code: string; qty: number; rate: number; sell_rate: number }[];
   invoice_number?: string;
   invoice_date: string;
+  amended_from?: string;
 }
 
 export interface PurchaseResult {
@@ -462,6 +464,56 @@ export class ErpNextService {
     } catch {
       return false;
     }
+  }
+
+  public getJournalEntry(name: string) {
+    return this.instance
+      .get<{ data: JournalEntry }>(
+        `/api/resource/Journal Entry/${encodeURIComponent(name)}`
+      )
+      .then((resp) => resp.data.data)
+      .catch(() => undefined);
+  }
+
+  public async amendExpenseJournalEntry(
+    originalId: string,
+    expense: Expense,
+    incomeAccount: AccountResponse,
+    expenseAccount: AccountResponse,
+  ) {
+    const authStore = useAuthStore();
+    try {
+      const response = await this.instance.post<{ data?: { journal_entry: string } }>(
+        "/api/v2/method/amend_expense_journal_entry",
+        {
+          journal_entry: originalId,
+          amount: expense.amount,
+          description: expense.description,
+          expense_account: expenseAccount.name,
+          income_account: incomeAccount.name,
+          posting_date: expense.date,
+          company: authStore.company,
+        }
+      );
+      return response.data.data?.journal_entry;
+    } catch {
+      return undefined;
+    }
+  }
+
+  public amendFullPurchase(payload: AmendPurchasePayload) {
+    return this.instance
+      .post<{ data?: PurchaseResult }>("/api/v2/method/amend_full_purchase", {
+        purchase_invoice: payload.originalId,
+        company: payload.company,
+        supplier: payload.supplier,
+        warehouse: payload.warehouse,
+        items: payload.items,
+        invoice_number: payload.invoice_number || "",
+        invoice_date: payload.invoice_date,
+      })
+      .then((resp) => resp?.data.data)
+      .catch(() => undefined);
   }
 
   public getPurchaseInvoice(name: string) {

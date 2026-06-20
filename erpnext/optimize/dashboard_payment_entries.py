@@ -18,7 +18,7 @@ query = """
     FROM `tabJournal Entry` je
     INNER JOIN `tabJournal Entry Account` jea ON je.name = jea.parent
     WHERE je.posting_date BETWEEN %s AND %s
-    AND je.company = %s AND je.docstatus < 2 AND jea.debit > 0
+    AND je.company = %s AND jea.debit > 0
     
     UNION ALL
     
@@ -36,7 +36,7 @@ query = """
         grand_total AS amount
     FROM `tabPurchase Invoice`
     WHERE posting_date BETWEEN %s AND %s
-    AND company = %s AND docstatus < 2
+    AND company = %s
     
     ORDER BY date DESC, id DESC
 """

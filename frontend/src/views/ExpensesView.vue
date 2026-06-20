@@ -97,6 +97,38 @@
                     </div>
                 </template>
             </UModal>
+            <UModal
+                v-model:open="openAmendExpense"
+                title="Amend Expense"
+                :dismissible="false"
+            >
+                <template #body>
+                    <ExpenseForm
+                        v-if="amendEntry"
+                        :mappings="mappings"
+                        :loading="amendExpenseLoading"
+                        :amend-entry="amendEntry"
+                        @amend="onAmendSubmit"
+                        @on-submit="() => {}"
+                    />
+                </template>
+            </UModal>
+            <UModal
+                v-model:open="openAmendOrder"
+                title="Amend Order"
+                :dismissible="false"
+                :ui="{ content: 'sm:max-w-2xl' }"
+            >
+                <template #body>
+                    <PurchaseForm
+                        v-if="amendOrderData"
+                        :loading="amendOrderLoading"
+                        :amend-order="amendOrderData"
+                        @amend="onAmendOrderSubmit"
+                        @on-submit="() => {}"
+                    />
+                </template>
+            </UModal>
         </div>
         <CardDoughnutChart
             title="Orders By Suppliers"
@@ -114,6 +146,7 @@
             :data="dataStore.paymentEntries"
             :loading="dataStore.loading"
             @cancel="onCancelPurchase"
+            @amend="onAmendExpense"
         />
     </DashboardLayout>
 </template>
@@ -128,6 +161,7 @@ import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import type { UniqueExpense } from "@/components/BulkExpenseUploadButton.vue";
 import BulkExpensePreview from "@/components/BulkExpensePreview.vue";
 import ExpenseForm from "@/components/ExpenseForm.vue";
+import PurchaseForm from "@/components/PurchaseForm.vue";
 import { ErpNextService } from "@/services/ErpNextService";
 
 const open = ref(false);
@@ -138,6 +172,28 @@ const pendingCancel = ref<Payment | null>(null);
 const cancelLoading = ref(false);
 const expenseLoading = ref(false);
 const bulkLoading = ref(false);
+
+// Amend state
+const openAmendExpense = ref(false);
+const amendEntry = ref<{
+  id: string;
+  amount: number;
+  description: string;
+  expenseTypeId: string;
+  date: string;
+} | null>(null);
+const amendExpenseLoading = ref(false);
+
+const openAmendOrder = ref(false);
+const amendOrderData = ref<{
+  id: string;
+  supplier: string;
+  warehouse: string;
+  items: { item_code: string; qty: number; rate: number; sell_rate: number }[];
+  invoiceNumber: string;
+  invoiceDate: string;
+} | null>(null);
+const amendOrderLoading = ref(false);
 const bulkPreviewData = ref<UniqueExpense[]>([]);
 const mappings = ref<CompanyExpenseMapping[]>([]);
 
@@ -259,5 +315,115 @@ async function confirmCancel() {
     pendingCancel.value = null;
     cancelLoading.value = false;
     openCancelConfirm.value = false;
+}
+
+async function onAmendExpense(payment: Payment) {
+  if (payment.type === "Order") {
+    const piResponse = await erpnext.getPurchaseInvoice(payment.id);
+    if (!piResponse?.data) {
+      toast.add({ title: "Failed to fetch purchase invoice for amend", color: "error" });
+      return;
+    }
+
+    const pi = piResponse.data;
+    amendOrderData.value = {
+      id: payment.id,
+      supplier: pi.supplier,
+      warehouse: "",
+      items: pi.items.map(item => ({
+        item_code: item.item_code,
+        qty: item.qty,
+        rate: item.rate,
+        sell_rate: 0,
+      })),
+      invoiceNumber: pi.name,
+      invoiceDate: pi.posting_date,
+    };
+    openAmendOrder.value = true;
+    return;
+  }
+
+  const je = await erpnext.getJournalEntry(payment.id);
+  if (!je) {
+    toast.add({ title: "Failed to fetch journal entry for amend", color: "error" });
+    return;
+  }
+
+  const debitAccount = je.accounts?.find(a => a.debit_in_account_currency > 0);
+  if (!debitAccount) {
+    toast.add({ title: "Could not determine expense account", color: "error" });
+    return;
+  }
+
+  const mapping = mappings.value.find(
+    m => m.erpnextAccountName && debitAccount.account.startsWith(m.erpnextAccountName)
+  );
+  const expenseTypeId = mapping?.expenseTypeId || "";
+
+  amendEntry.value = {
+    id: payment.id,
+    amount: payment.amount,
+    description: payment.description,
+    expenseTypeId,
+    date: payment.date,
+  };
+  openAmendExpense.value = true;
+}
+
+async function onAmendSubmit(expense: Expense) {
+  amendExpenseLoading.value = true;
+  const response = await dataStore.amendDraftExpense(expense);
+  amendExpenseLoading.value = false;
+
+  if (response) {
+    openAmendExpense.value = false;
+    amendEntry.value = null;
+    toast.add({
+      title: `Expense amended successfully: ${response}`,
+      color: "success",
+    });
+    dataStore.update();
+  } else {
+    toast.add({
+      title: "Failed to amend expense",
+      color: "error",
+    });
+  }
+}
+
+async function onAmendOrderSubmit(payload: {
+  supplier: string;
+  warehouse: string;
+  items: { item_code: string; qty: number; rate: number; sell_rate: number }[];
+  invoice_number: string | null;
+  invoice_date: string;
+  amended_from: string;
+}) {
+  amendOrderLoading.value = true;
+  const result = await erpnext.amendFullPurchase({
+    originalId: payload.amended_from,
+    company: authStore.company || "",
+    supplier: payload.supplier,
+    warehouse: payload.warehouse,
+    items: payload.items,
+    invoice_number: payload.invoice_number || undefined,
+    invoice_date: payload.invoice_date,
+  });
+  amendOrderLoading.value = false;
+
+  if (result) {
+    openAmendOrder.value = false;
+    amendOrderData.value = null;
+    dataStore.update();
+    toast.add({
+      title: `Purchase amended: PI ${result.purchase_invoice}`,
+      color: "success",
+    });
+  } else {
+    toast.add({
+      title: "Failed to amend purchase",
+      color: "error",
+    });
+  }
 }
 </script>

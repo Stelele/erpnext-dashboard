@@ -27,6 +27,7 @@ export interface Expense {
   expenseTypeId: string;
   amount: number;
   description: string;
+  amendEntryId?: string;
 }
 
 export interface AccountResponse {
@@ -50,6 +51,7 @@ export interface AccountMappings {
 }
 
 export interface PurchaseInvoiceItem {
+  item_code: string;
   item_name: string;
   qty: number;
   rate: number;
@@ -64,4 +66,14 @@ export interface PurchaseInvoiceResponse {
     grand_total: number;
     items: PurchaseInvoiceItem[];
   };
+}
+
+export interface AmendPurchasePayload {
+  originalId: string;
+  company: string;
+  supplier: string;
+  warehouse: string;
+  items: { item_code: string; qty: number; rate: number; sell_rate: number }[];
+  invoice_number?: string;
+  invoice_date: string;
 }

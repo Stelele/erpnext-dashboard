@@ -1,4 +1,4 @@
-def validate_inputs(company, supplier, warehouse, items, invoice_number, invoice_date):
+def validate_inputs(company, supplier, warehouse, items, invoice_number, invoice_date, amended_from=None):
     """Validate all required inputs exist and are valid."""
     if not company:
         frappe.throw("Company is required")
@@ -33,7 +33,7 @@ def validate_inputs(company, supplier, warehouse, items, invoice_number, invoice
     # Check for duplicate invoice only if number provided
     if invoice_number:
         existing = frappe.db.exists("Purchase Invoice", {"bill_no": invoice_number, "supplier": supplier, "docstatus": 1})
-        if existing:
+        if existing and existing != amended_from:
             frappe.throw(f"Purchase Invoice with invoice_number '{invoice_number}' already exists for this supplier")
 
 
@@ -90,7 +90,7 @@ def create_purchase_receipt(po, invoice_date):
     return pr
 
 
-def create_purchase_invoice(pr, invoice_number, invoice_date):
+def create_purchase_invoice(pr, invoice_number, invoice_date, amended_from=None):
     """Create and submit a Purchase Invoice from a Purchase Receipt with user's invoice details."""
     pi_data = {
         "doctype": "Purchase Invoice",
@@ -117,6 +117,8 @@ def create_purchase_invoice(pr, invoice_number, invoice_date):
     }
     if invoice_number:
         pi_data["bill_no"] = invoice_number
+    if amended_from:
+        pi_data["amended_from"] = amended_from
     pi = frappe.get_doc(pi_data)
     pi.insert()
     pi.submit()
@@ -198,6 +200,7 @@ supplier = frappe.form_dict.get("supplier")
 warehouse = frappe.form_dict.get("warehouse")
 invoice_number = frappe.form_dict.get("invoice_number")
 invoice_date = frappe.form_dict.get("invoice_date")
+amended_from = frappe.form_dict.get("amended_from")
 
 # Defaults
 if not invoice_date:
@@ -207,13 +210,13 @@ if not invoice_date:
 items = frappe.form_dict.get("items", [])
 
 # Validate
-validate_inputs(company, supplier, warehouse, items, invoice_number, invoice_date)
+validate_inputs(company, supplier, warehouse, items, invoice_number, invoice_date, amended_from)
 
 # Execute purchase cycle with transaction rollback
 try:
     po = create_purchase_order(company, supplier, warehouse, items, invoice_date)
     pr = create_purchase_receipt(po, invoice_date)
-    pi = create_purchase_invoice(pr, invoice_number, invoice_date)
+    pi = create_purchase_invoice(pr, invoice_number, invoice_date, amended_from)
     pe = create_payment_entry(pi, invoice_date)
 
     # Correct posting_date on docs where Frappe's set_posting_time may override it

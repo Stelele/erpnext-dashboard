@@ -27,6 +27,30 @@ function submitExpense(
   );
 }
 
+function amendExpense(
+  erpNextService: ErpNextService,
+  accountMappings: AccountMappings,
+  expense: Expense,
+): Promise<string | undefined> {
+  if (!expense.amendEntryId) {
+    return Promise.resolve(undefined);
+  }
+
+  const incomeAccount = accountMappings.income;
+  const expenseAccount = accountMappings.expenses[expense.expenseTypeId];
+
+  if (!incomeAccount || !expenseAccount) {
+    return Promise.resolve(undefined);
+  }
+
+  return erpNextService.amendExpenseJournalEntry(
+    expense.amendEntryId,
+    expense,
+    incomeAccount,
+    expenseAccount,
+  );
+}
+
 async function bulkSubmitExpenses(
   erpNextService: ErpNextService,
   accountMappings: AccountMappings,
@@ -70,4 +94,4 @@ async function bulkSubmitExpenses(
   return results;
 }
 
-export { submitExpense, bulkSubmitExpenses };
+export { submitExpense, bulkSubmitExpenses, amendExpense };

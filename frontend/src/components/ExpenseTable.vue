@@ -73,6 +73,15 @@
                         >
                             Cancel
                         </UButton>
+                        <UButton
+                            v-if="row.original.status === 'Submitted'"
+                            color="success"
+                            variant="ghost"
+                            icon="i-lucide-pencil"
+                            @click="emit('amend', row.original)"
+                        >
+                            Amend
+                        </UButton>
                     </div>
                 </template>
             </UTable>
@@ -101,6 +110,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     cancel: [payment: Payment];
+    amend: [payment: Payment];
 }>();
 
 import OrderDetailsModal from "@/components/OrderDetailsModal.vue";
@@ -226,15 +236,25 @@ const columns: TableColumn<Payment>[] = [
             }
 
             if (row.original.status === "Submitted") {
-                const label = row.original.type === "Order" ? "Cancel purchase" : "Cancel expense";
+                const cancelLabel = row.original.type === "Order" ? "Cancel purchase" : "Cancel expense";
                 buttons.push(
                     h(UButton, {
                         color: "error",
                         variant: "ghost",
                         icon: "i-lucide-x",
                         square: true,
-                        "aria-label": label,
+                        "aria-label": cancelLabel,
                         onClick: () => emit("cancel", row.original),
+                    })
+                );
+                buttons.push(
+                    h(UButton, {
+                        color: "success",
+                        variant: "ghost",
+                        icon: "i-lucide-pencil",
+                        square: true,
+                        "aria-label": "Amend",
+                        onClick: () => emit("amend", row.original),
                     })
                 );
             }

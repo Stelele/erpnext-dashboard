@@ -1,6 +1,9 @@
 <template>
     <div class="w-full h-full grid grid-cols-1 gap-4 p-4">
         <div v-if="!showConfirm">
+            <div v-if="amendEntry" class="text-sm text-[var(--ui-text-muted)] mb-2 text-center">
+                Amending Entry: <strong>{{ amendEntry.id }}</strong>
+            </div>
             <UForm
                 :schema="schema"
                 :state="state"
@@ -75,7 +78,7 @@
                 </UFormField>
 
                 <UButton type="submit" class="hover:cursor-pointer" :loading="loading" :disabled="loading">
-                    Submit
+                    {{ amendEntry ? 'Amend Entry' : 'Submit' }}
                 </UButton>
             </UForm>
         </div>
@@ -109,7 +112,7 @@
                     Back
                 </UButton>
                 <UButton color="primary" :loading="loading" @click="confirmSubmit">
-                    Confirm & Submit
+                    {{ amendEntry ? 'Confirm & Amend' : 'Confirm & Submit' }}
                 </UButton>
             </div>
         </div>
@@ -126,10 +129,18 @@ import type { Expense, CompanyExpenseMapping } from "@/types/Expenses";
 const props = defineProps<{
     mappings: CompanyExpenseMapping[];
     loading?: boolean;
+    amendEntry?: {
+        id: string;
+        amount: number;
+        description: string;
+        expenseTypeId: string;
+        date: string;
+    } | null;
 }>();
 
 const emit = defineEmits<{
     onSubmit: [Expense];
+    amend: [Expense];
 }>();
 
 const configuredMappings = computed(() =>
@@ -184,6 +195,16 @@ watch(() => props.loading, (v) => {
     if (v) showConfirm.value = false;
 });
 
+watch(() => props.amendEntry, (entry) => {
+    if (entry) {
+        const d = entry.date.split("-");
+        state.date = shallowRef(new CalendarDate(parseInt(d[0]), parseInt(d[1]), parseInt(d[2])));
+        state.expenseTypeId = entry.expenseTypeId;
+        state.amount = entry.amount;
+        state.description = entry.description;
+    }
+}, { immediate: true });
+
 const displayDate = computed(() =>
     moment(state.date.toDate(getLocalTimeZone())).format("dddd, DD MMM YYYY"),
 );
@@ -202,6 +223,11 @@ function confirmSubmit() {
         description: state.description,
     };
 
-    emit("onSubmit", expense);
+    if (props.amendEntry) {
+        expense.amendEntryId = props.amendEntry.id;
+        emit("amend", expense);
+    } else {
+        emit("onSubmit", expense);
+    }
 }
 </script>

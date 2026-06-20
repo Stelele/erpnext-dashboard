@@ -5,10 +5,13 @@
 
       <!-- Desktop: current 2-col header + 6-col items grid -->
       <div class="hidden md:block space-y-4">
+        <div v-if="amendOrder" class="text-sm text-[var(--ui-text-muted)] mb-2">
+          Amending Order: <strong>{{ amendOrder.id }}</strong>
+        </div>
         <div class="grid grid-cols-2 gap-4">
           <UFormField label="Invoice Date">
             <UPopover>
-              <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" class="w-full" :disabled="submitting">
+              <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" class="w-full" :disabled="submitting || !!amendOrder">
                 {{ displayDate }}
               </UButton>
               <template #content>
@@ -90,9 +93,12 @@
 
       <!-- Mobile: stacked single-column + UCards for items -->
       <div class="md:hidden space-y-4">
+        <div v-if="amendOrder" class="text-sm text-[var(--ui-text-muted)] mb-2">
+          Amending Order: <strong>{{ amendOrder.id }}</strong>
+        </div>
         <UFormField label="Invoice Date">
           <UPopover>
-            <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" class="w-full justify-start" :disabled="submitting">
+            <UButton color="neutral" variant="subtle" icon="i-lucide-calendar" class="w-full justify-start" :disabled="submitting || !!amendOrder">
               {{ displayDate }}
             </UButton>
             <template #content>
@@ -188,15 +194,15 @@
       <div class="flex justify-between items-center pt-4 border-t border-[var(--ui-border)]">
         <span class="text-lg font-bold">Total: {{ grandTotal.toFixed(2) }}</span>
         <UButton type="submit" color="primary" :loading="submitting" :disabled="submitting">
-          Submit Purchase
+          {{ amendOrder ? 'Amend Order' : 'Submit Purchase' }}
         </UButton>
       </div>
     </UForm>
     </div>
     <div v-else class="space-y-4">
       <div class="text-sm text-[var(--ui-text)]">
-        <p class="font-medium text-base mb-2">Confirm Purchase</p>
-        <p>This will create 4 documents: Purchase Order, Purchase Receipt, Purchase Invoice, and a Cash Payment Entry. <strong>Stock levels and accounting ledgers will be updated immediately.</strong></p>
+        <p class="font-medium text-base mb-2">{{ amendOrder ? 'Confirm Amend' : 'Confirm Purchase' }}</p>
+        <p>This will create 4 documents: Purchase Order, Purchase Receipt, Purchase Invoice, and a Cash Payment Entry. {{ amendOrder ? 'The original documents will be cancelled.' : '' }}<strong>Stock levels and accounting ledgers will be updated immediately.</strong></p>
       </div>
       <div class="bg-[var(--ui-bg-elevated)] rounded-lg p-5 space-y-4 text-sm">
         <div>
@@ -241,7 +247,7 @@
           Back
         </UButton>
         <UButton color="primary" :loading="submitting" @click="confirmSubmit">
-          Confirm & Submit
+          {{ amendOrder ? 'Confirm & Amend' : 'Confirm & Submit' }}
         </UButton>
       </div>
     </div>
@@ -278,10 +284,28 @@ const emit = defineEmits<{
       invoice_date: string;
     },
   ];
+  amend: [
+    payload: {
+      supplier: string;
+      warehouse: string;
+      items: { item_code: string; qty: number; rate: number; sell_rate: number }[];
+      invoice_number: string | null;
+      invoice_date: string;
+      amended_from: string;
+    },
+  ];
 }>();
 
 const props = defineProps<{
   loading?: boolean;
+  amendOrder?: {
+    id: string;
+    supplier: string;
+    warehouse: string;
+    items: { item_code: string; qty: number; rate: number; sell_rate: number }[];
+    invoiceNumber: string;
+    invoiceDate: string;
+  } | null;
 }>();
 
 const submitting = computed(() => props.loading ?? false);
@@ -384,6 +408,29 @@ watch(submitting, (v) => {
   if (v) showConfirm.value = false;
 });
 
+watch(() => props.amendOrder, (order) => {
+  if (order) {
+    const d = order.invoiceDate.split("-");
+    state.invoiceDate = shallowRef(new CalendarDate(parseInt(d[0]), parseInt(d[1]), parseInt(d[2])));
+    state.invoiceNumber = order.invoiceNumber;
+    selectedSupplier.value = order.supplier as any;
+    state.items = order.items.map(i => ({
+      item_code: i.item_code,
+      item_name: i.item_code,
+      qty: i.qty,
+      rate: i.rate,
+      sell_rate: i.sell_rate,
+    }));
+    itemSelections.value = order.items.map(i => i.item_code as any);
+    itemOpts.value = order.items.map(() => []);
+    itemSearchTerms.value = order.items.map(() => "");
+    for (let i = 0; i < order.items.length; i++) {
+      watchRow(i);
+      onItemOpen(i);
+    }
+  }
+}, { immediate: true });
+
 async function onItemOpen(idx: number) {
   if (!itemOpts.value[idx]?.length) {
     try {
@@ -478,12 +525,18 @@ async function onSubmit() {
 }
 
 function confirmSubmit() {
-  emit("onSubmit", {
+  const payload = {
     supplier: typeof selectedSupplier.value === 'string' ? selectedSupplier.value : selectedSupplier.value?.name || "",
     warehouse: typeof selectedWarehouse.value === 'string' ? selectedWarehouse.value : selectedWarehouse.value?.name || "",
     items: validItems.value.map((i) => ({ item_code: i.item_code, qty: i.qty, rate: i.rate, sell_rate: i.sell_rate })),
     invoice_number: state.invoiceNumber || null,
     invoice_date: moment(state.invoiceDate.toDate(getLocalTimeZone())).format("YYYY-MM-DD"),
-  });
+  };
+
+  if (props.amendOrder) {
+    emit("amend", { ...payload, amended_from: props.amendOrder.id });
+  } else {
+    emit("onSubmit", payload);
+  }
 }
 </script>

@@ -96,6 +96,14 @@ export const useDataStore = defineStore("dataStore", () => {
     );
   }
 
+  function amendDraftExpense(expense: Expense) {
+    return ExpenseServiceFunctions.amendExpense(
+      new ErpNextService(),
+      accountMappings.value,
+      expense,
+    );
+  }
+
   async function bulkAddDraftExpenses(
     expenses: Expense[],
   ): Promise<ExpenseServiceFunctions.ExpenseSubmissionResult[]> {
@@ -144,6 +152,7 @@ export const useDataStore = defineStore("dataStore", () => {
     clear,
     toJson,
     addDraftExpense,
+    amendDraftExpense,
     bulkAddDraftExpenses,
     getCompanyExpenseMappings,
     getCompanySettings,
