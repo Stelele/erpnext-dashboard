@@ -20,6 +20,7 @@
                 :ui="{ tr: 'data-[expanded=true]:bg-elevated/50' }"
                 class="flex-1 h-full"
                 loadingColor="primary"
+                @select="onRowSelect"
             >
                 <template #expanded="{ row }">
                     <div class="grid grid-cols-2 w-full md:w-1/2 px-1 md:px-4">
@@ -52,16 +53,25 @@
                         </div>
                     </div>
                     <div
-                        v-if="row.original.type === 'Order'"
-                        class="mt-4 pt-3 border-t border-(--ui-border)"
+                        class="mt-4 pt-3 border-t border-(--ui-border) flex flex-wrap gap-2"
                     >
                         <UButton
+                            v-if="row.original.type === 'Order'"
                             color="neutral"
                             variant="ghost"
                             icon="i-lucide-info"
                             @click="selectedOrderId = row.original.id"
                         >
                             View Order Details
+                        </UButton>
+                        <UButton
+                            v-if="row.original.status === 'Submitted'"
+                            color="error"
+                            variant="ghost"
+                            icon="i-lucide-x"
+                            @click="emit('cancel', row.original)"
+                        >
+                            Cancel
                         </UButton>
                     </div>
                 </template>
@@ -76,7 +86,7 @@
 
 <script setup lang="ts">
 import { h, ref, resolveComponent } from "vue";
-import type { TableColumn } from "@nuxt/ui";
+import type { TableColumn, TableRow } from "@nuxt/ui";
 import type { Payment } from "@/types/Expenses";
 import moment from "moment";
 import { formatNumber } from "@/utils/FormatNumber";
@@ -98,6 +108,13 @@ import OrderDetailsModal from "@/components/OrderDetailsModal.vue";
 const selectedOrderId = ref<string | null>(null);
 
 const expanded = ref({});
+
+function onRowSelect(e: Event, row: TableRow<Payment>) {
+    if (window.matchMedia("(min-width: 768px)").matches) return;
+    const target = e.target as HTMLElement;
+    if (target.closest("button")) return;
+    row.toggleExpanded();
+}
 
 const columns: TableColumn<Payment>[] = [
     {
@@ -186,8 +203,8 @@ const columns: TableColumn<Payment>[] = [
         header: "",
         meta: {
             class: {
-                th: "w-0",
-                td: "w-0",
+                th: "w-0 hidden md:table-cell",
+                td: "w-0 hidden md:table-cell",
             },
         },
         cell: ({ row }) => {

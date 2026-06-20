@@ -8,12 +8,12 @@
 
         <template v-else-if="invoice">
           <div class="grid grid-cols-2 gap-x-6 gap-y-2 mb-6">
+            <div class="text-sm text-muted">Date</div>
+            <div class="text-sm font-medium">{{ moment(invoice.posting_date).format("DD MMM YYYY") }}</div>
             <div class="text-sm text-muted">Supplier</div>
             <div class="text-sm font-medium">{{ invoice.supplier }}</div>
             <div class="text-sm text-muted">Invoice #</div>
             <div class="text-sm font-medium">{{ invoice.name }}</div>
-            <div class="text-sm text-muted">Date</div>
-            <div class="text-sm font-medium">{{ moment(invoice.posting_date).format("DD MMM YYYY") }}</div>
             <div class="text-sm text-muted">Total</div>
             <div class="text-sm font-medium">{{ formatNumber(invoice.grand_total, "currency") }}</div>
           </div>
