@@ -51,8 +51,25 @@
                             {{ formatNumber(row.original.amount, "currency") }}
                         </div>
                     </div>
+                    <div
+                        v-if="row.original.type === 'Order'"
+                        class="mt-4 pt-3 border-t border-(--ui-border)"
+                    >
+                        <UButton
+                            color="neutral"
+                            variant="ghost"
+                            icon="i-lucide-info"
+                            @click="selectedOrderId = row.original.id"
+                        >
+                            View Order Details
+                        </UButton>
+                    </div>
                 </template>
             </UTable>
+            <OrderDetailsModal
+                :purchase-invoice-id="selectedOrderId"
+                @close="selectedOrderId = null"
+            />
         </div>
     </UPageCard>
 </template>
@@ -75,6 +92,10 @@ const props = defineProps<{
 const emit = defineEmits<{
     cancel: [payment: Payment];
 }>();
+
+import OrderDetailsModal from "@/components/OrderDetailsModal.vue";
+
+const selectedOrderId = ref<string | null>(null);
 
 const expanded = ref({});
 
@@ -170,18 +191,39 @@ const columns: TableColumn<Payment>[] = [
             },
         },
         cell: ({ row }) => {
+            const buttons = [];
+
+            if (row.original.type === "Order") {
+                buttons.push(
+                    h(UButton, {
+                        color: "neutral",
+                        variant: "ghost",
+                        icon: "i-lucide-info",
+                        square: true,
+                        "aria-label": "Order details",
+                        onClick: () => {
+                            selectedOrderId.value = row.original.id;
+                        },
+                    })
+                );
+            }
+
             if (row.original.status === "Submitted") {
                 const label = row.original.type === "Order" ? "Cancel purchase" : "Cancel expense";
-                return h(UButton, {
-                    color: "error",
-                    variant: "ghost",
-                    icon: "i-lucide-x",
-                    square: true,
-                    "aria-label": label,
-                    onClick: () => emit("cancel", row.original),
-                });
+                buttons.push(
+                    h(UButton, {
+                        color: "error",
+                        variant: "ghost",
+                        icon: "i-lucide-x",
+                        square: true,
+                        "aria-label": label,
+                        onClick: () => emit("cancel", row.original),
+                    })
+                );
             }
-            return "";
+
+            if (buttons.length === 0) return "";
+            return h("div", { style: { display: "flex", gap: "4px" } }, buttons);
         },
     },
 ];

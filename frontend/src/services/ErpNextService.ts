@@ -12,6 +12,7 @@ import type {
   CompanyExpenseMapping,
   AccountMappings,
   AccountResponse,
+  PurchaseInvoiceResponse,
 } from "@/types/Expenses";
 import type { JournalEntry } from "@/types/JournalEntry";
 import type {
@@ -461,6 +462,15 @@ export class ErpNextService {
     } catch {
       return false;
     }
+  }
+
+  public getPurchaseInvoice(name: string) {
+    return this.instance
+      .get<PurchaseInvoiceResponse>(
+        `/api/resource/Purchase Invoice/${encodeURIComponent(name)}`
+      )
+      .then((resp) => resp.data)
+      .catch(() => undefined);
   }
 
   private getDateGrouping(grouping: Grouping) {

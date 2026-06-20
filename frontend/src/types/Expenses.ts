@@ -48,3 +48,20 @@ export interface AccountMappings {
   expenses: Record<string, AccountResponse>;
   income: AccountResponse | null;
 }
+
+export interface PurchaseInvoiceItem {
+  item_name: string;
+  qty: number;
+  rate: number;
+  amount: number;
+}
+
+export interface PurchaseInvoiceResponse {
+  data: {
+    name: string;
+    supplier: string;
+    posting_date: string;
+    grand_total: number;
+    items: PurchaseInvoiceItem[];
+  };
+}
