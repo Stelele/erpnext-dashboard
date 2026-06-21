@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Domain.CompanySettings;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -6,6 +7,11 @@ namespace Infrastructure.Models;
 
 public class CompanySettingsEntity : IEntityTypeConfiguration<CompanySettings>
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     public void Configure(EntityTypeBuilder<CompanySettings> builder)
     {
         builder.ToTable("CompanySettings");
@@ -41,11 +47,10 @@ public class CompanySettingsEntity : IEntityTypeConfiguration<CompanySettings>
 
         builder
             .Property(e => e.PackSizeMap)
-            .HasMaxLength(4000);
-
-        builder
-            .Property(e => e.AccountFilters)
-            .HasMaxLength(4000);
+            .HasMaxLength(4000)
+            .HasConversion(
+                v => v == null ? null : JsonSerializer.Serialize(v, JsonOptions),
+                v => string.IsNullOrEmpty(v) ? null : JsonSerializer.Deserialize<List<PackSizeEntry>>(v, JsonOptions));
 
         builder
             .HasIndex(e => e.CompanyId)

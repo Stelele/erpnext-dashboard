@@ -235,8 +235,12 @@ export interface components {
             primaryColor?: PrimaryColor | null;
             neutralColor?: NeutralColor | null;
             themeMode?: ThemeMode | null;
-            packSizeMap?: string | null;
-            accountFilters?: string | null;
+            packSizeMap?: {
+                itemName: string;
+                /** Format: int32 */
+                size: number;
+                unit: string;
+            }[] | null;
         };
         CreateCompanyRequest: {
             /** Format: uuid */
@@ -287,8 +291,12 @@ export interface components {
             primaryColor?: PrimaryColor | null;
             neutralColor?: NeutralColor | null;
             themeMode?: ThemeMode | null;
-            packSizeMap?: string | null;
-            accountFilters?: string | null;
+            packSizeMap?: {
+                itemName: string;
+                /** Format: int32 */
+                size: number;
+                unit: string;
+            }[] | null;
         };
         UpdateExpenseTypeRequest: {
             name: string;

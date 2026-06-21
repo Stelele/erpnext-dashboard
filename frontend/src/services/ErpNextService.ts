@@ -14,6 +14,7 @@ import type {
   AccountResponse,
   PurchaseInvoiceResponse,
   AmendPurchasePayload,
+  type PackSizeEntry,
 } from "@/types/Expenses";
 import type { JournalEntry } from "@/types/JournalEntry";
 import type {
@@ -67,8 +68,7 @@ export interface PurchaseResult {
 
 export class ErpNextService {
   private instance: Axios;
-  public packSizeMap?: string | null;
-  public accountFilters?: string | null;
+  public packSizeMap?: PackSizeEntry[] | null;
 
   public constructor() {
     const authStore = useAuthStore();
@@ -165,21 +165,21 @@ export class ErpNextService {
   public getStockLevels() {
     const authStore = useAuthStore();
 
-    const params: Record<string, unknown> = {
+    const body: Record<string, unknown> = {
       company: authStore.company,
       warehouse: "Stores",
     };
 
-    if (this.packSizeMap) {
-      try {
-        params.pack_size_map = JSON.parse(this.packSizeMap);
-      } catch { /* ignore invalid JSON */ }
+    if (this.packSizeMap && this.packSizeMap.length > 0) {
+      const apiMap: Record<string, { size: number; unit: string }> = {};
+      for (const entry of this.packSizeMap) {
+        apiMap[entry.itemName] = { size: entry.size, unit: entry.unit };
+      }
+      body.pack_size_map = apiMap;
     }
 
     return this.instance
-      .get<ErpNextResponse<StockDetail>>("/api/method/awesome_dashboard.api.stock.get_stock_levels", {
-        params,
-      })
+      .post<ErpNextResponse<StockDetail>>("/api/method/awesome_dashboard.api.stock.get_stock_levels", body)
       .then((resp) => resp?.data.message);
   }
 
@@ -243,23 +243,6 @@ export class ErpNextService {
         },
       })
       .then((resp) => resp?.data.message);
-
-    if (this.accountFilters && accounts) {
-      let excludeList: string[] = [];
-      try {
-        excludeList = JSON.parse(this.accountFilters);
-      } catch { /* ignore invalid JSON */ }
-
-      if (excludeList.length > 0) {
-        const excludeSet = new Set(excludeList.map((a) => a.toLowerCase()));
-        accounts.expense = accounts.expense.filter(
-          (a) => !excludeSet.has(a.account_name.toLowerCase()),
-        );
-        accounts.income = accounts.income.filter(
-          (a) => !excludeSet.has(a.account_name.toLowerCase()),
-        );
-      }
-    }
 
     return accounts;
   }

@@ -10,8 +10,7 @@ public record CompanySettingsResponse(
     PrimaryColor? PrimaryColor,
     NeutralColor? NeutralColor,
     ThemeMode? ThemeMode,
-    string? PackSizeMap,
-    string? AccountFilters
+    List<PackSizeEntry>? PackSizeMap
 )
 {
     public static CompanySettingsResponse FromDomain(CompanySettingsEntity settings) =>
@@ -22,7 +21,6 @@ public record CompanySettingsResponse(
             settings.PrimaryColor,
             settings.NeutralColor,
             settings.ThemeMode,
-            settings.PackSizeMap,
-            settings.AccountFilters
+            settings.PackSizeMap
         );
 }

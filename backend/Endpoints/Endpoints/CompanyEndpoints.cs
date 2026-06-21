@@ -82,8 +82,7 @@ public static class CompanyEndpoints
                     request.PrimaryColor,
                     request.NeutralColor,
                     request.ThemeMode,
-                    request.PackSizeMap,
-                    request.AccountFilters
+                    request.PackSizeMap
                 );
                 await mediator.Send(command);
                 return Results.NoContent();

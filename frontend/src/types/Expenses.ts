@@ -13,6 +13,12 @@ export interface CompanyExpenseMapping {
   erpnextAccountName: string;
 }
 
+export interface PackSizeEntry {
+  itemName: string;
+  size: number;
+  unit: string;
+}
+
 export interface CompanySettings {
   id: string;
   companyId: string;
@@ -20,8 +26,7 @@ export interface CompanySettings {
   primaryColor?: PrimaryColor | null;
   neutralColor?: NeutralColor | null;
   themeMode?: ThemeMode | null;
-  packSizeMap?: string | null;
-  accountFilters?: string | null;
+  packSizeMap?: PackSizeEntry[] | null;
 }
 
 export interface Expense {

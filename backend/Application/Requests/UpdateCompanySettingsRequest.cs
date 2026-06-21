@@ -8,8 +8,7 @@ public record UpdateCompanySettingsRequest(
     PrimaryColor? PrimaryColor = null,
     NeutralColor? NeutralColor = null,
     ThemeMode? ThemeMode = null,
-    string? PackSizeMap = null,
-    string? AccountFilters = null
+    List<PackSizeEntry>? PackSizeMap = null
 );
 
 public class UpdateCompanySettingsRequestValidator : AbstractValidator<UpdateCompanySettingsRequest>

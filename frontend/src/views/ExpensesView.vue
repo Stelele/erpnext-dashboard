@@ -226,7 +226,6 @@ async function loadCompanyData(id: string) {
     await dataStore.initAccountMappings(
         mappings.value,
         settings?.defaultIncomeAccountName ?? "Sales",
-        id,
     );
 }
 
