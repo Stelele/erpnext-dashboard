@@ -240,6 +240,7 @@ async function onSubmit(expense: Expense) {
             title: `Expense submitted successfully: ${response.name}`,
             color: "success",
         });
+        dataStore.update();
     } else {
         toast.add({
             title: "Failed to submit expense",
@@ -267,6 +268,7 @@ async function onBulkSubmit(expenses: UniqueExpense[]) {
             title: `Successfully submitted ${successCount} expenses`,
             color: "success",
         });
+        dataStore.update();
     }
     if (failureCount > 0) {
         toast.add({

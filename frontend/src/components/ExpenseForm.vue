@@ -172,7 +172,7 @@ const schema = z.object({
         ),
     expenseTypeId: z.enum(expenseTypeIds.value, "Please select an expense type"),
     amount: z.number({ message: "Please enter an amount" }).gt(0, "Amount must be greater than 0"),
-    description: z.string({ message: "Please enter a description" }).min(10, "Description must be at least 10 characters"),
+    description: z.string({ message: "Please enter a description" }).min(1, "Description must be at least 1 character"),
 });
 type Schema = z.output<typeof schema>;
 
