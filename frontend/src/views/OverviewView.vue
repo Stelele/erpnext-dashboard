@@ -7,6 +7,7 @@
             :value="item.value"
             :direction="item.direction"
             :percent-change="item.percentChange"
+            :format="item.format"
         />
         <CardBarChart
             :title="overViewDataStore.prevXGroupingSalesTitle"
@@ -39,6 +40,7 @@ const items = computed<NumberCardProps[]>(() => [
         value: overViewDataStore.nrSales.value,
         direction: overViewDataStore.nrSales.direction,
         percentChange: overViewDataStore.nrSales.percentChange,
+        format: "decimal",
     },
     {
         title: "Total Sales ($)",

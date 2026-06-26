@@ -25,6 +25,7 @@
             :value="item.value"
             :direction="item.direction"
             :percent-change="item.percentChange"
+            :format="item.format"
         />
         <CardBubbleChart
             :isLoading="dataStore.loading"

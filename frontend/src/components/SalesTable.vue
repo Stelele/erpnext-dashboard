@@ -157,10 +157,7 @@ const columns: TableColumn<SalesDetail>[] = [
         header: "Quantity",
         cell: ({ row }) => {
             const qty = Number.parseFloat(row.getValue("qty"));
-            return new Intl.NumberFormat("en-ZW", {
-                style: "decimal",
-                maximumFractionDigits: 2,
-            }).format(qty);
+            return formatNumber(qty, "decimal");
         },
         aggregationFn: "sum",
     },
@@ -181,10 +178,7 @@ const columns: TableColumn<SalesDetail>[] = [
         },
         cell: ({ row }) => {
             const amount = Number.parseFloat(row.getValue("item_total_amount"));
-            return new Intl.NumberFormat("en-ZW", {
-                style: "currency",
-                currency: "USD",
-            }).format(amount);
+            return formatNumber(amount, "currency");
         },
         aggregationFn: "sum",
     },

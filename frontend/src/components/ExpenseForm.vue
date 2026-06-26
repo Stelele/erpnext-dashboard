@@ -99,7 +99,7 @@
                     </div>
                     <div class="flex justify-between">
                         <span class="text-[var(--ui-text-muted)]">Amount</span>
-                        <span class="font-medium">{{ state.amount.toFixed(2) }}</span>
+                        <span class="font-medium">{{ formatNumber(state.amount, "decimal") }}</span>
                     </div>
                     <div class="flex justify-between">
                         <span class="text-[var(--ui-text-muted)]">Description</span>
@@ -125,6 +125,7 @@ import * as z from "zod";
 import moment from "moment";
 import { computed, reactive, ref, shallowRef, watch } from "vue";
 import type { Expense, CompanyExpenseMapping } from "@/types/Expenses";
+import { formatNumber } from "@/utils/FormatNumber";
 
 const props = defineProps<{
     mappings: CompanyExpenseMapping[];

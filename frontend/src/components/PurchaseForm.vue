@@ -81,7 +81,7 @@
             <UInput v-model="item.rate" type="number" :min="0" :step="0.01" class="w-full" :disabled="submitting" />
             <UInput v-model="item.sell_rate" type="number" :min="0" :step="0.01" class="w-full" :disabled="submitting" />
             <div class="flex items-center justify-end text-sm font-medium">
-              {{ ((item.qty || 0) * (item.rate || 0)).toFixed(2) }}
+              {{ formatNumber((item.qty || 0) * (item.rate || 0), "decimal") }}
             </div>
             <UButton color="error" variant="ghost" icon="i-lucide-x" size="sm" :disabled="submitting" @click="removeItem(idx)" />
           </div>
@@ -182,7 +182,7 @@
               <template #footer>
                 <div class="text-right text-xs">
                   <span class="text-[var(--ui-text-muted)]">Total Buy: </span>
-                  <span class="font-medium">{{ ((item.qty || 0) * (item.rate || 0)).toFixed(2) }}</span>
+                  <span class="font-medium">{{ formatNumber((item.qty || 0) * (item.rate || 0), "decimal") }}</span>
                 </div>
               </template>
             </UCard>
@@ -192,7 +192,7 @@
 
       <!-- Shared footer (rendered on both layouts — inside UForm) -->
       <div class="flex justify-between items-center pt-4 border-t border-[var(--ui-border)]">
-        <span class="text-lg font-bold">Total: {{ grandTotal.toFixed(2) }}</span>
+        <span class="text-lg font-bold">Total: {{ formatNumber(grandTotal, "decimal") }}</span>
         <UButton type="submit" color="primary" :loading="submitting" :disabled="submitting">
           {{ amendOrder ? 'Amend Order' : 'Submit Purchase' }}
         </UButton>
@@ -230,7 +230,7 @@
           <div class="space-y-1.5">
             <div v-for="(item, idx) in validItems" :key="idx" class="flex justify-between">
               <span class="font-medium">{{ item.item_name }}</span>
-              <span class="text-[var(--ui-text-muted)]">{{ item.qty }} × {{ item.rate.toFixed(2) }} = {{ (item.qty * item.rate).toFixed(2) }}</span>
+              <span class="text-[var(--ui-text-muted)]">{{ item.qty }} × {{ formatNumber(item.rate, "decimal") }} = {{ formatNumber(item.qty * item.rate, "decimal") }}</span>
             </div>
           </div>
         </div>
@@ -239,7 +239,7 @@
 
         <div class="flex justify-between items-center">
           <span class="font-semibold">Total</span>
-          <span class="text-base font-bold">{{ grandTotal.toFixed(2) }}</span>
+          <span class="text-base font-bold">{{ formatNumber(grandTotal, "decimal") }}</span>
         </div>
       </div>
       <div class="flex justify-end gap-2">
@@ -264,6 +264,7 @@ import { computed, reactive, ref, shallowRef, watch, onMounted } from "vue";
 import { ErpNextService, type ItemOption, type SupplierOption, type WarehouseOption } from "@/services/ErpNextService";
 import CreateItemModal from "@/components/CreateItemModal.vue";
 import CreateSupplierModal from "@/components/CreateSupplierModal.vue";
+import { formatNumber } from "@/utils/FormatNumber";
 
 const toast = useToast();
 

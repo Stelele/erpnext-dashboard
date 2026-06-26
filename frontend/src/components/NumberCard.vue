@@ -37,6 +37,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useColorMode } from "@vueuse/core";
+import { formatNumber } from "@/utils/FormatNumber";
 
 export type ChangeDirection = "up" | "down" | "flat";
 export interface NumberCardProps {
@@ -44,6 +45,7 @@ export interface NumberCardProps {
     value: number;
     direction?: ChangeDirection;
     percentChange?: number;
+    format?: "decimal" | "currency";
 }
 const props = defineProps<NumberCardProps>();
 const colorMode = useColorMode();
@@ -52,10 +54,7 @@ const formatedValue = computed(() => {
     if (Number.isNaN(props.value)) {
         return "-";
     }
-    if (Math.abs(props.value) - Math.floor(Math.abs(props.value)) === 0) {
-        return props.value;
-    }
-    return props.value.toFixed(2);
+    return formatNumber(props.value, props.format ?? "decimal");
 });
 
 const icon = computed(() => {
