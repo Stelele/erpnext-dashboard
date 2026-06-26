@@ -18,7 +18,7 @@ export function formatNumber(value: number, format: "decimal" | "currency") {
   return addSpaceGrouping(
     new Intl.NumberFormat("en-ZW", {
       style: "decimal",
-      maximumFractionDigits: 3,
+      maximumFractionDigits: 2,
       useGrouping: false,
     }).format(value)
   );
