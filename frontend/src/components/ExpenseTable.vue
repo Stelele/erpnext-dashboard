@@ -123,6 +123,10 @@
             </UTable>
 
         </div>
+            <OrderDetailsModal
+                :purchase-invoice-id="selectedOrderId"
+                @close="selectedOrderId = null"
+            />
     </UPageCard>
 </template>
 
@@ -134,6 +138,7 @@ import moment from "moment";
 import { formatNumber } from "@/utils/FormatNumber";
 import { ErpNextService } from "@/services/ErpNextService";
 import type { PurchaseInvoiceResponse } from "@/types/Expenses";
+import OrderDetailsModal from "@/components/OrderDetailsModal.vue";
 
 const UBadge = resolveComponent("UBadge");
 const UButton = resolveComponent("UButton");
@@ -155,6 +160,7 @@ const invoiceLoading = ref<Set<string>>(new Set());
 const invoiceError = ref<Set<string>>(new Set());
 
 const expanded = ref<Record<string, boolean>>({});
+const selectedOrderId = ref<string | null>(null);
 
 watch(expanded, (newVal: Record<string, boolean>, oldVal: Record<string, boolean>) => {
   const oldExpanded = new Set(oldVal ? Object.keys(oldVal).filter((k) => oldVal[k]) : []);
@@ -304,6 +310,21 @@ const columns: TableColumn<Payment>[] = [
         },
         cell: ({ row }) => {
             const buttons = [];
+
+            if (row.original.type === "Order") {
+                buttons.push(
+                    h(UButton, {
+                        color: "neutral",
+                        variant: "ghost",
+                        icon: "i-lucide-info",
+                        square: true,
+                        "aria-label": "Order details",
+                        onClick: () => {
+                            selectedOrderId.value = row.original.id;
+                        },
+                    })
+                );
+            }
 
             if (row.original.status === "Submitted") {
                 const cancelLabel = row.original.type === "Order" ? "Cancel purchase" : "Cancel expense";
