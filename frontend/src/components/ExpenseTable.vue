@@ -85,11 +85,11 @@
                             <div v-else role="grid" tabindex="0" class="border border-(--ui-border) rounded-md overflow-hidden max-h-36 overflow-y-auto">
                                 <div class="grid grid-cols-[1fr_auto_auto] gap-x-3">
                                     <div role="columnheader" class="px-3 py-1.5 bg-(--ui-bg-elevated) text-xs text-(--ui-text-muted) uppercase sticky top-0">Item</div>
-                                    <div role="columnheader" class="px-3 py-1.5 bg-(--ui-bg-elevated) text-xs text-(--ui-text-muted) uppercase sticky top-0">Qty</div>
+                                    <div role="columnheader" class="px-3 py-1.5 bg-(--ui-bg-elevated) text-xs text-(--ui-text-muted) uppercase sticky top-0 text-right">Qty</div>
                                     <div role="columnheader" class="px-3 py-1.5 bg-(--ui-bg-elevated) text-xs text-(--ui-text-muted) uppercase sticky top-0 text-right">Total</div>
                                     <template v-for="item in invoiceFor(row.original.id)!.items" :key="item.item_code">
                                         <div role="gridcell" class="px-3 py-1.5 text-sm border-t border-(--ui-border) truncate">{{ item.item_name }}</div>
-                                        <div role="gridcell" class="px-3 py-1.5 text-sm border-t border-(--ui-border) tabular-nums">{{ item.qty }}</div>
+                                        <div role="gridcell" class="px-3 py-1.5 text-sm border-t border-(--ui-border) text-right tabular-nums">{{ item.qty }}</div>
                                         <div role="gridcell" class="px-3 py-1.5 text-sm border-t border-(--ui-border) text-right tabular-nums font-medium">{{ formatNumber(item.amount, "currency") }}</div>
                                     </template>
                                 </div>
