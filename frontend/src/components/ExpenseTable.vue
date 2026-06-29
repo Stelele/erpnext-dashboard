@@ -17,88 +17,123 @@
                 :data="props.data"
                 :columns="columns"
                 :loading="props.loading"
+                :get-row-id="(row: any) => row.id"
                 :ui="{ tr: 'data-[expanded=true]:bg-elevated/50' }"
                 class="flex-1 h-full"
                 loadingColor="primary"
                 @select="onRowSelect"
             >
                 <template #expanded="{ row }">
-                    <div class="grid grid-cols-2 w-full md:w-1/2 px-1 md:px-4">
-                        <div>Date</div>
-                        <div>
-                            {{
-                                moment(row.original.date).format("DD MMM YYYY")
-                            }}
+                    <div class="mx-2 mb-2 rounded-lg border border-(--ui-border) bg-(--ui-bg-elevated)/60 p-3 shadow-sm">
+                        <!-- Section 1: Summary -->
+                        <div class="grid grid-cols-2 gap-x-4 gap-y-1 text-sm items-start">
+                            <div class="text-(--ui-text-muted)">Date</div>
+                            <div>{{ moment(row.original.date).format("DD MMM YYYY") }}</div>
+                            <div class="text-(--ui-text-muted)">#</div>
+                            <div class="truncate">{{ row.original.id }}</div>
+                            <div class="text-(--ui-text-muted)">Status</div>
+                            <div>
+                                <UBadge class="capitalize" variant="subtle" :color="getStatusColor(row.original.status)">
+                                    {{ row.original.status }}
+                                </UBadge>
+                            </div>
+                            <div class="text-(--ui-text-muted)">Type</div>
+                            <div>{{ row.original.type }}</div>
+                            <div class="text-(--ui-text-muted)">
+                                {{ row.original.type === 'Order' ? 'Supplier' : 'Description' }}
+                            </div>
+                            <div class="text-wrap break-words">
+                                {{ row.original.type === 'Order' ? (invoiceFor(row.original.id)?.supplier ?? '—') : row.original.description }}
+                            </div>
+                            <div class="text-(--ui-text-muted)">Amount</div>
+                            <div class="font-medium">{{ formatNumber(row.original.amount, "currency") }}</div>
                         </div>
-                        <div>#</div>
-                        <div>{{ row.original.id }}</div>
-                        <div>Status</div>
-                        <div>
-                            <UBadge
-                                class="capitalize"
-                                variant="subtle"
-                                :color="getStatusColor(row.original.status)"
-                                >{{ row.original.status }}</UBadge
+
+                        <!-- Section 2: Line Items (Order type only) -->
+                        <template v-if="row.original.type === 'Order'">
+                            <div class="my-3 border-t border-(--ui-border)"></div>
+                            <div class="flex items-center gap-2 mb-2">
+                                <span class="text-xs text-(--ui-text-muted) uppercase tracking-wider">Line Items</span>
+                                <span class="text-xs text-(--ui-text-muted)">
+                                    &middot; {{ invoiceFor(row.original.id)?.items?.length ?? 0 }}
+                                </span>
+                            </div>
+
+                            <!-- Loading skeleton -->
+                            <div v-if="isInvoiceLoading(row.original.id)" class="animate-pulse space-y-2 py-1">
+                                <div class="h-3 bg-(--ui-border) rounded w-full"></div>
+                                <div class="h-3 bg-(--ui-border) rounded w-3/4"></div>
+                                <div class="h-3 bg-(--ui-border) rounded w-5/6"></div>
+                                <div class="h-3 bg-(--ui-border) rounded w-1/2"></div>
+                            </div>
+
+                            <!-- Error state -->
+                            <div v-else-if="hasInvoiceError(row.original.id)" class="flex items-center gap-2 py-1 text-sm text-(--ui-error)">
+                                <span class="i-lucide-alert-circle size-4 inline-block"></span>
+                                <span>Failed to load line items</span>
+                                <UButton size="xs" variant="ghost" color="error" @click="fetchInvoice(row.original.id)">
+                                    Retry
+                                </UButton>
+                            </div>
+
+                            <!-- Empty items -->
+                            <div v-else-if="!invoiceFor(row.original.id)?.items?.length" class="py-1 text-xs text-(--ui-text-muted)">
+                                No line items
+                            </div>
+
+                            <!-- Line items table -->
+                            <div v-else role="grid" tabindex="0" class="border border-(--ui-border) rounded-md overflow-hidden max-h-36 overflow-y-auto">
+                                <div class="grid grid-cols-[1fr_auto_auto] gap-x-3">
+                                    <div role="columnheader" class="px-3 py-1.5 bg-(--ui-bg-elevated) text-xs text-(--ui-text-muted) uppercase sticky top-0">Item</div>
+                                    <div role="columnheader" class="px-3 py-1.5 bg-(--ui-bg-elevated) text-xs text-(--ui-text-muted) uppercase sticky top-0">Qty</div>
+                                    <div role="columnheader" class="px-3 py-1.5 bg-(--ui-bg-elevated) text-xs text-(--ui-text-muted) uppercase sticky top-0 text-right">Total</div>
+                                    <template v-for="item in invoiceFor(row.original.id)!.items" :key="item.item_code">
+                                        <div role="gridcell" class="px-3 py-1.5 text-sm border-t border-(--ui-border) truncate">{{ item.item_name }}</div>
+                                        <div role="gridcell" class="px-3 py-1.5 text-sm border-t border-(--ui-border) tabular-nums">{{ item.qty }}</div>
+                                        <div role="gridcell" class="px-3 py-1.5 text-sm border-t border-(--ui-border) text-right tabular-nums font-medium">{{ formatNumber(item.amount, "currency") }}</div>
+                                    </template>
+                                </div>
+                            </div>
+                        </template>
+
+                        <!-- Section 3: Actions -->
+                        <div
+                            v-if="row.original.status === 'Submitted'"
+                            class="mt-3 pt-3 border-t border-(--ui-border) flex gap-2"
+                        >
+                            <UButton
+                                color="error"
+                                variant="ghost"
+                                icon="i-lucide-x"
+                                @click="emit('cancel', row.original)"
                             >
+                                Cancel
+                            </UButton>
+                            <UButton
+                                color="success"
+                                variant="ghost"
+                                icon="i-lucide-pencil"
+                                @click="emit('amend', row.original)"
+                            >
+                                Amend
+                            </UButton>
                         </div>
-                        <div>Type</div>
-                        <div>{{ row.original.type }}</div>
-                        <div>Desciption</div>
-                        <div class="text-wrap">
-                            {{ row.original.description }}
-                        </div>
-                        <div>Amount</div>
-                        <div>
-                            {{ formatNumber(row.original.amount, "currency") }}
-                        </div>
-                    </div>
-                    <div
-                        class="mt-4 pt-3 border-t border-(--ui-border) flex flex-wrap gap-2"
-                    >
-                        <UButton
-                            v-if="row.original.type === 'Order'"
-                            color="neutral"
-                            variant="ghost"
-                            icon="i-lucide-info"
-                            @click="selectedOrderId = row.original.id"
-                        >
-                            View Order Details
-                        </UButton>
-                        <UButton
-                            v-if="row.original.status === 'Submitted'"
-                            color="error"
-                            variant="ghost"
-                            icon="i-lucide-x"
-                            @click="emit('cancel', row.original)"
-                        >
-                            Cancel
-                        </UButton>
-                        <UButton
-                            v-if="row.original.status === 'Submitted'"
-                            color="success"
-                            variant="ghost"
-                            icon="i-lucide-pencil"
-                            @click="emit('amend', row.original)"
-                        >
-                            Amend
-                        </UButton>
                     </div>
                 </template>
             </UTable>
-            <OrderDetailsModal
-                :purchase-invoice-id="selectedOrderId"
-                @close="selectedOrderId = null"
-            />
+
         </div>
     </UPageCard>
 </template>
 
 <script setup lang="ts">
-import { h, ref, resolveComponent } from "vue";
+import { h, ref, resolveComponent, watch } from "vue";
 import type { TableColumn, TableRow } from "@nuxt/ui";
 import type { Payment } from "@/types/Expenses";
 import moment from "moment";
 import { formatNumber } from "@/utils/FormatNumber";
+import { ErpNextService } from "@/services/ErpNextService";
+import type { PurchaseInvoiceResponse } from "@/types/Expenses";
 
 const UBadge = resolveComponent("UBadge");
 const UButton = resolveComponent("UButton");
@@ -113,11 +148,61 @@ const emit = defineEmits<{
     amend: [payment: Payment];
 }>();
 
-import OrderDetailsModal from "@/components/OrderDetailsModal.vue";
+const erpnext = new ErpNextService();
 
-const selectedOrderId = ref<string | null>(null);
+const purchaseInvoices = ref<Map<string, PurchaseInvoiceResponse["data"]>>(new Map());
+const invoiceLoading = ref<Set<string>>(new Set());
+const invoiceError = ref<Set<string>>(new Set());
 
-const expanded = ref({});
+const expanded = ref<Record<string, boolean>>({});
+
+watch(expanded, (newVal: Record<string, boolean>, oldVal: Record<string, boolean>) => {
+  const oldExpanded = new Set(oldVal ? Object.keys(oldVal).filter((k) => oldVal[k]) : []);
+  const newExpanded = Object.keys(newVal).filter((k) => newVal[k]);
+  for (const key of newExpanded) {
+    if (!oldExpanded.has(key)) {
+      const payment = props.data.find((p) => p.id === key);
+      if (payment?.type === "Order") {
+        ensureInvoice(key);
+      }
+    }
+  }
+}, { deep: true });
+
+function ensureInvoice(id: string) {
+    if (purchaseInvoices.value.has(id) || invoiceLoading.value.has(id)) return;
+    fetchInvoice(id);
+}
+
+function fetchInvoice(id: string) {
+    invoiceError.value.delete(id);
+    if (invoiceLoading.value.has(id)) return;
+    invoiceLoading.value.add(id);
+    erpnext.getPurchaseInvoice(id).then((resp) => {
+        invoiceLoading.value.delete(id);
+        if (resp?.data) {
+            invoiceError.value.delete(id);
+            purchaseInvoices.value.set(id, resp.data);
+        } else {
+            invoiceError.value.add(id);
+        }
+    }).catch(() => {
+        invoiceLoading.value.delete(id);
+        invoiceError.value.add(id);
+    });
+}
+
+function invoiceFor(id: string): PurchaseInvoiceResponse["data"] | undefined {
+    return purchaseInvoices.value.get(id);
+}
+
+function isInvoiceLoading(id: string): boolean {
+    return invoiceLoading.value.has(id);
+}
+
+function hasInvoiceError(id: string): boolean {
+    return invoiceError.value.has(id);
+}
 
 function onRowSelect(e: Event, row: TableRow<Payment>) {
     if (window.matchMedia("(min-width: 768px)").matches) return;
@@ -220,21 +305,6 @@ const columns: TableColumn<Payment>[] = [
         cell: ({ row }) => {
             const buttons = [];
 
-            if (row.original.type === "Order") {
-                buttons.push(
-                    h(UButton, {
-                        color: "neutral",
-                        variant: "ghost",
-                        icon: "i-lucide-info",
-                        square: true,
-                        "aria-label": "Order details",
-                        onClick: () => {
-                            selectedOrderId.value = row.original.id;
-                        },
-                    })
-                );
-            }
-
             if (row.original.status === "Submitted") {
                 const cancelLabel = row.original.type === "Order" ? "Cancel purchase" : "Cancel expense";
                 buttons.push(
@@ -280,6 +350,6 @@ function getStatusColor(status: Payment["status"]) {
         Submitted: "success" as const,
         Cancelled: "error" as const,
         Draft: "neutral" as const,
-    }[status];
+    }[status] ?? "neutral" as const;
 }
 </script>
