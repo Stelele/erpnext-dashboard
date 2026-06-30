@@ -159,6 +159,12 @@ const purchaseInvoices = ref<Map<string, PurchaseInvoiceResponse["data"]>>(new M
 const invoiceLoading = ref<Set<string>>(new Set());
 const invoiceError = ref<Set<string>>(new Set());
 
+watch(() => props.data, () => {
+    purchaseInvoices.value.clear();
+    invoiceLoading.value.clear();
+    invoiceError.value.clear();
+});
+
 const expanded = ref<Record<string, boolean>>({});
 const selectedOrderId = ref<string | null>(null);
 
