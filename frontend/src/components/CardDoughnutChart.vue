@@ -59,6 +59,10 @@ export interface DoughnutChartDataSet {
 const props = defineProps<DoughnutChartProps>();
 const colorMode = useColorMode();
 
+const neutral900 = computed(() =>
+    colorMode.value === "dark" ? "#0f172b" : "#dcdfe3" ,
+);
+
 const chartData = computed<ChartData<"doughnut">>(() => {
     const data: ChartData<"doughnut"> = {
         labels: props.data.labels,
@@ -70,13 +74,11 @@ const chartData = computed<ChartData<"doughnut">>(() => {
         const dataSet = dataSets[i];
         if (!dataSet) continue;
 
-        const neutral900 = getComputedStyle(document.documentElement).getPropertyValue('--ui-color-neutral-900').trim()
-
         data.datasets.push({
             label: dataSet.label,
             data: dataSet.data,
             backgroundColor: dataSet.data.map((_, idx) => getChartJsColor(idx)),
-            borderColor: colorMode.value === "dark" ? neutral900 : undefined,
+            borderColor: colorMode.value === "dark" ? neutral900.value : undefined,
         });
     }
 

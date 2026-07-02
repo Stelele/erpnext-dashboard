@@ -74,9 +74,6 @@ const chartData = computed(() => {
     const maxRadius = 20;
     const minRadius = 5;
 
-    JSON.stringify(props.tooltipLabels);
-    JSON.stringify(props.additionalData);
-
     const datasets = props.datasets.map((dataset, idx) => {
         const maxR = Math.max(...dataset.data.map((dataPoint) => dataPoint.r));
         return {

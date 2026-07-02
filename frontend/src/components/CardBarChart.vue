@@ -72,6 +72,10 @@ const props = withDefaults(defineProps<CardBarChartProps>(), {
 });
 const colorMode = useColorMode();
 
+const neutral900 = computed(() =>
+    colorMode.value === "dark" ? "#dcdfe3" : "#0f172b",
+);
+
 const chartData = computed<ChartData<"bar">>(() => {
     const data: ChartData<"bar"> = {
         labels: props.data.labels,
@@ -83,13 +87,11 @@ const chartData = computed<ChartData<"bar">>(() => {
         const dataSet = dataSets[i];
         if (!dataSet) continue;
 
-        const neutral900 = getComputedStyle(document.documentElement).getPropertyValue('--ui-color-neutral-900').trim()
-
         data.datasets.push({
             label: dataSet.label,
             data: dataSet.data,
             backgroundColor: getChartJsColor(i),
-            borderColor: neutral900 || "#0f172b",
+            borderColor: neutral900.value,
         });
     }
 
