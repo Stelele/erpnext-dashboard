@@ -1,84 +1,84 @@
 <template>
     <UPageCard
-        class="min-h-96 max-h-[86vh] col-span-6"
+        class="min-h-96 col-span-6"
         title="Current Stock Levels"
         :ui="{
             container: 'gap-y-1.5',
-            wrapper: 'items-start',
+            wrapper: 'flex-initial items-start',
             leading:
                 'p-2.5 rounded-full bg-primary/10 ring ring-inset ring-primary/25 flex-col',
             title: 'font-bold text-xs uppercase',
         }"
     >
-        <div class="overflow-x-auto">
-            <UTable
-                v-model:expanded="expanded"
-                :sticky="true"
-                :data="props.data"
-                :columns="columns"
-                :loading="props.loading"
-                :ui="{ tr: 'data-[expanded=true]:bg-elevated/50' }"
-                class="flex-1 h-full"
-                loadingColor="primary"
-            >
-                <template #expanded="{ row }">
-                    <div
-                        class="grid grid-cols-2 w-full md:w-1/2 px-1 md:px-4 text-wrap"
-                    >
-                        <div>Item</div>
-                        <div>
-                            {{ row.original.item_name }}
-                        </div>
-                        <div>Group</div>
-                        <div>{{ row.original.item_group }}</div>
-                        <div>Current Quantity</div>
-                        <div>
-                            {{ formatNumber(row.original.real_qty, "decimal") }}
-                        </div>
-                        <div v-if="row.original.pack_size">Pack Size</div>
-                        <div v-if="row.original.pack_size">
-                            {{ row.original.pack_size }}
-                        </div>
-                        <div>Unit Order Price</div>
-                        <div>
-                            {{
-                                formatNumber(
-                                    row.original.buying_price,
-                                    "currency",
-                                )
-                            }}
-                        </div>
-                        <div>Unit Selling Price</div>
-                        <div>
-                            {{
-                                formatNumber(
-                                    row.original.selling_price,
-                                    "currency",
-                                )
-                            }}
-                        </div>
-                        <div>Unit Gross Profit</div>
-                        <div>
-                            {{
-                                formatNumber(
-                                    row.original.gross_profit,
-                                    "currency",
-                                )
-                            }}
-                        </div>
-                        <div>Total Gross Profit</div>
-                        <div>
-                            {{
-                                formatNumber(
-                                    row.original.total_gross_profit,
-                                    "currency",
-                                )
-                            }}
-                        </div>
+        <UTable
+            v-model:expanded="expanded"
+            :sticky="true"
+            :virtualize="true"
+            :data="props.data"
+            :columns="columns"
+            :loading="props.loading"
+            :get-row-id="(row: StockRow) => row.item_code"
+            :ui="{ tr: 'data-[expanded=true]:bg-elevated/50', root: 'max-h-[86vh] overflow-auto' }"
+            class="flex-1"
+            loadingColor="primary"
+        >
+            <template #expanded="{ row }">
+                <div
+                    class="grid grid-cols-2 w-full md:w-1/2 px-1 md:px-4 text-wrap"
+                >
+                    <div>Item</div>
+                    <div>
+                        {{ row.original.item_name }}
                     </div>
-                </template>
-            </UTable>
-        </div>
+                    <div>Group</div>
+                    <div>{{ row.original.item_group }}</div>
+                    <div>Current Quantity</div>
+                    <div>
+                        {{ formatNumber(row.original.real_qty, "decimal") }}
+                    </div>
+                    <div v-if="row.original.pack_size">Pack Size</div>
+                    <div v-if="row.original.pack_size">
+                        {{ row.original.pack_size }}
+                    </div>
+                    <div>Unit Order Price</div>
+                    <div>
+                        {{
+                            formatNumber(
+                                row.original.buying_price,
+                                "currency",
+                            )
+                        }}
+                    </div>
+                    <div>Unit Selling Price</div>
+                    <div>
+                        {{
+                            formatNumber(
+                                row.original.selling_price,
+                                "currency",
+                            )
+                        }}
+                    </div>
+                    <div>Unit Gross Profit</div>
+                    <div>
+                        {{
+                            formatNumber(
+                                row.original.gross_profit,
+                                "currency",
+                            )
+                        }}
+                    </div>
+                    <div>Total Gross Profit</div>
+                    <div>
+                        {{
+                            formatNumber(
+                                row.original.total_gross_profit,
+                                "currency",
+                            )
+                        }}
+                    </div>
+                </div>
+            </template>
+        </UTable>
     </UPageCard>
 </template>
 

@@ -1,28 +1,28 @@
 <template>
     <UPageCard
-        class="min-h-96 max-h-[86vh] col-span-6"
+        class="min-h-96 col-span-6"
         title="Expenses"
         :ui="{
             container: 'gap-y-1.5',
-            wrapper: 'items-start',
+            wrapper: 'flex-initial items-start',
             leading:
                 'p-2.5 rounded-full bg-primary/10 ring ring-inset ring-primary/25 flex-col',
             title: 'font-bold text-xs uppercase',
         }"
     >
-        <div class="overflow-x-auto">
-            <UTable
-                v-model:expanded="expanded"
-                :sticky="true"
-                :data="props.data"
-                :columns="columns"
-                :loading="props.loading"
-                :get-row-id="(row: any) => row.id"
-                :ui="{ tr: 'data-[expanded=true]:bg-elevated/50' }"
-                class="flex-1 h-full"
-                loadingColor="primary"
-                @select="onRowSelect"
-            >
+        <UTable
+            v-model:expanded="expanded"
+            :sticky="true"
+            :virtualize="true"
+            :data="props.data"
+            :columns="columns"
+            :loading="props.loading"
+            :get-row-id="(row: any) => row.id"
+            :ui="{ tr: 'data-[expanded=true]:bg-elevated/50', root: 'max-h-[86vh] overflow-auto' }"
+            class="flex-1"
+            loadingColor="primary"
+            @select="onRowSelect"
+        >
                 <template #expanded="{ row }">
                     <div class="mx-2 mb-2 rounded-lg border border-(--ui-border) bg-(--ui-bg-elevated)/60 p-3 shadow-sm">
                         <!-- Section 1: Summary -->
@@ -122,11 +122,10 @@
                 </template>
             </UTable>
 
-        </div>
-            <OrderDetailsModal
-                :purchase-invoice-id="selectedOrderId"
-                @close="selectedOrderId = null"
-            />
+        <OrderDetailsModal
+            :purchase-invoice-id="selectedOrderId"
+            @close="selectedOrderId = null"
+        />
     </UPageCard>
 </template>
 

@@ -4,7 +4,7 @@
         title="Sales"
         :ui="{
             container: 'gap-y-1.5',
-            wrapper: 'items-start',
+            wrapper: 'flex-initial items-start',
             leading:
                 'p-2.5 rounded-full bg-primary/10 ring ring-inset ring-primary/25 flex-col',
             title: 'font-bold text-xl md:text-xs uppercase',
@@ -18,9 +18,11 @@
                     :grouping="['posting_date', 'item_group']"
                     :grouping-options="grouping_options"
                     :loading="props.loading"
+                    :sticky="true"
+                    :virtualize="true"
                     :ui="{
-                        root: 'min-w-full',
-                        td: 'empty:p-0', // helps with the colspaned row added for expand slot
+                        root: 'min-w-full max-h-[86vh] overflow-auto',
+                        td: 'empty:p-0',
                     }"
                 >
                     <template #title-cell="{ row }">
@@ -59,21 +61,22 @@
                     </template>
                 </UTable>
             </div>
-            <div class="md:hidden space-y-4">
-                <div v-for="date in props.mobileSalesDateDetails" :key="date">
-                    <h3 class="font-bold text-lg p-2">
-                        {{ date }}
-                    </h3>
-
+            <div ref="mobileWrapperRef" class="md:hidden overflow-auto max-h-[86vh]">
+                <div :style="{ height: mobileTopSpacer + 'px' }"></div>
+                <div v-for="row in mobileVisibleRows" :key="mobileRowKey(row)">
+                    <template v-if="row.type === 'date'">
+                        <h3 class="font-bold text-lg p-2">
+                            {{ row.date }}
+                        </h3>
+                    </template>
                     <UCard
-                        v-for="item in props.mobileSalesDetails[date]"
-                        :key="item.item_name"
+                        v-else
                         class="mt-2"
                     >
                         <div class="flex justify-between items-start">
                             <div class="flex flex-col">
                                 <div class="font-semibold">
-                                    {{ item.item_name }}
+                                    {{ row.item.item_name }}
                                 </div>
                                 <div class="flex gap-1">
                                     <UBadge
@@ -81,13 +84,13 @@
                                         variant="subtle"
                                         size="sm"
                                     >
-                                        {{ item.item_group }}
+                                        {{ row.item.item_group }}
                                     </UBadge>
                                     <div class="font-light italic text-sm">
-                                        {{ formatNumber(item.qty, "decimal") }}
+                                        {{ formatNumber(row.item.qty, "decimal") }}
                                         @
                                         {{
-                                            formatNumber(item.rate, "currency")
+                                            formatNumber(row.item.rate, "currency")
                                         }}
                                     </div>
                                 </div>
@@ -95,7 +98,7 @@
                             <div class="font-bold">
                                 {{
                                     formatNumber(
-                                        item.rate * item.qty,
+                                        row.item.rate * row.item.qty,
                                         "currency",
                                     )
                                 }}
@@ -103,19 +106,21 @@
                         </div>
                     </UCard>
                 </div>
+                <div :style="{ height: mobileBottomSpacer + 'px' }"></div>
             </div>
         </div>
     </UPageCard>
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import type { TableColumn } from "@nuxt/ui";
 import { getGroupedRowModel } from "@tanstack/vue-table";
 import type { GroupingOptions } from "@tanstack/vue-table";
 import type { SalesDetail } from "@/types/SalesDetail";
 import moment from "moment";
 import { formatNumber } from "@/utils/FormatNumber";
+import { useVisibleWindow } from "@/composables/useVisibleWindow";
 
 export interface Props {
     loading: boolean;
@@ -125,6 +130,39 @@ export interface Props {
 }
 
 const props = defineProps<Props>();
+
+const grouping_options = ref<GroupingOptions>({
+    groupedColumnMode: "remove",
+    getGroupedRowModel: getGroupedRowModel(),
+});
+
+type MobileSalesRow =
+    | { type: "date"; date: string }
+    | { type: "item"; item: SalesDetail };
+
+const flatMobileRows = computed<MobileSalesRow[]>(() => {
+    const result: MobileSalesRow[] = [];
+    for (const date of props.mobileSalesDateDetails) {
+        result.push({ type: "date", date });
+        const items = props.mobileSalesDetails[date] ?? [];
+        for (const item of items) {
+            result.push({ type: "item", item });
+        }
+    }
+    return result;
+});
+
+function mobileRowKey(row: MobileSalesRow): string {
+    if (row.type === "date") return `date-${row.date}`;
+    return `item-${row.item.item_name}-${row.item.item_group}-${row.item.posting_date}`;
+}
+
+const mobileWrapperRef = ref<HTMLElement | null>(null);
+const {
+    visibleRows: mobileVisibleRows,
+    topSpacerHeight: mobileTopSpacer,
+    bottomSpacerHeight: mobileBottomSpacer,
+} = useVisibleWindow(flatMobileRows, mobileWrapperRef, { rowHeight: 80, overscan: 8 });
 
 const columns: TableColumn<SalesDetail>[] = [
     {
@@ -183,9 +221,4 @@ const columns: TableColumn<SalesDetail>[] = [
         aggregationFn: "sum",
     },
 ];
-
-const grouping_options = ref<GroupingOptions>({
-    groupedColumnMode: "remove",
-    getGroupedRowModel: getGroupedRowModel(),
-});
 </script>
