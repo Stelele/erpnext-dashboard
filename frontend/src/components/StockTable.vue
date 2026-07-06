@@ -77,6 +77,17 @@
                         }}
                     </div>
                 </div>
+                    <div class="w-full pt-3 mt-3 border-t border-[var(--ui-border)]">
+                        <UButton
+                            color="error"
+                            variant="outline"
+                            icon="i-lucide-ban"
+                            size="sm"
+                            @click="emit('disableItem', row.original)"
+                        >
+                            Disable Item
+                        </UButton>
+                    </div>
             </template>
         </UTable>
     </UPageCard>
@@ -100,6 +111,9 @@ export type StockRow = StockDetail & {
 };
 
 const props = defineProps<Props>();
+const emit = defineEmits<{
+  disableItem: [row: StockRow];
+}>();
 const UButton = resolveComponent("UButton");
 const expanded = ref({});
 
@@ -222,6 +236,23 @@ const columns: TableColumn<StockRow>[] = [
             );
             return formatNumber(amount, "currency");
         },
+    },
+    {
+        id: "actions",
+        meta: {
+            class: {
+                th: "hidden md:table-cell",
+                td: "hidden md:table-cell",
+            },
+        },
+        cell: ({ row }) =>
+            h(UButton, {
+                color: "error",
+                variant: "ghost",
+                icon: "i-lucide-ban",
+                square: true,
+                onClick: () => emit("disableItem", row.original),
+            }),
     },
 ];
 </script>

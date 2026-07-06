@@ -476,6 +476,66 @@ export class ErpNextService {
     }
   }
 
+  public async createStockReconciliation(payload: {
+    warehouse: string;
+    items: { item_code: string; qty: number }[];
+    company: string;
+    remarks?: string;
+  }): Promise<boolean> {
+    try {
+      const now = moment();
+      const body: Record<string, unknown> = {
+        company: payload.company,
+        purpose: "Stock Reconciliation",
+        set_posting_time: 1,
+        posting_date: now.format("YYYY-MM-DD"),
+        posting_time: now.format("HH:mm:ss"),
+        items: payload.items.map((i) => ({
+          item_code: i.item_code,
+          warehouse: payload.warehouse,
+          qty: i.qty,
+        })),
+      };
+      if (payload.remarks) {
+        body.remarks = payload.remarks;
+      }
+      const createResp = await this.instance.post<{ data: { name: string } }>(
+        "/api/resource/Stock Reconciliation",
+        body,
+      );
+      await this.instance.put(
+        `/api/resource/Stock Reconciliation/${createResp.data.data.name}`,
+        { docstatus: 1 },
+      );
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  public async disableItem(
+    itemCode: string,
+    warehouse: string,
+    company: string,
+    remarks?: string,
+  ): Promise<boolean> {
+    try {
+      const reconResult = await this.createStockReconciliation({
+        warehouse,
+        company,
+        items: [{ item_code: itemCode, qty: 0 }],
+        remarks: remarks || `Disabling item: ${itemCode}`,
+      });
+      if (!reconResult) return false;
+      await this.instance.put(`/api/resource/Item/${encodeURIComponent(itemCode)}`, {
+        disabled: 1,
+      });
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   public getJournalEntry(name: string) {
     return this.instance
       .get<{ data: JournalEntry }>(
