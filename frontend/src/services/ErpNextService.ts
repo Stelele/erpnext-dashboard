@@ -478,14 +478,14 @@ export class ErpNextService {
 
   public async createStockReconciliation(payload: {
     warehouse: string;
-    items: { item_code: string; qty: number }[];
-    company: string;
+    items: { item_code: string; qty: number; valuation_rate?: number }[];
     remarks?: string;
   }): Promise<boolean> {
+    const authStore = useAuthStore();
     try {
       const now = moment();
       const body: Record<string, unknown> = {
-        company: payload.company,
+        company: authStore.company,
         purpose: "Stock Reconciliation",
         set_posting_time: 1,
         posting_date: now.format("YYYY-MM-DD"),
@@ -494,6 +494,7 @@ export class ErpNextService {
           item_code: i.item_code,
           warehouse: payload.warehouse,
           qty: i.qty,
+          valuation_rate: i.valuation_rate || 1,
         })),
       };
       if (payload.remarks) {
@@ -516,13 +517,11 @@ export class ErpNextService {
   public async disableItem(
     itemCode: string,
     warehouse: string,
-    company: string,
     remarks?: string,
   ): Promise<boolean> {
     try {
       const reconResult = await this.createStockReconciliation({
         warehouse,
-        company,
         items: [{ item_code: itemCode, qty: 0 }],
         remarks: remarks || `Disabling item: ${itemCode}`,
       });

@@ -179,7 +179,7 @@ function handleDisableItem(row: { item_code: string; item_name: string; real_qty
 }
 
 async function onReconcileSubmit(payload: {
-  items: { item_code: string; qty: number }[];
+  items: { item_code: string; qty: number; valuation_rate: number }[];
   remarks?: string;
 }) {
   reconciliationLoading.value = true;
@@ -187,7 +187,6 @@ async function onReconcileSubmit(payload: {
     const result = await erpnext.createStockReconciliation({
       warehouse: selectedWarehouse.value,
       items: payload.items,
-      company: authStore.company || "",
       remarks: payload.remarks,
     });
     if (result) {
@@ -220,7 +219,6 @@ async function onDisableConfirm(payload: { remarks?: string }) {
     const result = await erpnext.disableItem(
       disableTarget.value.item_code,
       selectedWarehouse.value,
-      authStore.company || "",
       payload.remarks,
     );
     if (result) {

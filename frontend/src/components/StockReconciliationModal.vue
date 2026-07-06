@@ -258,7 +258,7 @@ import { formatNumber } from "@/utils/FormatNumber";
 
 const emit = defineEmits<{
     onSubmit: [
-        payload: { items: { item_code: string; qty: number }[]; remarks?: string },
+        payload: { items: { item_code: string; qty: number; valuation_rate: number }[]; remarks?: string },
     ];
 }>();
 
@@ -276,12 +276,13 @@ interface ReconItem {
     item_name: string;
     current_qty: number;
     corrected_qty: number;
+    valuation_rate: number;
 }
 
 const state = reactive({
     remarks: "",
     items: [
-        { item_code: "", item_name: "", current_qty: 0, corrected_qty: 0 },
+        { item_code: "", item_name: "", current_qty: 0, corrected_qty: 0, valuation_rate: 0 },
     ] as ReconItem[],
 });
 
@@ -384,6 +385,7 @@ function onItemPicked(idx: number) {
     if (stockRow) {
         target.current_qty = stockRow.real_qty;
         target.corrected_qty = stockRow.real_qty;
+        target.valuation_rate = stockRow.buying_price || 1;
     }
 }
 
@@ -393,6 +395,7 @@ function addItem() {
         item_name: "",
         current_qty: 0,
         corrected_qty: 0,
+        valuation_rate: 0,
     });
     itemSelections.value.push(null);
     itemOptions.value.push([]);
@@ -424,6 +427,7 @@ function confirmSubmit() {
         items: validItems.value.map((i) => ({
             item_code: i.item_code,
             qty: i.corrected_qty,
+            valuation_rate: i.valuation_rate || 1,
         })),
         remarks: state.remarks || undefined,
     });
