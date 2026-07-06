@@ -71,6 +71,7 @@
             :item-name="disableTarget.item_name"
             :current-qty="disableTarget.real_qty"
             @confirm="onDisableConfirm"
+            :fullscreen="isMobile"
         />
     </DashboardLayout>
 </template>
@@ -85,7 +86,7 @@ import { useDataStore } from "@/stores/DataStore";
 import { useStockDataStore } from "@/stores/StockDataStore";
 import { useAuthStore } from "@/stores/AuthStore";
 import { ErpNextService } from "@/services/ErpNextService";
-import { ref, computed, onMounted, onUnmounted } from "vue";
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
 
 const dataStore = useDataStore();
 const stockDataStore = useStockDataStore();
@@ -99,16 +100,7 @@ const openDisableConfirm = ref(false);
 const disableTarget = ref<{ item_code: string; item_name: string; real_qty: number } | null>(null);
 const selectedWarehouse = ref("Stores");
 
-function syncMobile(mq: MediaQueryList | MediaQueryListEvent) {
-  isMobile.value = mq.matches;
-}
-
-onMounted(async () => {
-  const mq = window.matchMedia('(max-width: 767px)');
-  syncMobile(mq);
-  mq.addEventListener('change', syncMobile);
-  onUnmounted(() => mq.removeEventListener('change', syncMobile));
-
+async function fetchWarehouse() {
   try {
     const warehouses = await erpnext.getWarehouses();
     if (warehouses?.length) {
@@ -119,6 +111,23 @@ onMounted(async () => {
       if (first) selectedWarehouse.value = (stores || first).name;
     }
   } catch { /* ignore */ }
+}
+
+function syncMobile(mq: MediaQueryList | MediaQueryListEvent) {
+  isMobile.value = mq.matches;
+}
+
+onMounted(async () => {
+  const mq = window.matchMedia('(max-width: 767px)');
+  syncMobile(mq);
+  mq.addEventListener('change', syncMobile);
+  onUnmounted(() => mq.removeEventListener('change', syncMobile));
+
+  fetchWarehouse();
+});
+
+watch(() => authStore.company, () => {
+  fetchWarehouse();
 });
 
 const purchaseLoading = ref(false);

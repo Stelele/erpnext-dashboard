@@ -21,6 +21,7 @@
             :ui="{ tr: 'data-[expanded=true]:bg-elevated/50', root: 'max-h-[86vh] overflow-auto' }"
             class="flex-1"
             loadingColor="primary"
+            @select="onRowSelect"
         >
             <template #expanded="{ row }">
                 <div
@@ -94,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import type { TableColumn } from "@nuxt/ui";
+import type { TableColumn, TableRow } from "@nuxt/ui";
 import type { StockDetail } from "@/types/StockDetail";
 import { h, ref, resolveComponent } from "vue";
 import { formatNumber } from "@/utils/FormatNumber";
@@ -116,6 +117,11 @@ const emit = defineEmits<{
 }>();
 const UButton = resolveComponent("UButton");
 const expanded = ref({});
+
+function onRowSelect(e: Event, row: TableRow<StockRow>) {
+    if (window.matchMedia("(min-width: 768px)").matches) return;
+    row.toggleExpanded();
+}
 
 const columns: TableColumn<StockRow>[] = [
     {

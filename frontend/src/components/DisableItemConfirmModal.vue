@@ -3,6 +3,7 @@
         v-model:open="open"
         title="Disable Item"
         :dismissible="false"
+        :fullscreen="fullscreen"
     >
         <template #body>
             <div class="p-4 space-y-4">
@@ -22,7 +23,7 @@
                 </div>
 
                 <div
-                    class="text-sm text-[var(--ui-text-dimmed)] bg-[var(--ui-bg-elevated)] rounded-lg p-4"
+                    class="text-sm bg-[var(--ui-bg-elevated)] rounded-lg p-4"
                 >
                     <p>This will zero out stock via a reconciliation and disable the item in ERPNext. <strong>This cannot be undone.</strong></p>
                 </div>
@@ -66,6 +67,7 @@ const props = defineProps<{
     itemCode: string;
     itemName: string;
     currentQty: number;
+    fullscreen?: boolean;
 }>();
 
 const emit = defineEmits<{
