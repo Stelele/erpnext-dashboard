@@ -21,6 +21,7 @@ app.use(
     clientId: import.meta.env.VITE_AUTH0_CLIENT_ID,
     cacheLocation: 'localstorage',
     useRefreshTokens: true,
+    useRefreshTokensFallback: true,
     authorizationParams: {
       audience: import.meta.env.VITE_AUTH0_AUDIENCE,
       redirect_uri: window.location.origin,

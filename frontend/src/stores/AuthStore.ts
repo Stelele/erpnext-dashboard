@@ -121,10 +121,34 @@ export const useAuthStore = defineStore("authStore", () => {
   }
 
   let _getAccessTokenSilently: (() => Promise<string>) | null = null;
+  let _logout: ((options?: { logoutParams?: { returnTo?: string } }) => void) | null = null;
 
   function getAccessTokenSilently(): Promise<string> {
     if (_getAccessTokenSilently) return _getAccessTokenSilently();
     return Promise.reject(new Error("Auth0 not initialized"));
+  }
+
+  function triggerLogout() {
+    clearRefreshTimer();
+    accessToken.value = "";
+    if (_logout) {
+      _logout({ logoutParams: { returnTo: window.location.origin } });
+    }
+  }
+
+  function handleVisibilityChange() {
+    if (document.hidden) return;
+    if (!accessToken.value) return;
+    const exp = parseExp(accessToken.value);
+    if (exp) {
+      const nowSeconds = Math.floor(Date.now() / 1000);
+      const remainingSeconds = exp - nowSeconds;
+      if (remainingSeconds < 120) {
+        refreshToken().catch(() => {
+          triggerLogout();
+        });
+      }
+    }
   }
 
   function onTokenReceived(apiToken: string) {
@@ -140,13 +164,16 @@ export const useAuthStore = defineStore("authStore", () => {
       const fresh = await getAccessTokenSilently();
       onTokenReceived(fresh);
     } catch {
-      accessToken.value = "";
+      triggerLogout();
     }
   }
 
   async function update() {
     const auth0 = useAuth0();
     _getAccessTokenSilently = auth0.getAccessTokenSilently;
+    _logout = auth0.logout;
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     let apiToken: string;
     try {

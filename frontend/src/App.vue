@@ -1,4 +1,11 @@
 <template>
+    <div
+      v-if="isOffline"
+      class="offline-banner"
+    >
+      <span class="offline-banner-icon">&#9888;</span>
+      You are offline. Some features may be unavailable.
+    </div>
     <RouterView />
 </template>
 
@@ -24,6 +31,19 @@ const authStore = useAuthStore();
 const { startSync, updateToken } = useCacheSync();
 const { loadAndApply, currentPrimaryColor } = useCompanyTheme();
 const { error, logout } = useAuth0();
+
+const isOffline = ref(!navigator.onLine);
+
+function handleOnline() {
+  isOffline.value = false;
+}
+
+function handleOffline() {
+  isOffline.value = true;
+}
+
+window.addEventListener("online", handleOnline);
+window.addEventListener("offline", handleOffline);
 
 watch(error, (err) => {
   if (err?.error === "login_required") {
@@ -127,4 +147,28 @@ onBeforeMount(async () => {
     }
 });
 </script>
+
+<style>
+.offline-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: #f59e0b;
+  color: #1e1e1e;
+  text-align: center;
+  padding: 8px 16px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.offline-banner-icon {
+  font-size: 16px;
+}
+</style>
 
