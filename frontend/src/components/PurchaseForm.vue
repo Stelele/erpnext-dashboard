@@ -77,7 +77,7 @@
                 </div>
               </template>
             </UInputMenu>
-            <UInput v-model="item.qty" type="number" :min="1" :step="1" class="w-full" :disabled="submitting" />
+            <UInput v-model="item.qty" type="number" :min="1" :step="0.01" class="w-full" :disabled="submitting" />
             <UInput v-model="item.rate" type="number" :min="0" :step="0.01" class="w-full" :disabled="submitting" />
             <UInput v-model="item.sell_rate" type="number" :min="0" :step="0.01" class="w-full" :disabled="submitting" />
             <div class="flex items-center justify-end text-sm font-medium">
@@ -169,7 +169,7 @@
 
               <div class="grid grid-cols-3 gap-2">
                 <UFormField label="Qty" size="xs">
-                  <UInput v-model="item.qty" type="number" :min="1" :step="1" :disabled="submitting" />
+                  <UInput v-model="item.qty" type="number" :min="1" :step="0.01" :disabled="submitting" />
                 </UFormField>
                 <UFormField label="Buy Rate" size="xs">
                   <UInput v-model="item.rate" type="number" :min="0" :step="0.01" :disabled="submitting" />
