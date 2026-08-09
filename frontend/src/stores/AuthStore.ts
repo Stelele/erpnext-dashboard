@@ -156,7 +156,7 @@ export const useAuthStore = defineStore("authStore", () => {
       const remainingSeconds = exp - nowSeconds;
       if (remainingSeconds < 120) {
         refreshToken().catch(() => {
-          triggerLogout();
+          accessToken.value = "";
         });
       }
     }
@@ -175,7 +175,7 @@ export const useAuthStore = defineStore("authStore", () => {
       const fresh = await getAccessTokenSilently();
       onTokenReceived(fresh);
     } catch {
-      triggerLogout();
+      accessToken.value = "";
     }
   }
 
@@ -281,5 +281,6 @@ export const useAuthStore = defineStore("authStore", () => {
     update,
     switchCompany,
     refreshToken,
+    triggerLogout,
   };
 });

@@ -16,9 +16,7 @@ import { update } from "./utils/UpdateData";
 import { useCompanyTheme } from "./composables/useCompanyTheme";
 import { useCacheSync } from "./composables/useCacheSync";
 import { CachedApiClient } from "./services/cache/CachedApiClient";
-import { ApiSingleton } from "./services/api";
 import { useHead } from "@unhead/vue";
-import { useAuth0 } from "@auth0/auth0-vue";
 import moment from "moment";
 
 moment.updateLocale("en", {
@@ -30,7 +28,6 @@ moment.updateLocale("en", {
 const authStore = useAuthStore();
 const { startSync, updateToken } = useCacheSync();
 const { loadAndApply, currentPrimaryColor } = useCompanyTheme();
-const { error, logout } = useAuth0();
 
 const isOffline = ref(!navigator.onLine);
 
@@ -44,24 +41,6 @@ function handleOffline() {
 
 window.addEventListener("online", handleOnline);
 window.addEventListener("offline", handleOffline);
-
-let isLoggingOut = false;
-
-watch(error, (err) => {
-  if (err?.error === "login_required" && !isLoggingOut) {
-    isLoggingOut = true;
-    ApiSingleton.reset();
-    for (const key of Object.keys(localStorage)) {
-      if (key.startsWith("@@auth0")) {
-        localStorage.removeItem(key);
-      }
-    }
-    logout({
-      logoutParams: { returnTo: window.location.origin },
-      openUrl: (url: string) => window.location.assign(url),
-    });
-  }
-});
 
 watch(() => authStore.accessToken, (token) => {
   if (token) {

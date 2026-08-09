@@ -106,7 +106,6 @@ import { useAuthStore } from "@/stores/AuthStore";
 import { useDataStore } from "@/stores/DataStore";
 import { useNavStore } from "@/stores/NavStore";
 import moment from "moment";
-import { useAuth0 } from "@auth0/auth0-vue";
 import MobileSettingsDrawer from "@/components/MobileSettingsDrawer.vue";
 import type { DropdownMenuItem } from "@nuxt/ui";
 
@@ -114,8 +113,6 @@ const route = useRoute();
 const authStore = useAuthStore();
 const navStore = useNavStore();
 const dataStore = useDataStore();
-
-const { logout } = useAuth0();
 
 const drawerOpen = ref(false);
 const settingsDrawerOpen = ref(false);
@@ -131,8 +128,7 @@ const profileMenuItems = computed<DropdownMenuItem[]>(() => [
     {
         label: "Logout",
         icon: "i-lucide-log-out",
-        onSelect: () =>
-            logout({ logoutParams: { returnTo: window.location.origin } }),
+        onSelect: () => authStore.triggerLogout(),
     },
 ]);
 

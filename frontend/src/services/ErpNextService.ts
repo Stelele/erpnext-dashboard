@@ -72,11 +72,11 @@ export class ErpNextService {
 
   public constructor() {
     const authStore = useAuthStore();
-    this.instance = axios.create({
-      baseURL: authStore.url,
-      headers: {
-        Authorization: `token ${authStore.token}`,
-      },
+    this.instance = axios.create();
+    this.instance.interceptors.request.use((config) => {
+      config.baseURL = authStore.url;
+      config.headers.Authorization = `token ${authStore.token}`;
+      return config;
     });
   }
 

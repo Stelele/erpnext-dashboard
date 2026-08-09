@@ -63,7 +63,6 @@
 
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useAuth0 } from "@auth0/auth0-vue";
 import { useAuthStore } from "@/stores/AuthStore";
 import { useDataStore } from "@/stores/DataStore";
 import { filterItems } from "@/utils/MenuItems";
@@ -76,7 +75,6 @@ defineProps<{
 
 const authStore = useAuthStore();
 const dataStore = useDataStore();
-const { logout } = useAuth0();
 
 const open = defineModel<boolean>({ default: false });
 const openCompanyModal = ref(false);
@@ -90,6 +88,6 @@ const dateRange = computed(() => {
 
 function handleLogout() {
     open.value = false;
-    logout({ logoutParams: { returnTo: window.location.origin } });
+    authStore.triggerLogout();
 }
 </script>

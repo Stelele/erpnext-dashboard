@@ -5,16 +5,25 @@ import { useAuthStore } from "@/stores/AuthStore";
 export type Client = ReturnType<typeof createClient<paths>>;
 
 function createAuthFetch(): typeof globalThis.fetch {
+  let tokenReady = false;
+
   return async (input: Request) => {
     const authStore = useAuthStore();
 
     const headers = new Headers(input.headers);
-    if (!headers.has("Authorization") && authStore.accessToken) {
-      headers.set("Authorization", `Bearer ${authStore.accessToken}`);
+    if (!headers.has("Authorization")) {
+      if (!authStore.accessToken && !tokenReady) {
+        try {
+          await authStore.refreshToken();
+        } catch { /* let the 401 handler retry */ }
+        tokenReady = true;
+      }
+      if (authStore.accessToken) {
+        headers.set("Authorization", `Bearer ${authStore.accessToken}`);
+      }
     }
 
-    const req = new Request(input, { headers });
-
+    let req = new Request(input, { headers });
     let response = await fetch(req);
 
     if (response.status === 401 || response.status === 403) {
@@ -24,9 +33,11 @@ function createAuthFetch(): typeof globalThis.fetch {
         return response;
       }
 
-      headers.set("Authorization", `Bearer ${authStore.accessToken || ""}`);
-      const retryReq = new Request(input, { headers });
-      response = await fetch(retryReq);
+      if (authStore.accessToken) {
+        headers.set("Authorization", `Bearer ${authStore.accessToken}`);
+        req = new Request(input, { headers });
+        response = await fetch(req);
+      }
     }
 
     return response;
