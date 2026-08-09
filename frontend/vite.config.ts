@@ -30,25 +30,12 @@ export default defineConfig(({ mode }) => ({
       registerType: "autoUpdate",
       includeAssets: ["favicon/**/*", "logo.png"],
       devOptions: {
-        enabled: mode === "development",
-        type: "module",
-        navigateFallback: "index.html",
+        enabled: false,
       },
       manifest: false,
       workbox: {
-        globPatterns: ["**/*.{html,js,css,svg,png,ico,webp,woff2}"],
-        navigateFallback: "/index.html",
-        runtimeCaching: [
-          {
-            urlPattern: ({ request }) => request.destination === "image",
-            handler: "StaleWhileRevalidate",
-            options: {
-              cacheName: "image-cache",
-              expiration: { maxEntries: 200, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              cacheableResponse: { statuses: [0, 200] },
-            },
-          },
-        ],
+        globPatterns: ["**/*.{css,svg,png,ico,webp,woff2}"],
+        navigateFallback: null,
       },
     }),
   ],

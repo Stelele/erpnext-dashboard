@@ -45,10 +45,21 @@ function handleOffline() {
 window.addEventListener("online", handleOnline);
 window.addEventListener("offline", handleOffline);
 
+let isLoggingOut = false;
+
 watch(error, (err) => {
-  if (err?.error === "login_required") {
+  if (err?.error === "login_required" && !isLoggingOut) {
+    isLoggingOut = true;
     ApiSingleton.reset();
-    logout({ logoutParams: { returnTo: window.location.origin } });
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith("@@auth0")) {
+        localStorage.removeItem(key);
+      }
+    }
+    logout({
+      logoutParams: { returnTo: window.location.origin },
+      openUrl: (url: string) => window.location.assign(url),
+    });
   }
 });
 

@@ -121,7 +121,8 @@ export const useAuthStore = defineStore("authStore", () => {
   }
 
   let _getAccessTokenSilently: (() => Promise<string>) | null = null;
-  let _logout: ((options?: { logoutParams?: { returnTo?: string } }) => void) | null = null;
+  let _logout: ((options?: { logoutParams?: { returnTo?: string }; openUrl?: (url: string) => void }) => void) | null = null;
+  let _loggingOut = false;
 
   function getAccessTokenSilently(): Promise<string> {
     if (_getAccessTokenSilently) return _getAccessTokenSilently();
@@ -129,16 +130,26 @@ export const useAuthStore = defineStore("authStore", () => {
   }
 
   function triggerLogout() {
+    if (_loggingOut) return;
+    _loggingOut = true;
     clearRefreshTimer();
     accessToken.value = "";
+    for (const key of Object.keys(localStorage)) {
+      if (key.startsWith("@@auth0")) {
+        localStorage.removeItem(key);
+      }
+    }
     if (_logout) {
-      _logout({ logoutParams: { returnTo: window.location.origin } });
+      _logout({
+        logoutParams: { returnTo: window.location.origin },
+        openUrl: (url: string) => window.location.assign(url),
+      });
     }
   }
 
   function handleVisibilityChange() {
     if (document.hidden) return;
-    if (!accessToken.value) return;
+    if (!accessToken.value || _loggingOut) return;
     const exp = parseExp(accessToken.value);
     if (exp) {
       const nowSeconds = Math.floor(Date.now() / 1000);
