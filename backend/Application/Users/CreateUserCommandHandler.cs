@@ -1,16 +1,20 @@
 ﻿using Application.Abstractions;
+using Application.Auth;
 using Domain.Exceptions;
 using Domain.Users;
-using Infrastructure.Auth0;
+using Infrastructure.Email;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Users;
 
 public class CreateUserCommandHandler(
     DashboardDbContext db,
-    Auth0UserProvisioner provisioner,
+    IPasswordResetTokenService resetTokenService,
+    IEmailSender emailSender,
+    IConfiguration configuration,
     ILogger<CreateUserCommandHandler> logger
 ) : ICommandHandler<CreateUserCommand, Guid>
 {
@@ -26,36 +30,22 @@ public class CreateUserCommandHandler(
             .Where(c => request.Companies.Contains(c.Id))
             .ToListAsync(cancellationToken);
 
-        var user = User.Create(request.Name, request.Email, companies);
+        var user = User.Create(request.Name, request.Email, request.Role, companies);
 
-        var auth0User = await provisioner.CreateUserInConnectionAsync(
-            "Email-Password",
-            user.Email,
-            user.Id,
-            user.Name,
-            false,
-            cancellationToken);
-
-        user.Auth0UserId = auth0User.UserId;
+        db.Users.Add(user);
+        await db.SaveChangesAsync(cancellationToken);
 
         try
         {
-            await db.Users.AddAsync(user, cancellationToken);
-            await db.SaveChangesAsync(cancellationToken);
+            var token = await resetTokenService.CreateAsync(user.Id, cancellationToken);
+            var frontendUrl = configuration["App:FrontendUrl"]
+                ?? throw new InvalidOperationException("App:FrontendUrl is null");
+            var resetUrl = $"{frontendUrl}/reset-password?token={Uri.EscapeDataString(token)}";
+            await emailSender.SendAsync(EmailTemplates.PasswordSetup(user.Email, user.Name, resetUrl), cancellationToken);
         }
-        catch (Exception) when (auth0User?.UserId is not null)
+        catch (Exception ex)
         {
-            try
-            {
-                await provisioner.DeleteUserAsync(auth0User.UserId, CancellationToken.None);
-            }
-            catch (Exception cleanupEx)
-            {
-                logger.LogWarning(cleanupEx, "Failed to clean up Auth0 user {Auth0UserId} after database save failure",
-                    auth0User.UserId);
-            }
-
-            throw;
+            logger.LogWarning(ex, "Failed to send password setup email for user {Email}", user.Email);
         }
 
         return user.Id;

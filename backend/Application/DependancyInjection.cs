@@ -1,9 +1,12 @@
-﻿using Application.Caching;
+﻿using Application.Auth;
+using Application.Caching;
 using Application.PipelineBehaviours;
 using Application.Users;
+using Domain.Users;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Application
@@ -29,6 +32,9 @@ namespace Application
             builder.Services.AddScoped<UserContext>();
             builder.Services.AddScoped<IUserContext>(sp => sp.GetRequiredService<UserContext>());
             builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CachePipelineBehavior<,>));
+
+            builder.Services.AddScoped<IPasswordResetTokenService, PasswordResetTokenService>();
+            builder.Services.AddSingleton<IPasswordHasher<User>>(new PasswordHasher<User>());
 
             return builder;
         }

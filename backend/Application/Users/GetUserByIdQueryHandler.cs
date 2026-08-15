@@ -9,7 +9,7 @@ public class GetUserByIdQueryHandler(DashboardDbContext db, IUserContext userCon
 {
     public async Task<UserResponse?> Handle(GetUserByIdQuery request, CancellationToken cancellationToken)
     {
-        if (userContext.CompanyIds.Count > 0 && request.Id != userContext.UserId)
+        if (!userContext.IsAdmin && request.Id != userContext.UserId)
             return null;
 
         var user = await db.Users

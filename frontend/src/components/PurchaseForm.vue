@@ -260,7 +260,7 @@
 import { CalendarDate, getLocalTimeZone } from "@internationalized/date";
 import * as z from "zod";
 import moment from "moment";
-import { computed, reactive, ref, shallowRef, watch, onMounted } from "vue";
+import { computed, reactive, ref, markRaw, watch, onMounted } from "vue";
 import { ErpNextService, type ItemOption, type SupplierOption, type WarehouseOption } from "@/services/ErpNextService";
 import CreateItemModal from "@/components/CreateItemModal.vue";
 import CreateSupplierModal from "@/components/CreateSupplierModal.vue";
@@ -318,7 +318,6 @@ const supplierItems = ref<SupplierOption[]>([]);
 
 // --- Warehouse ---
 const warehouseItems = ref<WarehouseOption[]>([]);
-const warehouseOpts = computed(() => warehouseItems.value.map((w) => ({ name: w.name })));
 const selectedWarehouse = ref<{ name: string } | undefined>();
 
 // --- Items ---
@@ -340,14 +339,14 @@ const createSupplierModalOpen = ref(false);
 
 const state = reactive({
   invoiceNumber: "",
-  invoiceDate: shallowRef(new CalendarDate(moment().year(), moment().month() + 1, moment().date())),
+  invoiceDate: markRaw(new CalendarDate(moment().year(), moment().month() + 1, moment().date())),
   items: [{ item_code: "", item_name: "", qty: 1, rate: 0, sell_rate: 0 }] as PurchaseItem[],
 });
 
 const schema = z.object({
   invoiceNumber: z.string().optional(),
   invoiceDate: z.object({ year: z.number(), month: z.number(), day: z.number() }).transform(
-    ({ year, month, day }) => shallowRef(new CalendarDate(year, month, day)),
+    ({ year, month, day }) => markRaw(new CalendarDate(year, month, day)),
   ),
   items: z.array(z.object({
     item_code: z.string().optional(),
@@ -412,7 +411,7 @@ watch(submitting, (v) => {
 watch(() => props.amendOrder, (order) => {
   if (order) {
     const d = order.invoiceDate.split("-");
-    state.invoiceDate = shallowRef(new CalendarDate(parseInt(d[0]), parseInt(d[1]), parseInt(d[2])));
+    state.invoiceDate = markRaw(new CalendarDate(Number(d[0]), Number(d[1]), Number(d[2])));
     state.invoiceNumber = order.invoiceNumber;
     selectedSupplier.value = order.supplier as any;
     state.items = order.items.map(i => ({

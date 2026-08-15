@@ -137,6 +137,13 @@ export class CachedApiClient {
     return data;
   }
 
+  async getCurrentUser(): Promise<UserResponse | undefined> {
+    const api = await this.ensureApi();
+    const { data, error } = await api.GET("/auth/me", {});
+    if (!error && data) return data;
+    return undefined;
+  }
+
   async getUserCompanies(): Promise<CompanyResponse[]> {
     const db = getCacheDB();
     const cached = await db.companies.toArray();

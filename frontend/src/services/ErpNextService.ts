@@ -14,7 +14,7 @@ import type {
   AccountResponse,
   PurchaseInvoiceResponse,
   AmendPurchasePayload,
-  type PackSizeEntry,
+  PackSizeEntry,
 } from "@/types/Expenses";
 import type { JournalEntry } from "@/types/JournalEntry";
 import type {
@@ -382,7 +382,7 @@ export class ErpNextService {
       filters.push(["supplier_name", "like", `%${query}%`]);
     }
     return this.instance
-      .get<ErpNextResponse<SupplierOption>>("/api/resource/Supplier", {
+      .get<{ data: SupplierOption[] }>("/api/resource/Supplier", {
         params: {
           fields: JSON.stringify(["name", "supplier_name"]),
           filters: JSON.stringify(filters),

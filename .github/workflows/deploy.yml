@@ -47,17 +47,11 @@ jobs:
       - name: Build
         working-directory: frontend
         run: |
-          sed -e "s|{{auth0_domain}}|$AUTH0_DOMAIN|" \
-              -e "s|{{auth0_client_id}}|$AUTH0_CLIENT_ID|" \
-              -e "s|{{auth0_audience}}|$AUTH0_AUDIENCE|" \
-              -e "s|{{api_url}}|$API_URL|" \
+          sed -e "s|{{api_url}}|$API_URL|" \
               -e "s|{{erp_api_url}}|$ERP_API_URL|" \
               -e "s|{{erp_api_token}}|$ERP_API_TOKEN|" .env > .env.production
           npm run build
         env:
-          AUTH0_DOMAIN: ${{ secrets.AUTH0_DOMAIN }}
-          AUTH0_CLIENT_ID: ${{ secrets.AUTH0_CLIENT_ID }}
-          AUTH0_AUDIENCE: ${{ secrets.AUTH0_AUDIENCE }}
           API_URL: ${{ secrets.API_URL }}
           API_TOKEN: ${{ secrets.API_TOKEN }}
           ERP_API_URL: ${{ secrets.ERP_API_URL }}
@@ -129,7 +123,6 @@ jobs:
       - name: Replace docker-compose placeholders
         run: |
           sed -i \
-            -e 's|{{IDENTITY_CLIENTSECRET}}|${{ secrets.IDENTITY_CLIENT_SECRET }}|g' \
             -e 's|{{MEDIATR_LICENSEKEY}}|${{ secrets.MEDIATR_LICENSE_KEY }}|g' \
             -e 's|{{R2_ACCOUNT_ID}}|${{ secrets.R2_ACCOUNT_ID }}|g' \
             -e 's|{{R2_ACCESS_KEY_ID}}|${{ secrets.R2_ACCESS_KEY_ID }}|g' \
@@ -138,8 +131,12 @@ jobs:
             -e 's|{{R2_PUBLIC_BUCKET_NAME}}|${{ secrets.R2_PUBLIC_BUCKET_NAME }}|g' \
             -e 's|{{R2_CDN_BASE_URL}}|${{ secrets.R2_CDN_BASE_URL }}|g' \
             -e 's|{{R2_SYNC_INTERVAL}}|15|g' \
-            -e 's|{{AUTH0_DOMAIN}}|${{ secrets.AUTH0_DOMAIN }}|g' \
-            -e 's|{{AUTH0_AUDIENCE}}|${{ secrets.AUTH0_AUDIENCE }}|g' \
+            -e 's|{{APP_FRONTEND_URL}}|${{ secrets.APP_FRONTEND_URL }}|g' \
+            -e 's|{{SMTP_HOST}}|${{ secrets.SMTP_HOST }}|g' \
+            -e 's|{{SMTP_PORT}}|587|g' \
+            -e 's|{{SMTP_USERNAME}}|${{ secrets.SMTP_USERNAME }}|g' \
+            -e 's|{{SMTP_PASSWORD}}|${{ secrets.SMTP_PASSWORD }}|g' \
+            -e 's|{{SMTP_FROM}}|${{ secrets.SMTP_FROM }}|g' \
             backend/docker-compose.yml
 
       - name: Copy docker-compose.yml to droplet

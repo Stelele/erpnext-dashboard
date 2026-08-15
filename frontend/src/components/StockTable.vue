@@ -118,7 +118,7 @@ const emit = defineEmits<{
 const UButton = resolveComponent("UButton");
 const expanded = ref({});
 
-function onRowSelect(e: Event, row: TableRow<StockRow>) {
+function onRowSelect(_e: Event, row: TableRow<StockRow>) {
     if (window.matchMedia("(min-width: 768px)").matches) return;
     row.toggleExpanded();
 }

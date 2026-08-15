@@ -6,30 +6,14 @@ import { createPinia } from "pinia";
 import ui from "@nuxt/ui/vue-plugin";
 import { addCollection } from "@iconify/vue";
 import lucide from "@iconify-json/lucide/icons.json";
-import { createAuth0 } from "@auth0/auth0-vue";
 
 addCollection(lucide);
 
 const app = createApp(App);
 const pinia = createPinia();
 
-app.use(
-  createAuth0({
-    domain: import.meta.env.VITE_AUTH0_DOMAIN,
-    clientId: import.meta.env.VITE_AUTH0_CLIENT_ID,
-    cacheLocation: 'localstorage',
-    useRefreshTokens: true,
-    useRefreshTokensFallback: true,
-    authorizationParams: {
-      audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-      redirect_uri: window.location.origin,
-      scope: "openid profile email offline_access read:users read:sites read:companies read:expenses update:expenses",
-    },
-  }),
-);
-
+app.use(pinia);
 app.use(router);
 app.use(ui);
-app.use(pinia);
 
 app.mount("#app");

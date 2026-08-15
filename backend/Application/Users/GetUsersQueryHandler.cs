@@ -11,7 +11,7 @@ public class GetUsersQueryHandler(DashboardDbContext db, IUserContext userContex
     {
         var query = db.Users.Include(u => u.Companies).AsQueryable();
 
-        if (userContext.CompanyIds.Count > 0)
+        if (!userContext.IsAdmin)
             query = query.Where(u => u.Id == userContext.UserId);
 
         if (request.UserIds != null && request.UserIds.Length > 0)

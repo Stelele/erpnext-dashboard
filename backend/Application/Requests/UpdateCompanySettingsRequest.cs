@@ -1,5 +1,4 @@
 using Domain.CompanySettings;
-using FluentValidation;
 
 namespace Application.Requests;
 
@@ -10,11 +9,3 @@ public record UpdateCompanySettingsRequest(
     ThemeMode? ThemeMode = null,
     List<PackSizeEntry>? PackSizeMap = null
 );
-
-public class UpdateCompanySettingsRequestValidator : AbstractValidator<UpdateCompanySettingsRequest>
-{
-    public UpdateCompanySettingsRequestValidator()
-    {
-        RuleFor(x => x.DefaultIncomeAccountName).NotEmpty();
-    }
-}

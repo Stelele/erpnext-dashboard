@@ -3,7 +3,7 @@ using Application;
 using Api;
 using Api.Authentication;
 using Infrastructure;
-using Infrastructure.Auth0;
+using Infrastructure.Email;
 using Infrastructure.Models;
 using Infrastructure.Services;
 using Application.Users;
@@ -32,13 +32,11 @@ public class IntegrationTestFactory : WebApplicationFactory<Program>
         {
             config.AddInMemoryCollection(new Dictionary<string, string?>
             {
-                ["Auth0:Domain"] = "test.auth0.com",
-                ["Auth0:Audience"] = "test-api",
-                ["Auth0:Apps:ERP-Dashboard"] = "test-client-id",
-                ["Identity:ClientId"] = "test-client-id",
-                ["Identity:ClientSecret"] = "test-client-secret",
+                ["App:FrontendUrl"] = "http://localhost:5173",
                 ["MediatR:LicenseKey"] = "",
-                ["ConnectionStrings:Sqlite"] = "Data Source=:memory:"
+                ["ConnectionStrings:Sqlite"] = "Data Source=:memory:",
+                ["RateLimiting:Auth:PermitLimit"] = "10000",
+                ["RateLimiting:Auth:WindowSeconds"] = "60"
             });
         });
 
@@ -72,13 +70,14 @@ public class IntegrationTestFactory : WebApplicationFactory<Program>
 
             services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
 
-            // Register IUserContext for tests (stays empty — handlers skip filtering when CompanyIds is empty)
-            services.AddScoped<Application.Users.UserContext>();
+            // Register IUserContext for tests — the test handler grants every scope
+            // (admin-equivalent), so mark the context as admin for full visibility.
+            services.AddScoped<Application.Users.UserContext>(_ => new Application.Users.UserContext { IsAdmin = true });
             services.AddScoped<Application.Users.IUserContext>(sp => sp.GetRequiredService<Application.Users.UserContext>());
 
             // Replace external dependencies with stubs
             services.AddSingleton<IR2StorageService, StubR2StorageService>();
-            services.AddSingleton<Auth0UserProvisioner, TestAuth0UserProvisioner>();
+            services.AddSingleton<IEmailSender, StubEmailSender>();
 
             // Replace DbContext with in-memory SQLite using shared connection
             var descriptor = services.SingleOrDefault(
@@ -130,6 +129,14 @@ public class IntegrationTestFactory : WebApplicationFactory<Program>
         return client;
     }
 
+    public HttpClient CreateClientWithoutAuth()
+    {
+        return base.CreateClient(new WebApplicationFactoryClientOptions
+        {
+            AllowAutoRedirect = false
+        });
+    }
+
     /// <summary>
     /// Clears all data from the database. Call this at the start of each test
     /// to ensure test isolation with the shared in-memory connection.
@@ -139,11 +146,16 @@ public class IntegrationTestFactory : WebApplicationFactory<Program>
         using var scope = Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<DashboardDbContext>();
 
+        db.PasswordResetTokens.RemoveRange(db.PasswordResetTokens);
+        db.Sessions.RemoveRange(db.Sessions);
         db.CompanyExpenseMappings.RemoveRange(db.CompanyExpenseMappings);
         db.CompanySettings.RemoveRange(db.CompanySettings);
         db.Companies.RemoveRange(db.Companies);
         db.Sites.RemoveRange(db.Sites);
         db.Users.RemoveRange(db.Users);
         await db.SaveChangesAsync();
+
+        if (Services.GetService<IEmailSender>() is StubEmailSender stub)
+            stub.Sent.Clear();
     }
 }

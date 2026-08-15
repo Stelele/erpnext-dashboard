@@ -4,4 +4,5 @@
   <Project Path="Endpoints/Api.csproj" />
   <Project Path="Host/Host.csproj" />
   <Project Path="Infrastructure/Infrastructure.csproj" />
+  <Project Path="Tests/Tests.csproj" />
 </Solution>

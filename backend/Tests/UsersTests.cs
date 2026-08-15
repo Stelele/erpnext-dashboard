@@ -2,6 +2,7 @@ using System.Net;
 using System.Net.Http.Json;
 using Application.DTOs;
 using Application.Requests;
+using Domain.Users;
 
 namespace Tests;
 
@@ -22,7 +23,7 @@ public class UsersTests : IClassFixture<IntegrationTestFactory>
     public async Task CreateUser_Returns201()
     {
         await ResetAsync();
-        var request = new CreateUserRequest("Test User", "test@example.com", []);
+        var request = new CreateUserRequest("Test User", "test@example.com", Role.Viewer, []);
 
         var response = await _client.PostAsJsonAsync("/users", request);
 
@@ -35,7 +36,7 @@ public class UsersTests : IClassFixture<IntegrationTestFactory>
     public async Task CreateUser_WithInvalidEmail_Returns400()
     {
         await ResetAsync();
-        var request = new CreateUserRequest("Bad User", "not-an-email", []);
+        var request = new CreateUserRequest("Bad User", "not-an-email", Role.Viewer, []);
 
         var response = await _client.PostAsJsonAsync("/users", request);
         Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
@@ -69,7 +70,7 @@ public class UsersTests : IClassFixture<IntegrationTestFactory>
         var response = await _client.GetAsync($"/users/{userId}");
 
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-        var user = await response.Content.ReadFromJsonAsync<UserResponse>();
+        var user = await response.Content.ReadFromJsonAsync<UserResponse>(TestJson.Options);
         Assert.NotNull(user);
         Assert.Equal("John Doe", user.Name);
         Assert.Equal("john@example.com", user.Email);
@@ -91,7 +92,7 @@ public class UsersTests : IClassFixture<IntegrationTestFactory>
 
     private async Task<Guid> CreateUserAsync(string name, string email)
     {
-        var request = new CreateUserRequest(name, email, []);
+        var request = new CreateUserRequest(name, email, Role.Viewer, []);
         var response = await _client.PostAsJsonAsync("/users", request);
         response.EnsureSuccessStatusCode();
         return await response.ReadCreatedIdAsync();

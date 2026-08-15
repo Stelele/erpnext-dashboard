@@ -2,6 +2,7 @@ using Application.Abstractions;
 using Application.Caching;
 using Application.Users;
 using Domain.CompanyExpenseMappings;
+using FluentValidation;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -15,11 +16,32 @@ public record UpsertCompanyExpenseMappingsCommand(
 
 public record MappingItem(Guid ExpenseTypeId, string ErpnextAccountName);
 
+public sealed class UpsertCompanyExpenseMappingsCommandValidator : AbstractValidator<UpsertCompanyExpenseMappingsCommand>
+{
+    public UpsertCompanyExpenseMappingsCommandValidator()
+    {
+        RuleFor(x => x.CompanyId)
+            .NotEmpty();
+
+        RuleFor(x => x.Mappings)
+            .NotEmpty();
+
+        RuleForEach(x => x.Mappings).ChildRules(mapping =>
+        {
+            mapping.RuleFor(x => x.ExpenseTypeId)
+                .NotEmpty();
+
+            mapping.RuleFor(x => x.ErpnextAccountName)
+                .NotEmpty();
+        });
+    }
+}
+
 internal class UpsertCompanyExpenseMappingsCommandHandler(DashboardDbContext db, IUserContext userContext) : ICommandHandler<UpsertCompanyExpenseMappingsCommand>
 {
     public async Task Handle(UpsertCompanyExpenseMappingsCommand request, CancellationToken ct)
     {
-        if (userContext.CompanyIds.Count > 0 && !userContext.CompanyIds.Contains(request.CompanyId))
+        if (!userContext.IsAdmin && !userContext.HasCompany(request.CompanyId))
             throw new UnauthorizedAccessException();
 
         var existing = await db.CompanyExpenseMappings

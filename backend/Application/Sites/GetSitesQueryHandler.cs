@@ -12,7 +12,7 @@ public class GetSitesQueryHandler(DashboardDbContext db, IUserContext userContex
     {
         var query = db.Sites.Include(s => s.Companies).AsQueryable();
 
-        if (userContext.CompanyIds.Count > 0)
+        if (!userContext.IsAdmin)
             query = query.Where(s => s.Companies.Any(c => userContext.CompanyIds.Contains(c.Id)));
 
         if (request.Sites != null && request.Sites.Length != 0)

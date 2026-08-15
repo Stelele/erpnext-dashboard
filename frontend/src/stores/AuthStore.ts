@@ -1,43 +1,14 @@
-import { useAuth0 } from "@auth0/auth0-vue";
 import { defineStore } from "pinia";
 import { ref } from "vue";
 import { computed } from "vue";
 import type { components } from "@/services/api/schema";
 import { CachedApiClient } from "@/services/cache/CachedApiClient";
+import { ApiSingleton } from "@/services/api";
+import { getCacheDB } from "@/services/db";
 
 const SELECTED_COMPANY_KEY = "selectedCompany";
-
-let tokenRefreshTimer: ReturnType<typeof setTimeout> | null = null;
-
-function parseExp(token: string): number | null {
-  try {
-    const payloadBase64 = token.split(".")[1];
-    if (!payloadBase64) return null;
-    const payload = JSON.parse(
-      atob(payloadBase64.replace(/-/g, "+").replace(/_/g, "/")),
-    );
-    return payload.exp ?? null;
-  } catch {
-    return null;
-  }
-}
-
-function clearRefreshTimer() {
-  if (tokenRefreshTimer !== null) {
-    clearTimeout(tokenRefreshTimer);
-    tokenRefreshTimer = null;
-  }
-}
-
-function scheduleTokenRefresh(expSeconds: number, refreshFn: () => Promise<void>) {
-  clearRefreshTimer();
-  const refreshBeforeMs = 2 * 60 * 1000;
-  const nowSeconds = Math.floor(Date.now() / 1000);
-  const delayMs = Math.max(30_000, (expSeconds - nowSeconds) * 1000 - refreshBeforeMs);
-  tokenRefreshTimer = setTimeout(() => {
-    refreshFn().catch(() => {});
-  }, delayMs);
-}
+const TOKEN_KEY = "authToken";
+const USER_KEY = "authUser";
 
 function safeGetItem(key: string): string | null {
   try {
@@ -51,7 +22,13 @@ function safeSetItem(key: string, value: string): void {
   try {
     localStorage.setItem(key, value);
   } catch {
-    // Ignore in private browsing / storage disabled
+  }
+}
+
+function safeRemoveItem(key: string): void {
+  try {
+    localStorage.removeItem(key);
+  } catch {
   }
 }
 
@@ -83,8 +60,9 @@ export const useAuthStore = defineStore("authStore", () => {
   const givenName = ref("");
   const email = ref("");
   const userId = ref("");
-  const accessToken = ref("");
-  const user = ref<components["schemas"]["UserResponse"]>();
+  const accessToken = ref(safeGetItem(TOKEN_KEY) ?? "");
+
+  let _loggingOut = false;
 
   async function loadSiteData(siteId: string) {
     const client = CachedApiClient.getInstance();
@@ -120,110 +98,61 @@ export const useAuthStore = defineStore("authStore", () => {
     );
   }
 
-  let _getAccessTokenSilently: (() => Promise<string>) | null = null;
-  let _logout: ((options?: { logoutParams?: { returnTo?: string }; openUrl?: (url: string) => void }) => void) | null = null;
-  let _loggingOut = false;
-
-  function getAccessTokenSilently(): Promise<string> {
-    if (_getAccessTokenSilently) return _getAccessTokenSilently();
-    return Promise.reject(new Error("Auth0 not initialized"));
+  function storeSession(token: string, u: components["schemas"]["UserResponse"]) {
+    accessToken.value = token;
+    safeSetItem(TOKEN_KEY, token);
+    safeSetItem(USER_KEY, JSON.stringify(u));
+    givenName.value = u.name;
+    email.value = u.email;
+    userId.value = u.id;
   }
 
-  function triggerLogout() {
-    if (_loggingOut) return;
-    _loggingOut = true;
-    clearRefreshTimer();
+  function clearSession() {
     accessToken.value = "";
-    for (const key of Object.keys(localStorage)) {
-      if (key.startsWith("@@auth0")) {
-        localStorage.removeItem(key);
-      }
-    }
-    if (_logout) {
-      _logout({
-        logoutParams: { returnTo: window.location.origin },
-        openUrl: (url: string) => window.location.assign(url),
-      });
-    }
+    safeRemoveItem(TOKEN_KEY);
+    safeRemoveItem(USER_KEY);
+    givenName.value = "";
+    email.value = "";
+    userId.value = "";
+    selectedCompany.value = "";
+    safeRemoveItem(SELECTED_COMPANY_KEY);
   }
 
-  function handleVisibilityChange() {
-    if (document.hidden) return;
-    if (!accessToken.value || _loggingOut) return;
-    const exp = parseExp(accessToken.value);
-    if (exp) {
-      const nowSeconds = Math.floor(Date.now() / 1000);
-      const remainingSeconds = exp - nowSeconds;
-      if (remainingSeconds < 120) {
-        refreshToken().catch(() => {
-          accessToken.value = "";
-        });
-      }
-    }
-  }
-
-  function onTokenReceived(apiToken: string) {
-    accessToken.value = apiToken;
-    const exp = parseExp(apiToken);
-    if (exp) {
-      scheduleTokenRefresh(exp, refreshToken);
-    }
-  }
-
-  async function refreshToken() {
-    try {
-      const fresh = await getAccessTokenSilently();
-      onTokenReceived(fresh);
-    } catch {
-      accessToken.value = "";
-    }
+  async function login(loginEmail: string, password: string) {
+    const api = await ApiSingleton.getInstance();
+    const { data, error } = await api.POST("/auth/login", {
+      body: { email: loginEmail, password },
+    });
+    if (error || !data) throw new Error("Invalid email or password.");
+    storeSession(data.token, data.user);
+    await update();
   }
 
   async function update() {
-    const auth0 = useAuth0();
-    _getAccessTokenSilently = auth0.getAccessTokenSilently;
-    _logout = auth0.logout;
-
-    document.addEventListener("visibilitychange", handleVisibilityChange);
-
-    let apiToken: string;
-    try {
-      apiToken = await _getAccessTokenSilently();
-    } catch {
-      accessToken.value = "";
+    const stored = safeGetItem(TOKEN_KEY);
+    if (!stored) {
+      clearSession();
       return;
     }
-
-    onTokenReceived(apiToken);
-
-    const payloadBase64 = apiToken.split(".")[1] as string;
-    const payload = JSON.parse(
-      atob(payloadBase64.replace(/-/g, "+").replace(/_/g, "/")),
-    );
-
-    const nameSpace = "https://meta.dashboard.com/";
-    const meta = payload[nameSpace];
-
-    givenName.value = meta?.display_name || "Guest User";
-    email.value = meta?.email || "";
-    userId.value = meta?.user_id || "";
+    accessToken.value = stored;
 
     try {
       const client = CachedApiClient.getInstance();
-      const data = await client.getUser(userId.value);
-      user.value = data;
+      const me = await client.getCurrentUser();
+      if (!me) {
+        clearSession();
+        return;
+      }
+      storeSession(stored, me);
 
-      // Fetch company details to get site IDs
-      if (data?.companies?.length) {
+      if (me.companies?.length) {
         companies.value = await client.getUserCompanies();
 
-        // Restore persisted company selection before loading data
         const persisted = safeGetItem(SELECTED_COMPANY_KEY);
         if (persisted && companies.value.find((c) => c.name === persisted)) {
           selectedCompany.value = persisted;
         }
 
-        // Load site data for the selected (or first) company
         const selected = companies.value.find(
           (c) => c.name === selectedCompany.value,
         ) ?? companies.value[0];
@@ -235,8 +164,32 @@ export const useAuthStore = defineStore("authStore", () => {
         }
       }
     } catch (error) {
-      console.error("Error fetching user data:", error);
+      console.error("Error restoring session:", error);
     }
+  }
+
+  async function triggerLogout() {
+    if (_loggingOut) return;
+    _loggingOut = true;
+
+    const currentToken = accessToken.value;
+    if (currentToken) {
+      try {
+        const api = await ApiSingleton.getInstance();
+        await api.POST("/auth/logout", {});
+      } catch {
+      }
+    }
+
+    clearSession();
+
+    try {
+      await getCacheDB().delete();
+      await getCacheDB().open();
+    } catch {
+    }
+
+    window.location.href = "/login";
   }
 
   async function switchCompany(
@@ -276,11 +229,12 @@ export const useAuthStore = defineStore("authStore", () => {
     email,
     userId,
     accessToken,
-    user,
     selectedCompany,
     update,
     switchCompany,
-    refreshToken,
+    login,
     triggerLogout,
+    storeSession,
+    clearSession,
   };
 });

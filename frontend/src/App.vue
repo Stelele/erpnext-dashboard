@@ -122,6 +122,8 @@ useHead(
 onBeforeMount(async () => {
     await authStore.update();
 
+    if (!authStore.accessToken) return;
+
     const cacheClient = CachedApiClient.getInstance();
     await cacheClient.init();
     await cacheClient.bootstrap(authStore.userId);
@@ -161,4 +163,3 @@ onBeforeMount(async () => {
   font-size: 16px;
 }
 </style>
-

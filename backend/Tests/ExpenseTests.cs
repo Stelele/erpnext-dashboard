@@ -142,7 +142,7 @@ public class ExpenseTests : IClassFixture<IntegrationTestFactory>
 
         var getResponse = await _client.GetAsync($"/api/companies/{companyId}/settings");
         Assert.Equal(HttpStatusCode.OK, getResponse.StatusCode);
-        var settings = await getResponse.Content.ReadFromJsonAsync<CompanySettingsResponse>();
+        var settings = await getResponse.Content.ReadFromJsonAsync<CompanySettingsResponse>(TestJson.Options);
         Assert.NotNull(settings);
         Assert.Equal("Custom Income Account", settings.DefaultIncomeAccountName);
         Assert.Equal(PrimaryColor.Blue, settings.PrimaryColor);

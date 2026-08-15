@@ -12,7 +12,7 @@ public class GetSiteByIdQueryHandler(DashboardDbContext db, IUserContext userCon
     {
         var query = db.Sites.Include(s => s.Companies).Where(s => s.Id == request.Id);
 
-        if (userContext.CompanyIds.Count > 0)
+        if (!userContext.IsAdmin)
             query = query.Where(s => s.Companies.Any(c => userContext.CompanyIds.Contains(c.Id)));
 
         var site = await query.FirstOrDefaultAsync(cancellationToken);

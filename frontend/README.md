@@ -9,7 +9,7 @@ A Vue 3 + TypeScript dashboard that surfaces point-of-sale insights captured in 
 - **Sales Analytics** - Detailed sales data with period-based filtering
 - **Stock Levels** - Current inventory status from warehouse
 - **Period Filtering** - Filter data by Today, Yesterday, This Week, Last Week, This Month, Last Month, This Quarter, Last Quarter, This Semester, Last Semester, This Year, Last Year
-- **Authentication** - Auth0-based authentication protecting all routes
+- **Authentication** - Session-based login (email + password) protecting all routes
 - **PWA Support** - Service worker enabled for offline capability
 - **Offline Data** - SQL.js for local data import
 - **Excel Import** - Import any data table from .xlsx format
@@ -21,7 +21,7 @@ A Vue 3 + TypeScript dashboard that surfaces point-of-sale insights captured in 
 - @nuxt/ui component library
 - Vue Router for navigation
 - Pinia for state management
-- Auth0 for authentication
+- Session-based authentication (email + password)
 - ERPNext REST API integration
 - Zod for schema validation
 - openapi-fetch for type-safe API calls
@@ -44,7 +44,7 @@ A Vue 3 + TypeScript dashboard that surfaces point-of-sale insights captured in 
 src/
 ├── main.ts                 # App bootstrap, plugin setup
 ├── App.vue                 # Root component
-├── routes/index.ts         # Router with Auth0 guards
+├── routes/index.ts         # Router with session auth guards
 ├── views/
 │   ├── OverviewView.vue    # Dashboard with KPIs and charts
 │   ├── ExpensesView.vue    # Expenses listing and form
@@ -84,9 +84,6 @@ src/
 Create a `.env.local` file with:
 
 ```env
-VITE_AUTH0_DOMAIN=your-tenant.auth0.com
-VITE_AUTH0_CLIENT_ID=your-client-id
-VITE_AUTH0_AUDIENCE=https://your-api-identifier
 VITE_ERP_URL=https://your-erpnext-instance.com
 VITE_ERP_TOKEN=your-erpnext-api-token
 VITE_ERP_COMPANY=Your Company Name
@@ -106,7 +103,10 @@ All requests use token-based authentication with the ERPNext API.
 
 ## Authentication
 
-- Auth0 handles user authentication
+- Users log in with email + password at `/auth/login`
+- The API returns a Bearer session token used for authenticated requests
+- Password resets flow through `forgot-password` / `reset-password` endpoints
+- Users have `Admin` or `Viewer` roles
 - All routes are protected with `authGuard`
 - ERPNext credentials stored in AuthStore after login
 
