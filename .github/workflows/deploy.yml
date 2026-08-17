@@ -47,15 +47,10 @@ jobs:
       - name: Build
         working-directory: frontend
         run: |
-          sed -e "s|{{api_url}}|$API_URL|" \
-              -e "s|{{erp_api_url}}|$ERP_API_URL|" \
-              -e "s|{{erp_api_token}}|$ERP_API_TOKEN|" .env > .env.production
+          sed -e "s|{{api_url}}|$API_URL|" .env > .env.production
           npm run build
         env:
           API_URL: ${{ secrets.API_URL }}
-          API_TOKEN: ${{ secrets.API_TOKEN }}
-          ERP_API_URL: ${{ secrets.ERP_API_URL }}
-          ERP_API_TOKEN: ${{ secrets.ERP_API_TOKEN }}
 
       - name: Deploy Front End
         working-directory: frontend
