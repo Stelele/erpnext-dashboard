@@ -28,11 +28,7 @@
 	  
 	</ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\Domain\Domain.csproj" />
-	</ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="MailKit" Version="4.17.0" />
+<ItemGroup>
+    <ProjectReference Include="..\Domain\Domain.csproj" />
   </ItemGroup>
 </Project>

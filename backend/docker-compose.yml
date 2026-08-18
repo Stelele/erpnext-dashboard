@@ -10,11 +10,6 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
       - App__FrontendUrl={{APP_FRONTEND_URL}}
-      - Email__Smtp__Host={{SMTP_HOST}}
-      - Email__Smtp__Port={{SMTP_PORT}}
-      - Email__Smtp__Username={{SMTP_USERNAME}}
-      - Email__Smtp__Password={{SMTP_PASSWORD}}
-      - Email__Smtp__From={{SMTP_FROM}}
       - Email__Http__ApiKey={{EMAIL_API_KEY}}
       - Email__Http__From={{EMAIL_FROM}}
       - MediatR__LicenseKey={{MEDIATR_LICENSEKEY}}

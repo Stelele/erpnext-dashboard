@@ -131,11 +131,6 @@ jobs:
             -e 's|{{R2_CDN_BASE_URL}}|${{ secrets.R2_CDN_BASE_URL }}|g' \
             -e 's|{{R2_SYNC_INTERVAL}}|15|g' \
             -e 's|{{APP_FRONTEND_URL}}|${{ secrets.APP_FRONTEND_URL }}|g' \
-            -e 's|{{SMTP_HOST}}|${{ secrets.SMTP_HOST }}|g' \
-            -e 's|{{SMTP_PORT}}|587|g' \
-            -e 's|{{SMTP_USERNAME}}|${{ secrets.SMTP_USERNAME }}|g' \
-            -e 's|{{SMTP_PASSWORD}}|${{ secrets.SMTP_PASSWORD }}|g' \
-            -e 's|{{SMTP_FROM}}|${{ secrets.SMTP_FROM }}|g' \
             -e 's|{{EMAIL_API_KEY}}|${{ secrets.EMAIL_API_KEY }}|g' \
             -e 's|{{EMAIL_FROM}}|${{ secrets.EMAIL_FROM }}|g' \
             backend/docker-compose.yml

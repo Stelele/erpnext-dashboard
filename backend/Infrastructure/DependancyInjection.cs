@@ -51,7 +51,6 @@ public static class DependancyInjection
     public static WebApplicationBuilder AddInfrastructure(this WebApplicationBuilder builder)
     {
         builder.Services.AddMemoryCache();
-        builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email:Smtp"));
         builder.Services.Configure<HttpEmailOptions>(builder.Configuration.GetSection("Email:Http"));
         builder.Services.AddHttpClient("Resend", (sp, client) =>
         {
