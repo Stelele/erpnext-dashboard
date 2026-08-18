@@ -9,7 +9,12 @@ services:
       - erpnext_data:/app/data
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - Identity__ClientSecret={{IDENTITY_CLIENTSECRET}}
+      - App__FrontendUrl={{APP_FRONTEND_URL}}
+      - Email__Smtp__Host={{SMTP_HOST}}
+      - Email__Smtp__Port={{SMTP_PORT}}
+      - Email__Smtp__Username={{SMTP_USERNAME}}
+      - Email__Smtp__Password={{SMTP_PASSWORD}}
+      - Email__Smtp__From={{SMTP_FROM}}
       - MediatR__LicenseKey={{MEDIATR_LICENSEKEY}}
       - R2__AccountId={{R2_ACCOUNT_ID}}
       - R2__AccessKeyId={{R2_ACCESS_KEY_ID}}
@@ -18,9 +23,6 @@ services:
       - R2__PublicBucketName={{R2_PUBLIC_BUCKET_NAME}}
       - R2__CDNBaseUrl={{R2_CDN_BASE_URL}}
       - R2__SyncIntervalMinutes={{R2_SYNC_INTERVAL}}
-      - Auth0__Domain={{AUTH0_DOMAIN}}
-      - Auth0__Audience={{AUTH0_AUDIENCE}}
-      - Auth0__Apps__ERP-Dashboard={{AUTH0_APP_ERP_DASHBOARD}}
       - ConnectionStrings__Sqlite=Data Source=/app/data/erpnext.db
 
 volumes:

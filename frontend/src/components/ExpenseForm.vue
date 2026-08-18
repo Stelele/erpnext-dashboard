@@ -123,7 +123,7 @@
 import { CalendarDate, getLocalTimeZone } from "@internationalized/date";
 import * as z from "zod";
 import moment from "moment";
-import { computed, reactive, ref, shallowRef, watch } from "vue";
+import { computed, reactive, ref, markRaw, watch } from "vue";
 import type { Expense, CompanyExpenseMapping } from "@/types/Expenses";
 import { formatNumber } from "@/utils/FormatNumber";
 
@@ -169,7 +169,7 @@ const schema = z.object({
             day: z.number().min(1).max(31),
         })
         .transform(({ year, month, day }) =>
-            shallowRef(new CalendarDate(year, month, day)),
+            markRaw(new CalendarDate(year, month, day)),
         ),
     expenseTypeId: z.enum(expenseTypeIds.value, "Please select an expense type"),
     amount: z.number({ message: "Please enter an amount" }).gt(0, "Amount must be greater than 0"),
@@ -178,7 +178,7 @@ const schema = z.object({
 type Schema = z.output<typeof schema>;
 
 const state = reactive<Schema>({
-    date: shallowRef(
+    date: markRaw(
         new CalendarDate(
             moment().year(),
             moment().month() + 1,
@@ -199,7 +199,7 @@ watch(() => props.loading, (v) => {
 watch(() => props.amendEntry, (entry) => {
     if (entry) {
         const d = entry.date.split("-");
-        state.date = shallowRef(new CalendarDate(parseInt(d[0]), parseInt(d[1]), parseInt(d[2])));
+        state.date = markRaw(new CalendarDate(Number(d[0]), Number(d[1]), Number(d[2])));
         state.expenseTypeId = entry.expenseTypeId;
         state.amount = entry.amount;
         state.description = entry.description;

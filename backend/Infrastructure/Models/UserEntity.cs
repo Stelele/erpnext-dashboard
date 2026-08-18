@@ -8,8 +8,7 @@ public class UserEntity : IEntityTypeConfiguration<User>
 {
     public void Configure(EntityTypeBuilder<User> builder)
     {
-        builder
-            .HasKey(b => b.Id);
+        builder.HasKey(b => b.Id);
 
         builder
             .Property(b => b.Id)
@@ -30,12 +29,38 @@ public class UserEntity : IEntityTypeConfiguration<User>
             .IsUnique();
 
         builder
-            .Property(b => b.Auth0UserId)
+            .Property(b => b.Role)
+            .HasConversion<string>()
+            .HasDefaultValue(Role.Viewer)
+            .IsRequired();
+
+        builder
+            .Property(b => b.PasswordHash)
+            .IsRequired(false);
+
+        builder
+            .Property(b => b.FailedLoginCount)
+            .IsRequired();
+
+        builder
+            .Property(b => b.LockoutUntil)
             .IsRequired(false);
 
         builder
             .HasMany(b => b.Companies)
             .WithMany(b => b.Users);
+
+        builder
+            .HasMany(b => b.Sessions)
+            .WithOne(b => b.User)
+            .HasForeignKey(b => b.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        builder
+            .HasMany(b => b.PasswordResetTokens)
+            .WithOne(b => b.User)
+            .HasForeignKey(b => b.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder
             .Property(b => b.CreatedOn)

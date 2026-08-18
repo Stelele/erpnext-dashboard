@@ -12,7 +12,6 @@
     "codegen": "openapi-typescript http://localhost:5165/openapi/v1.json -o src/services/api/schema.ts"
   },
   "dependencies": {
-    "@auth0/auth0-vue": "^2.5.0",
     "@iconify-json/lucide": "^1.2.80",
     "@nuxt/ui": "^4.8.2",
     "axios": "^1.13.2",

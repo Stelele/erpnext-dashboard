@@ -1,7 +1,7 @@
 using Application.Users;
+using Domain.Users;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace Host.Middleware;
 
@@ -18,22 +18,19 @@ public class UserContextMiddleware
     {
         if (context.User.Identity?.IsAuthenticated == true)
         {
-            var namespaceClaim = context.User.FindFirst("https://meta.dashboard.com/");
-            if (namespaceClaim != null)
+            var userIdClaim = context.User.FindFirst("user_id");
+            if (userIdClaim is not null && Guid.TryParse(userIdClaim.Value, out var userId))
             {
-                using var doc = JsonDocument.Parse(namespaceClaim.Value);
-                if (doc.RootElement.TryGetProperty("user_id", out var uid) && uid.TryGetGuid(out var userId))
-                {
-                    var user = await db.Users
-                        .AsNoTracking()
-                        .Include(u => u.Companies)
-                        .FirstOrDefaultAsync(u => u.Id == userId);
+                var user = await db.Users
+                    .AsNoTracking()
+                    .Include(u => u.Companies)
+                    .FirstOrDefaultAsync(u => u.Id == userId);
 
-                    if (user != null)
-                    {
-                        userContext.UserId = user.Id;
-                        userContext.CompanyIds = user.Companies.Select(c => c.Id).ToList();
-                    }
+                if (user != null)
+                {
+                    userContext.UserId = user.Id;
+                    userContext.IsAdmin = user.Role == Role.Admin;
+                    userContext.CompanyIds = user.Companies.Select(c => c.Id).ToList();
                 }
             }
         }

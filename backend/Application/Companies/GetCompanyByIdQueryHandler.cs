@@ -12,7 +12,7 @@ public class GetCompanyByIdQueryHandler(DashboardDbContext db, IUserContext user
     {
         var query = db.Companies.AsNoTracking().Where(c => c.Id == request.Id);
 
-        if (userContext.CompanyIds.Count > 0)
+        if (!userContext.IsAdmin)
             query = query.Where(c => userContext.CompanyIds.Contains(c.Id));
 
         var company = await query.FirstOrDefaultAsync(cancellationToken);

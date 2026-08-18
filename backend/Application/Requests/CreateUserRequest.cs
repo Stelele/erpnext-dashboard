@@ -1,18 +1,10 @@
-using FluentValidation;
+using Domain.Users;
 
 namespace Application.Requests;
 
 public record CreateUserRequest(
     string Name,
     string Email,
+    Role Role,
     List<Guid> Companies
 );
-
-public class CreateUserRequestValidator : AbstractValidator<CreateUserRequest>
-{
-    public CreateUserRequestValidator()
-    {
-        RuleFor(x => x.Name).NotEmpty();
-        RuleFor(x => x.Email).NotEmpty().EmailAddress();
-    }
-}

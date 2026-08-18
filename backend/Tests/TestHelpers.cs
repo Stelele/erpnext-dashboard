@@ -1,7 +1,23 @@
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Tests;
+
+/// <summary>
+/// JSON options matching the production wire format: the app configures
+/// HttpJsonOptions with JsonSerializerDefaults.Web plus a camelCase
+/// JsonStringEnumConverter (see Host/Program.cs), so enums are sent as
+/// camelCase strings (e.g. "role":"admin"). Tests must use these options
+/// when (de)serializing any DTO that contains an enum.
+/// </summary>
+public static class TestJson
+{
+    public static readonly JsonSerializerOptions Options = new(JsonSerializerDefaults.Web)
+    {
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
+    };
+}
 
 public static class TestHelpers
 {

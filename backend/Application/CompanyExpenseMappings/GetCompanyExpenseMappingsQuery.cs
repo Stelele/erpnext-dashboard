@@ -15,7 +15,7 @@ internal class GetCompanyExpenseMappingsQueryHandler(DashboardDbContext db, IUse
 {
     public async Task<List<CompanyExpenseMappingResponse>> Handle(GetCompanyExpenseMappingsQuery request, CancellationToken ct)
     {
-        if (userContext.CompanyIds.Count > 0 && !userContext.CompanyIds.Contains(request.CompanyId))
+        if (!userContext.IsAdmin && !userContext.HasCompany(request.CompanyId))
             return [];
 
         return await db.CompanyExpenseMappings

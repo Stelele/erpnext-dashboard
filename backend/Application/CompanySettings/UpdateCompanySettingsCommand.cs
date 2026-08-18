@@ -3,6 +3,7 @@ using Application.Caching;
 using Application.Users;
 using Domain.CompanySettings;
 using CompanySettingsEntity = Domain.CompanySettings.CompanySettings;
+using FluentValidation;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,11 +19,23 @@ public record UpdateCompanySettingsCommand(
     List<PackSizeEntry>? PackSizeMap = null
 ) : ICommand;
 
+public sealed class UpdateCompanySettingsCommandValidator : AbstractValidator<UpdateCompanySettingsCommand>
+{
+    public UpdateCompanySettingsCommandValidator()
+    {
+        RuleFor(x => x.CompanyId)
+            .NotEmpty();
+
+        RuleFor(x => x.DefaultIncomeAccountName)
+            .NotEmpty();
+    }
+}
+
 internal class UpdateCompanySettingsCommandHandler(DashboardDbContext db, IUserContext userContext) : ICommandHandler<UpdateCompanySettingsCommand>
 {
     public async Task Handle(UpdateCompanySettingsCommand request, CancellationToken ct)
     {
-        if (userContext.CompanyIds.Count > 0 && !userContext.CompanyIds.Contains(request.CompanyId))
+        if (!userContext.IsAdmin && !userContext.HasCompany(request.CompanyId))
             throw new UnauthorizedAccessException();
 
         var settings = await db.CompanySettings

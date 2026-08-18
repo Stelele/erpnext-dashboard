@@ -12,7 +12,7 @@ public class GetCompaniesQueryHandler(DashboardDbContext db, IUserContext userCo
     {
         var query = db.Companies.AsQueryable();
 
-        if (userContext.CompanyIds.Count > 0)
+        if (!userContext.IsAdmin)
             query = query.Where(c => userContext.CompanyIds.Contains(c.Id));
 
         if (request.CompanyIds != null && request.CompanyIds.Length > 0)

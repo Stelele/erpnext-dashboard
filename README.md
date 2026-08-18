@@ -9,7 +9,7 @@ A full-stack business intelligence dashboard for monitoring ERP metrics includin
 | Frontend | Vue 3 + Vite + Nuxt UI + Pinia |
 | Backend | .NET 10 ASP.NET Core |
 | Database | PostgreSQL |
-| Auth | Auth0 |
+| Auth | Session-based (email + password) |
 | Infrastructure | Docker |
 
 ## Project Structure
@@ -47,7 +47,7 @@ njeremoto-dashboard/
      cd backend/Api/Host
      dotnet user-secrets set "ConnectionStrings:Postgres" "Host=localhost;Database=dashboard;Username=postgres;Password=postgres"
      ```
-   - Add Auth0 client secret and MediatR license key
+   - Add SMTP credentials and MediatR license key
 
 3. **Run the backend:**
    ```bash
@@ -56,13 +56,11 @@ njeremoto-dashboard/
    ```
 
 4. **Configure the frontend:**
-   Copy `.env` to `.env.local` and fill in your Auth0 credentials:
+   Copy `.env` to `.env.local` and fill in the API URL:
    ```
-   VITE_AUTH0_DOMAIN=your-tenant.auth0.com
-   VITE_AUTH0_CLIENT_ID=your-client-id
-   VITE_AUTH0_AUDIENCE=your-api-audience
    VITE_API_URL=http://localhost:8000
    ```
+   Login is session-based (email + password) against the backend's `/auth/login` endpoint.
 
 5. **Run the frontend:**
    ```bash

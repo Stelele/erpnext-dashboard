@@ -74,7 +74,8 @@ public static class SitesEndpoints
          .WithDisplayName("GetCompanyLogo")
          .Produces<LogoResponse>(StatusCodes.Status200OK)
          .Produces(StatusCodes.Status404NotFound)
-         .WithTags(Tags.Sites);
+         .WithTags(Tags.Sites)
+         .RequireAuthorization(Permissions.ReadSites);
 
         return app;
     }

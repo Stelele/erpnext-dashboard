@@ -15,7 +15,7 @@ internal class GetCompanySettingsQueryHandler(DashboardDbContext db, IUserContex
 {
     public async Task<CompanySettingsResponse?> Handle(GetCompanySettingsQuery request, CancellationToken ct)
     {
-        if (userContext.CompanyIds.Count > 0 && !userContext.CompanyIds.Contains(request.CompanyId))
+        if (!userContext.IsAdmin && !userContext.HasCompany(request.CompanyId))
             return null;
 
         var settings = await db.CompanySettings

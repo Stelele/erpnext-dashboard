@@ -5,7 +5,7 @@ import { VitePWA } from "vite-plugin-pwa";
 import path from "node:path";
 
 // https://vite.dev/config/
-export default defineConfig(({ mode }) => ({
+export default defineConfig(() => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src"),

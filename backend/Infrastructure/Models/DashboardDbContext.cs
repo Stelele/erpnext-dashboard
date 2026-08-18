@@ -18,6 +18,8 @@ public class DashboardDbContext(DbContextOptions<DashboardDbContext> options, IP
     public DbSet<ExpenseType> ExpenseTypes { get; set; }
     public DbSet<CompanyExpenseMapping> CompanyExpenseMappings { get; set; }
     public DbSet<CompanySettings> CompanySettings { get; set; }
+    public DbSet<Session> Sessions { get; set; }
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -27,6 +29,8 @@ public class DashboardDbContext(DbContextOptions<DashboardDbContext> options, IP
         new ExpenseTypeEntity().Configure(modelBuilder.Entity<ExpenseType>());
         new CompanyExpenseMappingEntity().Configure(modelBuilder.Entity<CompanyExpenseMapping>());
         new CompanySettingsEntity().Configure(modelBuilder.Entity<CompanySettings>());
+        new SessionEntity().Configure(modelBuilder.Entity<Session>());
+        new PasswordResetTokenEntity().Configure(modelBuilder.Entity<PasswordResetToken>());
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

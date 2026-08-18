@@ -1,4 +1,4 @@
-using Infrastructure.Auth0;
+using Infrastructure.Email;
 using Infrastructure.Models;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Builder;
@@ -46,19 +46,10 @@ public static class DependancyInjection
     public static WebApplicationBuilder AddInfrastructure(this WebApplicationBuilder builder)
     {
         builder.Services.AddMemoryCache();
+        builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email:Smtp"));
+        builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
         builder.Services.AddHttpClient();
         builder.Services.AddSingleton<IR2StorageService, R2StorageService>();
-
-        builder.Services.AddSingleton(sp =>
-        {
-            var logger = sp.GetRequiredService<ILogger<Auth0UserProvisioner>>();
-            return new Auth0UserProvisioner(
-                domain: builder.Configuration["Auth0:Domain"] ?? throw new InvalidOperationException("Auth0:Domain is null"),
-                clientId: builder.Configuration["Identity:ClientId"] ?? throw new InvalidOperationException("Identity:ClientId is null"),
-                clientSecret: builder.Configuration["Identity:ClientSecret"] ?? throw new InvalidOperationException("Identity:ClientSecret is null"),
-                auth0AppClientId: builder.Configuration["Auth0:Apps:ERP-Dashboard"] ?? throw new InvalidOperationException("Auth0:Apps:ERP-Dashboard is null"),
-                logger: logger);
-        });
 
         var r2 = builder.Services.BuildServiceProvider().GetRequiredService<IR2StorageService>();
         var dbRestoreLogger = builder.Services.BuildServiceProvider()

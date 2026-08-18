@@ -1,9 +1,14 @@
+using System.Threading.RateLimiting;
 using Api.Authentication;
 using Api.Endpoints;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 
 namespace Api;
@@ -17,7 +22,8 @@ public static class DependancyInjection
             .MapSitesEndpoints()
             .MapUsersEndpoints()
             .MapExpenseEndpoints()
-            .MapThemeEndpoints();
+            .MapThemeEndpoints()
+            .MapAuthEndpoints();
 
         return app;
     }
@@ -25,12 +31,9 @@ public static class DependancyInjection
     public static WebApplicationBuilder AddApi(this WebApplicationBuilder builder)
     {
         builder.Services
-            .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-            .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, c =>
-            {
-                c.Authority = $"https://{builder.Configuration["Auth0:Domain"]}/";
-                c.Audience = builder.Configuration["Auth0:Audience"];
-            });
+            .AddAuthentication(SessionAuthDefaults.AuthenticationScheme)
+            .AddScheme<SessionAuthenticationOptions, SessionAuthenticationHandler>(
+                SessionAuthDefaults.AuthenticationScheme, _ => { });
 
         builder.Services.AddAuthorizationBuilder()
             .AddPermission(Permissions.ReadUsers)
@@ -55,7 +58,26 @@ public static class DependancyInjection
 
         builder.Services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
 
-        
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            options.AddPolicy(AuthRateLimit.PolicyName, context =>
+            {
+                var permitLimit = builder.Configuration.GetValue("RateLimiting:Auth:PermitLimit", 10);
+                var window = builder.Configuration.GetValue("RateLimiting:Auth:WindowSeconds", 60);
+
+                return RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit = permitLimit,
+                        Window = TimeSpan.FromSeconds(window),
+                        QueueLimit = 0,
+                        AutoReplenishment = true
+                    });
+            });
+        });
 
         builder.Services.AddCors(options =>
         {
@@ -78,4 +100,9 @@ public static class DependancyInjection
     {
         return builder.AddPolicy(permission, p => p.RequireAuthenticatedUser().AddRequirements(new HasScopeRequirement(permission)));
     }
+}
+
+public static class AuthRateLimit
+{
+    public const string PolicyName = "auth";
 }

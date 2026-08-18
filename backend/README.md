@@ -23,7 +23,7 @@ Api/
 - **Database**: PostgreSQL (via Npgsql)
 - **CQRS**: MediatR
 - **API Docs**: Scalar (OpenAPI)
-- **Auth**: Auth0
+- **Auth**: Session-based (email + password) with Bearer session token
 
 ## Configuration
 
@@ -36,12 +36,22 @@ Key settings in `Host/appsettings.json`:
   "ConnectionStrings": {
     "Postgres": "Host=localhost;Database=dashboard;Username=postgres;Password=postgres"
   },
-  "Auth0": {
-    "Domain": "your-tenant.auth0.com",
-    "Audience": "https://api.dashboard.example.com"
+  "App": {
+    "FrontendUrl": "https://dashboard.njeremoto.net"
+  },
+  "Email": {
+    "Smtp": {
+      "Host": "smtp.example.com",
+      "Port": 587,
+      "Username": "your-smtp-user",
+      "Password": "your-smtp-password",
+      "From": "dashboard@example.com"
+    }
   }
 }
 ```
+
+Auth is session-based: login via `POST /auth/login`, the API returns a Bearer session token, and password reset flows through `POST /auth/forgot-password` / `POST /auth/reset-password`. Users have `Admin` or `Viewer` roles.
 
 ### User Secrets
 
@@ -50,7 +60,8 @@ For local development, store sensitive values in user secrets:
 ```bash
 cd Host
 dotnet user-secrets set "ConnectionStrings:Postgres" "Host=localhost;Database=dashboard;Username=postgres;Password=postgres"
-dotnet user-secrets set "Identity:ClientSecret" "your-auth0-client-secret"
+dotnet user-secrets set "Email:Smtp:Host" "smtp.example.com"
+dotnet user-secrets set "Email:Smtp:Password" "your-smtp-password"
 dotnet user-secrets set "MediatR:LicenseKey" "your-mediatr-key"
 ```
 

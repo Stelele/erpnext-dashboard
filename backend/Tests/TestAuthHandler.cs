@@ -22,9 +22,9 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
             new Claim(ClaimTypes.NameIdentifier, "test-user-id"),
             new Claim(ClaimTypes.Name, "Test User"),
             new Claim(ClaimTypes.Email, "test@example.com"),
+            new Claim("user_id", Guid.NewGuid().ToString()),
             // All permissions as a single space-separated 'scope' claim
             new Claim("scope", "read:users create:users update:users delete:users read:sites create:sites update:sites delete:sites read:companies create:companies update:companies delete:companies read:expenses create:expenses update:expenses delete:expenses"),
-            new Claim("https://meta.dashboard.com/", $"{{\"display_name\":\"Test User\",\"email\":\"test@example.com\",\"user_id\":\"{Guid.NewGuid()}\"}}"),
         };
 
         var identity = new ClaimsIdentity(claims, Scheme.Name);

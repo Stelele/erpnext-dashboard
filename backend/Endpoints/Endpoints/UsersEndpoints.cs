@@ -35,7 +35,7 @@ public static class UsersEndpoints
 
         app.MapPost("/users", async (CreateUserRequest request, ISender mediator) =>
         {
-            var command = new CreateUserCommand(request.Name, request.Email, request.Companies);
+            var command = new CreateUserCommand(request.Name, request.Email, request.Role, request.Companies);
             var userId = await mediator.Send(command);
             return Results.Created($"/users/{userId}", new { Id = userId });
         })
@@ -45,6 +45,19 @@ public static class UsersEndpoints
          .Produces<Guid>(StatusCodes.Status201Created)
          .WithTags(Tags.Users)
          .RequireAuthorization(Permissions.CreateUsers);
+
+        app.MapPatch("/users/{id}/role", async (Guid id, UpdateUserRoleRequest request, ISender mediator) =>
+        {
+            await mediator.Send(new UpdateUserRoleCommand(id, request.Role));
+            return Results.NoContent();
+        })
+         .WithName("UpdateUserRole")
+         .WithDisplayName("UpdateUserRole")
+         .Accepts<UpdateUserRoleRequest>("application/json")
+         .Produces(StatusCodes.Status204NoContent)
+         .Produces(StatusCodes.Status404NotFound)
+         .WithTags(Tags.Users)
+         .RequireAuthorization(Permissions.UpdateUsers);
 
         app.MapDelete("/users/{id}", async (Guid id, ISender mediator) =>
         {
