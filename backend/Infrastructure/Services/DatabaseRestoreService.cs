@@ -10,6 +10,13 @@ public class DatabaseRestoreService : IHostedService
     {
         var connectionString = configuration.GetConnectionString("Sqlite") 
             ?? throw new InvalidOperationException("Connection string 'Sqlite' not found.");
+
+        if (connectionString.Contains(":memory:", StringComparison.OrdinalIgnoreCase))
+        {
+            logger.LogInformation("Skipping database restore for in-memory database");
+            return;
+        }
+
         var databasePath = connectionString.Replace("Data Source=", "");
 
         if (File.Exists(databasePath))

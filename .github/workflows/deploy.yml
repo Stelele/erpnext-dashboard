@@ -94,6 +94,10 @@ jobs:
       - name: Run tests
         working-directory: backend
         run: dotnet test --configuration Release --no-build
+        env:
+          R2__AccountId: "00000000000000000000000000000000"
+          R2__AccessKeyId: "dummy"
+          R2__SecretAccessKey: "dummy"
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3

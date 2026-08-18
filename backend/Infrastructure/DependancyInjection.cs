@@ -13,6 +13,10 @@ public static class DependancyInjection
 {
     public static WebApplication MapInfrastructure(this WebApplication app)
     {
+        var r2 = app.Services.GetRequiredService<IR2StorageService>();
+        var restoreLogger = app.Services.GetRequiredService<ILogger<DatabaseRestoreService>>();
+        DatabaseRestoreService.EnsureDatabaseExists(r2, app.Configuration, restoreLogger);
+
         using var scope = app.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<DashboardDbContext>();
         var canConnect = db.Database.CanConnect();
@@ -50,11 +54,6 @@ public static class DependancyInjection
         builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
         builder.Services.AddHttpClient();
         builder.Services.AddSingleton<IR2StorageService, R2StorageService>();
-
-        var r2 = builder.Services.BuildServiceProvider().GetRequiredService<IR2StorageService>();
-        var dbRestoreLogger = builder.Services.BuildServiceProvider()
-            .GetRequiredService<ILogger<DatabaseRestoreService>>();
-        DatabaseRestoreService.EnsureDatabaseExists(r2, builder.Configuration, dbRestoreLogger);
 
         builder.Services.AddDbContext<DashboardDbContext>(options =>
         {
