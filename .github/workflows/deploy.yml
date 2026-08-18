@@ -136,6 +136,8 @@ jobs:
             -e 's|{{SMTP_USERNAME}}|${{ secrets.SMTP_USERNAME }}|g' \
             -e 's|{{SMTP_PASSWORD}}|${{ secrets.SMTP_PASSWORD }}|g' \
             -e 's|{{SMTP_FROM}}|${{ secrets.SMTP_FROM }}|g' \
+            -e 's|{{EMAIL_API_KEY}}|${{ secrets.EMAIL_API_KEY }}|g' \
+            -e 's|{{EMAIL_FROM}}|${{ secrets.EMAIL_FROM }}|g' \
             backend/docker-compose.yml
 
       - name: Copy docker-compose.yml to droplet

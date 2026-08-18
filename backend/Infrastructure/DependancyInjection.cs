@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Infrastructure;
 
@@ -51,8 +52,15 @@ public static class DependancyInjection
     {
         builder.Services.AddMemoryCache();
         builder.Services.Configure<SmtpOptions>(builder.Configuration.GetSection("Email:Smtp"));
-        builder.Services.AddSingleton<IEmailSender, SmtpEmailSender>();
+        builder.Services.Configure<HttpEmailOptions>(builder.Configuration.GetSection("Email:Http"));
+        builder.Services.AddHttpClient("Resend", (sp, client) =>
+        {
+            var options = sp.GetRequiredService<IOptions<HttpEmailOptions>>().Value;
+            client.DefaultRequestHeaders.Authorization =
+                new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", options.ApiKey);
+        });
         builder.Services.AddHttpClient();
+        builder.Services.AddSingleton<IEmailSender, HttpEmailSender>();
         builder.Services.AddSingleton<IR2StorageService, R2StorageService>();
 
         builder.Services.AddDbContext<DashboardDbContext>(options =>
