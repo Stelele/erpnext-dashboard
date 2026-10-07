@@ -8,6 +8,7 @@ it points at for the work in hand.
 
 The board is a private repo. If it is not checked out on this machine yet:
 
+    mkdir -p ~/Documents/code-projects
     git clone git@github.com:Stelele/hivemind.git ~/Documents/code-projects/hivemind
 
 Then either of these updates it — adjust the path if you cloned it elsewhere:
