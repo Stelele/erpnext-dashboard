@@ -19,9 +19,9 @@ Then either of these updates it — adjust the path if you cloned it elsewhere:
 Board: https://github.com/Stelele/hivemind — every rule has an ADR recording why and what
 it costs. Everything below, and anything else here, is specific to this project.
 
-Three that get violated most: **never commit without being asked** (ADR 0001) · **make the
-whole change, then run tests once** (ADR 0002) · **check the real docs before
-implementing** (ADR 0011).
+Three that get violated most: **never commit or push to the default branch without being
+asked** (ADR 0049, 0052) · **make the whole change, then run tests once** (ADR 0002) ·
+**check the real docs before implementing** (ADR 0011).
 
 Guidelines for agents working with this codebase.
 
