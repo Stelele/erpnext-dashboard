@@ -1,54 +1,19 @@
+# OCR reviewer: the configuration lives in ONE place — Stelele/ocr-review
+# (.github/workflows/ocr-review.yml). Tune the review inputs there, not here.
+# The OCR_LLM_URL / OCR_LLM_TOKEN / OCR_LLM_MODEL secrets are taken from THIS
+# repo and passed in via secrets: inherit.
 name: ocr-review
 
 on:
   pull_request:
     types: [opened, synchronize, reopened]
 
-concurrency:
-  group: ocr-review-${{ github.ref }}
-  cancel-in-progress: true
-
 permissions:
-  contents: read
+  contents: write
   pull-requests: write
 
 jobs:
   review:
     name: ai code review
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - name: Verify required secrets
-        env:
-          INJECT_URL: ${{ secrets.OCR_LLM_URL }}
-          INJECT_TOKEN: ${{ secrets.OCR_LLM_TOKEN }}
-          INJECT_MODEL: ${{ secrets.OCR_LLM_MODEL }}
-        run: |
-          for v in INJECT_URL INJECT_TOKEN INJECT_MODEL; do
-            if [ -z "${!v}" ]; then
-              echo "::error::$v is empty. Provision repo secrets OCR_LLM_URL / OCR_LLM_TOKEN / OCR_LLM_MODEL (OpenCode Go endpoint, API key, and model id) before enabling review."
-              exit 1
-            fi
-          done
-      - name: Run OpenCodeReview
-        # alibaba/open-code-review, pinned to a full commit SHA (dependabot's
-        # SHA-commented pattern). SHA was resolved live from upstream's
-        # v1.13.5 release via the commits API and equals the release head —
-        # re-verify on bump: gh api repos/alibaba/open-code-review/releases/latest --jq .target_commitish
-        # NOTE: no actions/checkout here BY DESIGN — the composite action
-        # checks out the trusted base itself with fetch-depth: 0 and fetches
-        # the PR head separately (fork-safe). Adding our own checkout is
-        # redundant work only.
-        uses: alibaba/open-code-review@abb7abcd5c5196fa0278dc87db85780fa269562f
-        with:
-          # Secrets referenced directly: values are single-line, the guard above
-          # proves they resolve, and (per ocr-review discussion) env-context
-          # indirection only adds a second copy of sensitive values.
-          llm_url: ${{ secrets.OCR_LLM_URL }}
-          llm_auth_token: ${{ secrets.OCR_LLM_TOKEN }}
-          llm_model: ${{ secrets.OCR_LLM_MODEL }}
-          llm_use_anthropic: "false"
-          llm_extra_headers: "x-opencode-session=ocr-review-${{ github.event.pull_request.number }}"
-          language: English
-          stream_progress: "true"
-          sticky_summary: "true"
+    uses: Stelele/ocr-review/.github/workflows/ocr-review.yml@main
+    secrets: inherit
