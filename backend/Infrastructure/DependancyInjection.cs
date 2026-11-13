@@ -37,7 +37,7 @@ public static class DependancyInjection
         // Trusted-admin bootstrap from the Admins:Seed user secret (local/dev).
         try
         {
-            await AdminSeeder.SeedAsync(db, app.Configuration);
+            await AdminSeeder.SeedAsync(db, app.Configuration, app.Lifetime.ApplicationStopping);
         }
         catch (Exception ex)
         {
