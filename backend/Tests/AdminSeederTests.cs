@@ -109,6 +109,43 @@ public class AdminSeederTests
     }
 
     [Fact]
+    public async Task Mixed_case_stored_email_is_matched_not_duplicated()
+    {
+        var (db, conn) = await NewDbAsync();
+        await using var _ = conn;
+        // emails are stored verbatim by CreateUserCommandHandler, so a stored
+        // mixed-case email must still match the lowercased config entry
+        db.Users.Add(User.Create("Gift Mugweni", "GIFT@Example.com", Role.Viewer));
+        await db.SaveChangesAsync();
+
+        await AdminSeeder.SeedAsync(db, Config(("Gift Mugweni", "gift@example.com")));
+
+        Assert.Equal(1, await db.Users.CountAsync());
+        var promoted = await db.Users.SingleAsync();
+        Assert.Equal(Role.Admin, promoted.Role);
+        Assert.Equal("GIFT@Example.com", promoted.Email);
+    }
+
+    [Fact]
+    public async Task Entries_with_missing_name_or_email_are_skipped()
+    {
+        var (db, conn) = await NewDbAsync();
+        await using var _ = conn;
+
+        var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["Admins:Seed:0:Name"] = "No Email",
+            ["Admins:Seed:1:Email"] = "gift@example.com",
+            ["Admins:Seed:1:Name"] = "Gift Mugweni",
+        }).Build();
+
+        await AdminSeeder.SeedAsync(db, config);
+
+        Assert.Equal(1, await db.Users.CountAsync());
+        Assert.Equal("Gift Mugweni", (await db.Users.SingleAsync()).Name);
+    }
+
+    [Fact]
     public async Task Missing_config_section_is_a_noop()
     {
         var (db, conn) = await NewDbAsync();

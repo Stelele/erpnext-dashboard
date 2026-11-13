@@ -12,7 +12,7 @@ public static class AdminSeeder
     // The database is the source of truth for names, emails and passwords —
     // the seeder never overwrites an existing user's details, so a rename done
     // through the UI cannot be resurrected as a duplicate from stale config.
-    public static async Task SeedAsync(DashboardDbContext db, IConfiguration config)
+    public static async Task SeedAsync(DashboardDbContext db, IConfiguration config, CancellationToken ct = default)
     {
         var seeds = config.GetSection("Admins:Seed").Get<List<SeedAdmin>>() ?? [];
         if (seeds.Count == 0)
@@ -21,8 +21,11 @@ public static class AdminSeeder
         var changed = false;
         foreach (var seed in seeds)
         {
+            if (string.IsNullOrWhiteSpace(seed.Email) || string.IsNullOrWhiteSpace(seed.Name))
+                continue;
+
             var email = seed.Email.Trim().ToLowerInvariant();
-            var user = await db.Users.FirstOrDefaultAsync(u => u.Email == email);
+            var user = await db.Users.FirstOrDefaultAsync(u => u.Email.ToLower() == email, ct);
             if (user is null)
             {
                 db.Users.Add(User.Create(seed.Name, email, Role.Admin));
@@ -36,7 +39,7 @@ public static class AdminSeeder
         }
 
         if (changed)
-            await db.SaveChangesAsync();
+            await db.SaveChangesAsync(ct);
     }
 
     public sealed class SeedAdmin
