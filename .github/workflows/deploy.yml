@@ -120,10 +120,12 @@ jobs:
           cache-to: type=gha,mode=max
 
       - name: Replace docker-compose placeholders
+        env:
+          ADMINS_SEED: ${{ secrets.ADMINS_SEED }}
         run: |
           sed -i \
             -e 's|{{MEDIATR_LICENSEKEY}}|${{ secrets.MEDIATR_LICENSE_KEY }}|g' \
-            -e 's|{{ADMINS_SEED}}|${{ secrets.ADMINS_SEED }}|g' \
+            -e "s|{{ADMINS_SEED}}|$ADMINS_SEED|g" \
             -e 's|{{R2_ACCOUNT_ID}}|${{ secrets.R2_ACCOUNT_ID }}|g' \
             -e 's|{{R2_ACCESS_KEY_ID}}|${{ secrets.R2_ACCESS_KEY_ID }}|g' \
             -e 's|{{R2_SECRET_ACCESS_KEY}}|${{ secrets.R2_SECRET_ACCESS_KEY }}|g' \
@@ -135,6 +137,14 @@ jobs:
             -e 's|{{EMAIL_API_KEY}}|${{ secrets.EMAIL_API_KEY }}|g' \
             -e 's|{{EMAIL_FROM}}|${{ secrets.EMAIL_FROM }}|g' \
             backend/docker-compose.yml
+
+          # an unset/renamed secret would ship the literal placeholder to the
+          # container, where seeding would fail JSON parsing on every startup
+          grep -q '{{ADMINS_SEED}}' backend/docker-compose.yml && {
+            echo "ADMINS_SEED secret not substituted — check the repo secret"
+            exit 1
+          }
+          true
 
       - name: Copy docker-compose.yml to droplet
         uses: appleboy/scp-action@v0.1.4
