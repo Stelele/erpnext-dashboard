@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Domain.Users;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
@@ -7,14 +8,25 @@ namespace Infrastructure.Persistence;
 
 public static class AdminSeeder
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
+
     // Trusted-admin bootstrap from the Admins:Seed user secret. Runs on every
     // startup: creates missing users, promotes Viewers, leaves Admins alone.
     // The database is the source of truth for names, emails and passwords —
     // the seeder never overwrites an existing user's details, so a rename done
     // through the UI cannot be resurrected as a duplicate from stale config.
+    // The value is a JSON array string ([{"Name":..,"Email":..}]) so it reads
+    // identically from user secrets (Admins:Seed) and env vars (Admins__Seed).
     public static async Task SeedAsync(DashboardDbContext db, IConfiguration config, CancellationToken ct = default)
     {
-        var seeds = config.GetSection("Admins:Seed").Get<List<SeedAdmin>>() ?? [];
+        var json = config["Admins:Seed"];
+        if (string.IsNullOrWhiteSpace(json))
+            return;
+
+        var seeds = JsonSerializer.Deserialize<List<SeedAdmin>>(json, JsonOptions) ?? [];
         if (seeds.Count == 0)
             return;
 
