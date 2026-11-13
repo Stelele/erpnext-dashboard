@@ -45,7 +45,7 @@ app.UseMiddleware<UserContextMiddleware>();
 
 app
     .MapApi()
-    .MapApplication()
-    .MapInfrastructure();
+    .MapApplication();
+await app.MapInfrastructure();
 
 app.Run();

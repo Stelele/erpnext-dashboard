@@ -1,5 +1,6 @@
 using Infrastructure.Email;
 using Infrastructure.Models;
+using Infrastructure.Persistence;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +13,7 @@ namespace Infrastructure;
 
 public static class DependancyInjection
 {
-    public static WebApplication MapInfrastructure(this WebApplication app)
+    public static async Task<WebApplication> MapInfrastructure(this WebApplication app)
     {
         var r2 = app.Services.GetRequiredService<IR2StorageService>();
         var restoreLogger = app.Services.GetRequiredService<ILogger<DatabaseRestoreService>>();
@@ -31,6 +32,16 @@ public static class DependancyInjection
         {
             app.Logger.LogError(ex, "An error occurred while applying database migrations.");
             throw;
+        }
+
+        // Trusted-admin bootstrap from the Admins:Seed user secret (local/dev).
+        try
+        {
+            await AdminSeeder.SeedAsync(db, app.Configuration);
+        }
+        catch (Exception ex)
+        {
+            app.Logger.LogError(ex, "An error occurred while seeding trusted admins.");
         }
 
         // Pre-warm EF Core to avoid cold-start penalty on first request
