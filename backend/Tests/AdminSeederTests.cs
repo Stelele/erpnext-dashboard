@@ -26,16 +26,18 @@ public class AdminSeederTests
         return (db, conn);
     }
 
+    // The value is always a JSON array string, exactly as a user secret or an
+    // environment variable (Admins__Seed) delivers it — both are scalar strings.
     private static IConfiguration Config(params (string Name, string Email)[] admins)
-    {
-        var values = new Dictionary<string, string?>();
-        for (var i = 0; i < admins.Length; i++)
+        => ConfigJson(System.Text.Json.JsonSerializer.Serialize(admins.Select(a => new
         {
-            values[$"Admins:Seed:{i}:Name"] = admins[i].Name;
-            values[$"Admins:Seed:{i}:Email"] = admins[i].Email;
-        }
-        return new ConfigurationBuilder().AddInMemoryCollection(values).Build();
-    }
+            a.Name,
+            a.Email
+        })));
+
+    private static IConfiguration ConfigJson(string json)
+        => new ConfigurationBuilder().AddInMemoryCollection(
+            new Dictionary<string, string?> { ["Admins:Seed"] = json }).Build();
 
     [Fact]
     public async Task Missing_users_are_created_as_admins()
@@ -134,9 +136,11 @@ public class AdminSeederTests
 
         var config = new ConfigurationBuilder().AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["Admins:Seed:0:Name"] = "No Email",
-            ["Admins:Seed:1:Email"] = "gift@example.com",
-            ["Admins:Seed:1:Name"] = "Gift Mugweni",
+            ["Admins:Seed"] = System.Text.Json.JsonSerializer.Serialize(new[]
+            {
+                new { Name = "No Email", Email = "" },
+                new { Name = "Gift Mugweni", Email = "gift@example.com" },
+            }),
         }).Build();
 
         await AdminSeeder.SeedAsync(db, config);

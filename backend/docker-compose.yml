@@ -13,6 +13,7 @@ services:
       - Email__Http__ApiKey={{EMAIL_API_KEY}}
       - Email__Http__From={{EMAIL_FROM}}
       - MediatR__LicenseKey={{MEDIATR_LICENSEKEY}}
+      - Admins__Seed={{ADMINS_SEED}}
       - R2__AccountId={{R2_ACCOUNT_ID}}
       - R2__AccessKeyId={{R2_ACCESS_KEY_ID}}
       - R2__SecretAccessKey={{R2_SECRET_ACCESS_KEY}}

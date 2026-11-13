@@ -123,6 +123,7 @@ jobs:
         run: |
           sed -i \
             -e 's|{{MEDIATR_LICENSEKEY}}|${{ secrets.MEDIATR_LICENSE_KEY }}|g' \
+            -e 's|{{ADMINS_SEED}}|${{ secrets.ADMINS_SEED }}|g' \
             -e 's|{{R2_ACCOUNT_ID}}|${{ secrets.R2_ACCOUNT_ID }}|g' \
             -e 's|{{R2_ACCESS_KEY_ID}}|${{ secrets.R2_ACCESS_KEY_ID }}|g' \
             -e 's|{{R2_SECRET_ACCESS_KEY}}|${{ secrets.R2_SECRET_ACCESS_KEY }}|g' \
