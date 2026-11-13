@@ -22,6 +22,12 @@ import type {
   StockDetail,
   StockValueSummary,
 } from "@/types/StockDetail";
+import type {
+  RefundableInvoice,
+  RefundHistoryItem,
+  RefundInvoiceDetail,
+  ReturnItemPayload,
+} from "@/types/Refunds";
 
 type ErpNextResponse<T> = { message: T[] };
 export type Grouping = "years" | "months" | "days";
@@ -592,6 +598,78 @@ export class ErpNextService {
       )
       .then((resp) => resp.data)
       .catch(() => undefined);
+  }
+
+  public getPosInvoicesForRefund(params: {
+    from_date?: string;
+    to_date?: string;
+    status?: string;
+    search_term?: string;
+    limit?: number;
+  }): Promise<RefundableInvoice[]> {
+    const authStore = useAuthStore();
+    return this.instance
+      .get<ErpNextResponse<RefundableInvoice>>(
+        "/api/method/awesome_dashboard.api.refunds.get_pos_invoices_for_refund",
+        {
+          params: {
+            company: authStore.company,
+            ...params,
+          },
+        },
+      )
+      .then((resp) => resp?.data.message);
+  }
+
+  public getInvoiceDetailForRefund(
+    invoiceName: string,
+  ): Promise<RefundInvoiceDetail> {
+    return this.instance
+      .get<{ message: RefundInvoiceDetail }>(
+        "/api/method/awesome_dashboard.api.refunds.get_invoice_detail_for_refund",
+        {
+          params: {
+            invoice_name: invoiceName,
+          },
+        },
+      )
+      .then((resp) => resp?.data.message);
+  }
+
+  public processPosRefund(
+    invoiceName: string,
+    returnItems: ReturnItemPayload[],
+  ): Promise<{ return_invoice: string }> {
+    return this.instance
+      .post<{ message: { return_invoice: string } }>(
+        "/api/method/awesome_dashboard.api.refunds.process_pos_refund",
+        {
+          invoice_name: invoiceName,
+          return_items: JSON.stringify(returnItems),
+        },
+      )
+      .then((resp) => resp?.data.message);
+  }
+
+  public getRefundsForPeriod(
+    fromDate: string,
+    toDate: string,
+    limit = 200,
+  ): Promise<RefundHistoryItem[]> {
+    const authStore = useAuthStore();
+    return this.instance
+      .get<ErpNextResponse<RefundHistoryItem>>(
+        "/api/method/awesome_dashboard.api.refunds.get_refunds_for_period",
+        {
+          params: {
+            from_date: fromDate,
+            to_date: toDate,
+            limit,
+            company: authStore.company,
+          },
+        },
+      )
+      .then((resp) => resp?.data.message);
   }
 
   private getDateGrouping(grouping: Grouping) {
