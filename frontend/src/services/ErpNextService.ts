@@ -624,12 +624,14 @@ export class ErpNextService {
   public getInvoiceDetailForRefund(
     invoiceName: string,
   ): Promise<RefundInvoiceDetail> {
+    const authStore = useAuthStore();
     return this.instance
       .get<{ message: RefundInvoiceDetail }>(
         "/api/method/awesome_dashboard.api.refunds.get_invoice_detail_for_refund",
         {
           params: {
             invoice_name: invoiceName,
+            company: authStore.company,
           },
         },
       )
@@ -640,12 +642,14 @@ export class ErpNextService {
     invoiceName: string,
     returnItems: ReturnItemPayload[],
   ): Promise<{ return_invoice: string }> {
+    const authStore = useAuthStore();
     return this.instance
       .post<{ message: { return_invoice: string } }>(
         "/api/method/awesome_dashboard.api.refunds.process_pos_refund",
         {
           invoice_name: invoiceName,
           return_items: JSON.stringify(returnItems),
+          company: authStore.company,
         },
       )
       .then((resp) => resp?.data.message);

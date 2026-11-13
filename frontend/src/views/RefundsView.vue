@@ -59,11 +59,11 @@
 import { onMounted, ref, watch } from "vue";
 import type { TableColumn } from "@nuxt/ui";
 import { useToast } from "@nuxt/ui/composables";
-import axios from "axios";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import NewRefundModal from "@/components/NewRefundModal.vue";
 import { useDataStore } from "@/stores/DataStore";
 import { ErpNextService } from "@/services/ErpNextService";
+import { extractFrappeMessage } from "@/utils/FrappeError";
 import type { RefundHistoryItem } from "@/types/Refunds";
 import { formatNumber } from "@/utils/FormatNumber";
 import moment from "moment";
@@ -76,41 +76,24 @@ const openNewRefund = ref(false);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const refunds = ref<RefundHistoryItem[]>([]);
-
-interface FrappeErrorData {
-    exception?: unknown;
-    message?: unknown;
-}
-
-function extractFrappeMessage(err: unknown): string {
-    if (axios.isAxiosError(err)) {
-        const data = err.response?.data as FrappeErrorData | undefined;
-        if (data) {
-            if (typeof data.exception === "string" && data.exception) {
-                return data.exception;
-            }
-            if (typeof data.message === "string" && data.message) {
-                return data.message;
-            }
-        }
-        if (err.message) return err.message;
-    }
-    if (err instanceof Error && err.message) return err.message;
-    return "Something went wrong. Please try again.";
-}
+let historySeq = 0;
 
 async function loadHistory() {
+    const seq = ++historySeq;
     loading.value = true;
     error.value = null;
     try {
-        refunds.value = await erpnext.getRefundsForPeriod(
+        const items = await erpnext.getRefundsForPeriod(
             dataStore.dateRange.start,
             dataStore.dateRange.end,
         );
+        if (seq !== historySeq) return;
+        refunds.value = items;
     } catch (err) {
+        if (seq !== historySeq) return;
         error.value = extractFrappeMessage(err);
     } finally {
-        loading.value = false;
+        if (seq === historySeq) loading.value = false;
     }
 }
 
