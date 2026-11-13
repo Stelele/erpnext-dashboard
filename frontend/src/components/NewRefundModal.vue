@@ -246,6 +246,7 @@ async function searchInvoices() {
     const seq = searchGuard.start();
     searching.value = true;
     error.value = null;
+    truncated.value = false;
     try {
         const invoices = await erpnext.getPosInvoicesForRefund({
             from_date: fromDate.value || undefined,
