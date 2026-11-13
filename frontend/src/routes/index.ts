@@ -8,6 +8,7 @@ const OverviewView = () => import("@/views/OverviewView.vue");
 const ExpensesView = () => import("@/views/ExpensesView.vue");
 const SalesView = () => import("@/views/SalesView.vue");
 const StockView = () => import("@/views/StockView.vue");
+const RefundsView = () => import("@/views/RefundsView.vue");
 
 export const router = createRouter({
   routes: [
@@ -48,6 +49,12 @@ export const router = createRouter({
       name: "Stock",
       beforeEnter: authGuard,
       component: StockView,
+    },
+    {
+      path: "/refunds",
+      name: "Refunds",
+      beforeEnter: authGuard,
+      component: RefundsView,
     },
     {
       path: "/:pathMatch(.*)*",

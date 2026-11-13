@@ -8,6 +8,7 @@ export const useNavStore = defineStore("navStore", () => {
     { label: "Sales", icon: "i-lucide-shopping-cart", to: "/sales" },
     { label: "Stock", icon: "i-lucide-package", to: "/stock" },
     { label: "Expenses", icon: "i-lucide-receipt", to: "/expenses" },
+    { label: "Refunds", icon: "i-lucide-undo-2", to: "/refunds" },
   ]);
 
   return {
