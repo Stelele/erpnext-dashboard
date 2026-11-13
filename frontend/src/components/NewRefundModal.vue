@@ -204,7 +204,7 @@ const emit = defineEmits<{
 const erpnext = new ErpNextService();
 const dataStore = useDataStore();
 
-const statusOptions = ["Paid", "Unpaid", "Overdue", "Cancelled", "Return", "Draft"];
+const statusOptions = ["Paid", "Unpaid", "Overdue", "Cancelled"];
 
 const fromDate = ref(dataStore.dateRange.start);
 const toDate = ref(dataStore.dateRange.end);
@@ -301,7 +301,7 @@ async function submitRefund() {
     const selected: ReturnItemPayload[] = detail.value.items
         .filter((item) => (refundQty.value[item.name] ?? 0) > 0)
         .map((item) => ({
-            item_name: item.item_name,
+            item_name: item.name,
             qty: refundQty.value[item.name] ?? 0,
         }));
     if (!selected.length) {

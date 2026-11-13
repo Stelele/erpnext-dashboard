@@ -72,9 +72,10 @@ sales_and_purchase_return` — identical on these sites):
 
 My calls, settled by the builder check:
 
-- **`company` on every endpoint** — existing `awesome_dashboard` endpoints all
-  take `company`; POS Invoice queries are scoped by it. Matches convention,
-  removes any multi-company ambiguity.
+- **`company` on both list endpoints** — existing `awesome_dashboard` endpoints all
+  take `company`; POS Invoice queries are scoped by it. Matches convention.
+  (`get_invoice_detail_for_refund` and `process_pos_refund` are name-addressed
+  and carry no company arg — moved as-is.)
 - **Wire contract** — `return_items` stays a JSON *string* (the moved code's
   `json.loads` behaviour); the Vue service sends `JSON.stringify(...)`, exactly
   as the old POS JS did.
@@ -97,7 +98,7 @@ All decorated `@frappe.whitelist(allow_guest=False)`, matching the existing
    │    invoice · return_against · customer · total · date/time
    └─ "New Refund" flow (modal or inline panel)
         ├─ invoice search ← get_pos_invoices_for_refund
-        │   filters: date, time range, status, search term
+        │   filters: date range (from/to), status, search term
         ├─ invoice detail + per-item qty picker (max = returnable_qty)
         │   ← get_invoice_detail_for_refund
         └─ submit → process_pos_refund → refresh history
