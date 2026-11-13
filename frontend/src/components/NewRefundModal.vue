@@ -79,7 +79,7 @@
                 class="max-h-72 space-y-2 overflow-y-auto"
             >
                 <p
-                    v-if="results.length >= searchLimit"
+                    v-if="truncated"
                     class="text-xs text-muted"
                 >
                     Showing first {{ searchLimit }} invoices — narrow the
@@ -195,6 +195,7 @@ import { computed, ref } from "vue";
 import { ErpNextService } from "@/services/ErpNextService";
 import { useDataStore } from "@/stores/DataStore";
 import { extractFrappeMessage } from "@/utils/FrappeError";
+import { useLatestCall } from "@/composables/useLatestCall";
 import type {
     RefundableInvoice,
     RefundInvoiceDetail,
@@ -222,12 +223,13 @@ const searching = ref(false);
 const searched = ref(false);
 const results = ref<RefundableInvoice[]>([]);
 const searchLimit = 50;
-let searchSeq = 0;
+const truncated = ref(false);
+const searchGuard = useLatestCall();
 
 const detailLoading = ref(false);
 const detail = ref<RefundInvoiceDetail | null>(null);
 const refundQty = ref<Record<string, number>>({});
-let detailSeq = 0;
+const detailGuard = useLatestCall();
 
 const refunding = ref(false);
 const error = ref<string | null>(null);
@@ -241,7 +243,7 @@ function formatPostingDate(date: string, time: string): string {
 }
 
 async function searchInvoices() {
-    const seq = ++searchSeq;
+    const seq = searchGuard.start();
     searching.value = true;
     error.value = null;
     try {
@@ -250,26 +252,27 @@ async function searchInvoices() {
             to_date: toDate.value || undefined,
             status: status.value || undefined,
             search_term: searchTerm.value || undefined,
-            limit: searchLimit,
+            limit: searchLimit + 1,
         });
-        if (seq !== searchSeq) return;
-        results.value = invoices;
+        if (!searchGuard.isCurrent(seq)) return;
+        truncated.value = invoices.length > searchLimit;
+        results.value = invoices.slice(0, searchLimit);
         searched.value = true;
     } catch (err) {
-        if (seq !== searchSeq) return;
+        if (!searchGuard.isCurrent(seq)) return;
         error.value = extractFrappeMessage(err);
     } finally {
-        if (seq === searchSeq) searching.value = false;
+        if (searchGuard.isCurrent(seq)) searching.value = false;
     }
 }
 
 async function loadDetail(invoiceName: string) {
-    const seq = ++detailSeq;
+    const seq = detailGuard.start();
     detailLoading.value = true;
     error.value = null;
     try {
         const invoice = await erpnext.getInvoiceDetailForRefund(invoiceName);
-        if (seq !== detailSeq) return;
+        if (!detailGuard.isCurrent(seq)) return;
         detail.value = invoice;
         const qty: Record<string, number> = {};
         for (const item of invoice.items) {
@@ -277,17 +280,21 @@ async function loadDetail(invoiceName: string) {
         }
         refundQty.value = qty;
     } catch (err) {
-        if (seq !== detailSeq) return;
+        if (!detailGuard.isCurrent(seq)) return;
         error.value = extractFrappeMessage(err);
     } finally {
-        if (seq === detailSeq) detailLoading.value = false;
+        if (detailGuard.isCurrent(seq)) detailLoading.value = false;
     }
 }
 
-function clampQty(item: RefundableItem) {
-    const raw = Number(refundQty.value[item.name] ?? 0);
+function sanitizedQty(item: RefundableItem, value: unknown): number {
+    const raw = Number(value ?? 0);
     const safe = Number.isFinite(raw) ? raw : 0;
-    refundQty.value[item.name] = Math.min(Math.max(0, safe), item.returnable_qty);
+    return Math.min(Math.max(0, safe), item.returnable_qty);
+}
+
+function clampQty(item: RefundableItem) {
+    refundQty.value[item.name] = sanitizedQty(item, refundQty.value[item.name]);
 }
 
 async function submitRefund() {
@@ -295,9 +302,7 @@ async function submitRefund() {
     const invoiceName = detail.value.name;
     const selected: ReturnItemPayload[] = [];
     for (const item of detail.value.items) {
-        const raw = Number(refundQty.value[item.name] ?? 0);
-        const safe = Number.isFinite(raw) ? raw : 0;
-        const qty = Math.min(Math.max(0, safe), item.returnable_qty);
+        const qty = sanitizedQty(item, refundQty.value[item.name]);
         if (qty > 0) {
             selected.push({ item_name: item.name, qty });
         }

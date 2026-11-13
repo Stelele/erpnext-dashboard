@@ -9,9 +9,6 @@ export function extractFrappeMessage(err: unknown): string {
     if (axios.isAxiosError(err)) {
         const data = err.response?.data as FrappeErrorData | undefined;
         if (data) {
-            if (typeof data.exception === "string" && data.exception) {
-                return data.exception;
-            }
             if (typeof data.message === "string" && data.message) {
                 return data.message;
             }

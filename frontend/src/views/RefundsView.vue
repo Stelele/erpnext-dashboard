@@ -64,6 +64,7 @@ import NewRefundModal from "@/components/NewRefundModal.vue";
 import { useDataStore } from "@/stores/DataStore";
 import { ErpNextService } from "@/services/ErpNextService";
 import { extractFrappeMessage } from "@/utils/FrappeError";
+import { useLatestCall } from "@/composables/useLatestCall";
 import type { RefundHistoryItem } from "@/types/Refunds";
 import { formatNumber } from "@/utils/FormatNumber";
 import moment from "moment";
@@ -76,10 +77,10 @@ const openNewRefund = ref(false);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const refunds = ref<RefundHistoryItem[]>([]);
-let historySeq = 0;
+const historyGuard = useLatestCall();
 
 async function loadHistory() {
-    const seq = ++historySeq;
+    const seq = historyGuard.start();
     loading.value = true;
     error.value = null;
     try {
@@ -87,13 +88,13 @@ async function loadHistory() {
             dataStore.dateRange.start,
             dataStore.dateRange.end,
         );
-        if (seq !== historySeq) return;
+        if (!historyGuard.isCurrent(seq)) return;
         refunds.value = items;
     } catch (err) {
-        if (seq !== historySeq) return;
+        if (!historyGuard.isCurrent(seq)) return;
         error.value = extractFrappeMessage(err);
     } finally {
-        if (seq === historySeq) loading.value = false;
+        if (historyGuard.isCurrent(seq)) loading.value = false;
     }
 }
 

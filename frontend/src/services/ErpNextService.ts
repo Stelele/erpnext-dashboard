@@ -613,7 +613,7 @@ export class ErpNextService {
         "/api/method/awesome_dashboard.api.refunds.get_pos_invoices_for_refund",
         {
           params: {
-            company: authStore.company,
+            company: authStore.company || undefined,
             ...params,
           },
         },
@@ -631,7 +631,7 @@ export class ErpNextService {
         {
           params: {
             invoice_name: invoiceName,
-            company: authStore.company,
+            company: authStore.company || undefined,
           },
         },
       )
@@ -649,7 +649,7 @@ export class ErpNextService {
         {
           invoice_name: invoiceName,
           return_items: JSON.stringify(returnItems),
-          company: authStore.company,
+          company: authStore.company || undefined,
         },
       )
       .then((resp) => resp?.data.message);
@@ -669,7 +669,7 @@ export class ErpNextService {
             from_date: fromDate,
             to_date: toDate,
             limit,
-            company: authStore.company,
+            company: authStore.company || undefined,
           },
         },
       )
