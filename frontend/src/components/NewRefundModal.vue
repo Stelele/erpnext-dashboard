@@ -256,8 +256,9 @@ async function searchInvoices() {
             limit: searchLimit + 1,
         });
         if (!searchGuard.isCurrent(seq)) return;
-        truncated.value = invoices.length > searchLimit;
-        results.value = invoices.slice(0, searchLimit);
+        const list = invoices ?? [];
+        truncated.value = list.length > searchLimit;
+        results.value = list.slice(0, searchLimit);
         searched.value = true;
     } catch (err) {
         if (!searchGuard.isCurrent(seq)) return;
@@ -274,6 +275,10 @@ async function loadDetail(invoiceName: string) {
     try {
         const invoice = await erpnext.getInvoiceDetailForRefund(invoiceName);
         if (!detailGuard.isCurrent(seq)) return;
+        if (!invoice) {
+            error.value = "Failed to load invoice details.";
+            return;
+        }
         detail.value = invoice;
         const qty: Record<string, number> = {};
         for (const item of invoice.items) {

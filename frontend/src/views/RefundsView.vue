@@ -62,6 +62,7 @@ import { useToast } from "@nuxt/ui/composables";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import NewRefundModal from "@/components/NewRefundModal.vue";
 import { useDataStore } from "@/stores/DataStore";
+import { useAuthStore } from "@/stores/AuthStore";
 import { ErpNextService } from "@/services/ErpNextService";
 import { extractFrappeMessage } from "@/utils/FrappeError";
 import { useLatestCall } from "@/composables/useLatestCall";
@@ -70,6 +71,7 @@ import { formatNumber } from "@/utils/FormatNumber";
 import moment from "moment";
 
 const dataStore = useDataStore();
+const authStore = useAuthStore();
 const toast = useToast();
 const erpnext = new ErpNextService();
 
@@ -80,6 +82,7 @@ const refunds = ref<RefundHistoryItem[]>([]);
 const historyGuard = useLatestCall();
 
 async function loadHistory() {
+    if (!authStore.url) return;
     const seq = historyGuard.start();
     loading.value = true;
     error.value = null;
@@ -89,7 +92,7 @@ async function loadHistory() {
             dataStore.dateRange.end,
         );
         if (!historyGuard.isCurrent(seq)) return;
-        refunds.value = items;
+        refunds.value = items ?? [];
     } catch (err) {
         if (!historyGuard.isCurrent(seq)) return;
         error.value = extractFrappeMessage(err);
@@ -112,9 +115,11 @@ onMounted(() => {
 });
 
 watch(
-    () => dataStore.dateRange,
+    [() => authStore.url, () => dataStore.dateRange],
     () => {
-        void loadHistory();
+        if (authStore.url) {
+            void loadHistory();
+        }
     },
 );
 
