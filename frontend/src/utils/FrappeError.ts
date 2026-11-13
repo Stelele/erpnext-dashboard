@@ -11,15 +11,16 @@ export function extractFrappeMessage(err: unknown): string {
         if (data?.message && typeof data.message === "string") {
             return data.message;
         }
-        if (err.message) return err.message;
-        // Last resort: Frappe often sets message to a generic
-        // "Internal Server Error" while exception holds the real reason.
-        // Full text goes to the console for the owner; the UI shows a
-        // bounded slice so raw tracebacks never render verbatim.
+        // Frappe often sets message to a generic "Internal Server Error"
+        // while exception holds the real reason; this must beat the generic
+        // axios message ("Request failed with status code N"), which is
+        // always non-empty. Full text goes to the console for the owner;
+        // the UI shows a bounded slice so raw tracebacks never render verbatim.
         if (typeof data?.exception === "string" && data.exception) {
             console.warn("[frappe]", data.exception);
             return data.exception.slice(0, 160);
         }
+        if (err.message) return err.message;
     }
     if (err instanceof Error && err.message) return err.message;
     return "Something went wrong. Please try again.";
