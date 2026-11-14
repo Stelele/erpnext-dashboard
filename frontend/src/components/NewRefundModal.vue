@@ -163,7 +163,7 @@
                         :step="0.01"
                         class="w-24"
                         :disabled="refunding"
-                        @update:model-value="clampQty(item)"
+                        @blur="clampQty(item)"
                     />
                 </div>
             </div>
@@ -207,6 +207,7 @@ import moment from "moment";
 
 const emit = defineEmits<{
     success: [returnInvoice: string];
+    "update:busy": [busy: boolean];
 }>();
 
 const erpnext = new ErpNextService();
@@ -318,6 +319,7 @@ async function submitRefund() {
         return;
     }
     refunding.value = true;
+    emit("update:busy", true);
     error.value = null;
     try {
         const result = await erpnext.processPosRefund(invoiceName, selected);
@@ -328,6 +330,7 @@ async function submitRefund() {
         error.value = extractFrappeMessage(err);
     } finally {
         refunding.value = false;
+        emit("update:busy", false);
     }
 }
 

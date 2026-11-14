@@ -2,10 +2,14 @@
     <DashboardLayout>
         <div class="col-span-6 flex flex-row-reverse gap-2">
             <UModal
-                v-model:open="openNewRefund"
+                :open="openNewRefund"
                 title="New Refund"
                 :dismissible="false"
                 :ui="{ content: 'sm:max-w-2xl' }"
+                @update:open="(v) => {
+                    if (!v && refundInFlight) return;
+                    openNewRefund = v;
+                }"
             >
                 <UButton
                     trailing-icon="i-lucide-undo-2"
@@ -13,7 +17,10 @@
                     >New Refund</UButton
                 >
                 <template #body>
-                    <NewRefundModal @success="onRefundSuccess" />
+                    <NewRefundModal
+                        @success="onRefundSuccess"
+                        @update:busy="refundInFlight = $event"
+                    />
                 </template>
             </UModal>
         </div>
@@ -48,6 +55,10 @@
                     />
                 </div>
                 <div class="md:hidden max-h-[86vh] overflow-auto">
+                    <USkeleton
+                        v-if="loading && !refunds.length"
+                        class="h-24 mt-2"
+                    />
                     <UCard
                         v-for="r in refunds"
                         :key="r.name"
@@ -111,6 +122,7 @@ const toast = useToast();
 const erpnext = new ErpNextService();
 
 const openNewRefund = ref(false);
+const refundInFlight = ref(false);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const refunds = ref<RefundHistoryItem[]>([]);
