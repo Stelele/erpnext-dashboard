@@ -52,6 +52,7 @@
                         :ui="{ root: 'max-h-[86vh] overflow-auto' }"
                         loadingColor="primary"
                         class="flex-1"
+                        @select="onRefundSelect"
                     />
                 </div>
                 <div class="md:hidden max-h-[86vh] overflow-auto">
@@ -62,7 +63,8 @@
                     <UCard
                         v-for="r in refunds"
                         :key="r.name"
-                        class="mt-2"
+                        class="mt-2 hover:cursor-pointer"
+                        @click="selectedRefund = r"
                     >
                         <div class="flex justify-between items-start">
                             <div class="flex flex-col">
@@ -98,15 +100,20 @@
                 No refunds found for this period.
             </p>
         </UPageCard>
+        <RefundDetailModal
+            :refund="selectedRefund"
+            @close="selectedRefund = null"
+        />
     </DashboardLayout>
 </template>
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from "vue";
-import type { TableColumn } from "@nuxt/ui";
+import type { TableColumn, TableRow } from "@nuxt/ui";
 import { useToast } from "@nuxt/ui/composables";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
 import NewRefundModal from "@/components/NewRefundModal.vue";
+import RefundDetailModal from "@/components/RefundDetailModal.vue";
 import { useDataStore } from "@/stores/DataStore";
 import { useAuthStore } from "@/stores/AuthStore";
 import { ErpNextService } from "@/services/ErpNextService";
@@ -123,6 +130,7 @@ const erpnext = new ErpNextService();
 
 const openNewRefund = ref(false);
 const refundInFlight = ref(false);
+const selectedRefund = ref<RefundHistoryItem | null>(null);
 const loading = ref(false);
 const error = ref<string | null>(null);
 const refunds = ref<RefundHistoryItem[]>([]);
@@ -152,6 +160,10 @@ function formatPosted(r: RefundHistoryItem): string {
     return moment(`${r.posting_date} ${r.posting_time}`).format(
         "DD MMM YYYY HH:mm",
     );
+}
+
+function onRefundSelect(_e: Event, row: TableRow<RefundHistoryItem>) {
+    selectedRefund.value = row.original;
 }
 
 function onRefundSuccess(returnInvoice: string) {
