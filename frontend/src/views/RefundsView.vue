@@ -67,8 +67,19 @@
                         @click="selectedRefund = r"
                     >
                         <div class="flex justify-between items-start gap-2">
-                            <div class="font-semibold min-w-0 break-words">
-                                {{ itemSummary(r) }}
+                            <div class="font-semibold min-w-0 truncate">
+                                <template v-if="firstItem(r)">
+                                    {{ firstItem(r)?.item_name }} ×{{ firstItem(r)?.qty }}
+                                    <UBadge
+                                        v-if="(r.items?.length ?? 0) > 1"
+                                        variant="subtle"
+                                        size="sm"
+                                        class="ml-1"
+                                    >
+                                        +{{ (r.items?.length ?? 1) - 1 }} more
+                                    </UBadge>
+                                </template>
+                                <template v-else>—</template>
                             </div>
                             <div class="font-bold shrink-0 tabular-nums">
                                 {{
@@ -100,7 +111,7 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from "vue";
+import { h, onMounted, ref, resolveComponent, watch } from "vue";
 import type { TableColumn, TableRow } from "@nuxt/ui";
 import { useToast } from "@nuxt/ui/composables";
 import DashboardLayout from "@/layouts/DashboardLayout.vue";
@@ -119,6 +130,8 @@ const dataStore = useDataStore();
 const authStore = useAuthStore();
 const toast = useToast();
 const erpnext = new ErpNextService();
+
+const UBadge = resolveComponent("UBadge");
 
 const openNewRefund = ref(false);
 const refundInFlight = ref(false);
@@ -154,11 +167,10 @@ function formatPosted(r: RefundHistoryItem): string {
     );
 }
 
-function itemSummary(r: RefundHistoryItem): string {
-    if (!r.items?.length) return "—";
-    return r.items
-        .map((item) => `×${item.qty} ${item.item_name}`)
-        .join(", ");
+function firstItem(
+    r: RefundHistoryItem,
+): RefundHistoryItem["items"][number] | undefined {
+    return r.items?.[0];
 }
 
 function onRefundSelect(_e: Event, row: TableRow<RefundHistoryItem>) {
@@ -196,7 +208,23 @@ const columns: TableColumn<RefundHistoryItem>[] = [
                 td: "font-medium",
             },
         },
-        cell: ({ row }) => itemSummary(row.original),
+        cell: ({ row }) => {
+            const first = firstItem(row.original);
+            if (!first) return "—";
+            const extra = (row.original.items?.length ?? 1) - 1;
+            return h("div", { class: "truncate" }, [
+                `${first.item_name} ×${first.qty}`,
+                ...(extra > 0
+                    ? [
+                          h(
+                              UBadge,
+                              { variant: "subtle", size: "sm", class: "ml-1" },
+                              () => `+${extra} more`,
+                          ),
+                      ]
+                    : []),
+            ]);
+        },
     },
     {
         accessorKey: "grand_total",
