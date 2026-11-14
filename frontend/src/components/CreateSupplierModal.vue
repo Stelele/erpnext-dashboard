@@ -28,6 +28,7 @@
 <script setup lang="ts">
 import * as z from "zod";
 import { reactive, ref, watch } from "vue";
+import { useToast } from "@nuxt/ui/composables";
 import { ErpNextService, type SupplierOption } from "@/services/ErpNextService";
 
 const toast = useToast();

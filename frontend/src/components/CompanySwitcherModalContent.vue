@@ -40,6 +40,7 @@
 
 <script setup lang="ts">
 import { ref } from "vue";
+import { useToast } from "@nuxt/ui/composables";
 import { useAuthStore } from "@/stores/AuthStore";
 import { useDataStore } from "@/stores/DataStore";
 import { useCompanyTheme } from "@/composables/useCompanyTheme";
