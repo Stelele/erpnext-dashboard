@@ -66,19 +66,11 @@
                         class="mt-2 hover:cursor-pointer"
                         @click="selectedRefund = r"
                     >
-                        <div class="flex justify-between items-start">
-                            <div class="flex flex-col">
-                                <div class="font-semibold">
-                                    {{ r.name }}
-                                </div>
-                                <div class="text-sm text-muted">
-                                    Return against: {{ r.return_against ?? "—" }}
-                                </div>
-                                <div class="text-sm text-muted">
-                                    {{ r.customer_name || r.customer }}
-                                </div>
+                        <div class="flex justify-between items-start gap-2">
+                            <div class="font-semibold min-w-0 break-words">
+                                {{ itemSummary(r) }}
                             </div>
-                            <div class="font-bold">
+                            <div class="font-bold shrink-0 tabular-nums">
                                 {{
                                     formatNumber(
                                         r.grand_total,
@@ -162,6 +154,13 @@ function formatPosted(r: RefundHistoryItem): string {
     );
 }
 
+function itemSummary(r: RefundHistoryItem): string {
+    if (!r.items?.length) return "—";
+    return r.items
+        .map((item) => `×${item.qty} ${item.item_name}`)
+        .join(", ");
+}
+
 function onRefundSelect(_e: Event, row: TableRow<RefundHistoryItem>) {
     selectedRefund.value = row.original;
 }
@@ -190,18 +189,14 @@ watch(
 
 const columns: TableColumn<RefundHistoryItem>[] = [
     {
-        accessorKey: "name",
-        header: "Invoice",
-    },
-    {
-        accessorKey: "return_against",
-        header: "Return Against",
-        cell: ({ row }) => row.getValue("return_against") ?? "—",
-    },
-    {
-        accessorKey: "customer_name",
-        header: "Customer",
-        cell: ({ row }) => row.original.customer_name || row.original.customer,
+        id: "items",
+        header: "Items",
+        meta: {
+            class: {
+                td: "font-medium",
+            },
+        },
+        cell: ({ row }) => itemSummary(row.original),
     },
     {
         accessorKey: "grand_total",

@@ -63,6 +63,7 @@ export interface RefundHistoryItem {
   posting_date: string;
   posting_time: string;
   owner: string;
+  items: { item_name: string; qty: number }[];
 }
 
 export interface ReturnItemPayload {
