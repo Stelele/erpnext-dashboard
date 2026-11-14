@@ -283,7 +283,7 @@ async function loadDetail(invoiceName: string) {
         detail.value = invoice;
         const qty: Record<string, number> = {};
         for (const item of invoice.items) {
-            qty[item.name] = 0;
+            qty[item.name] = item.returnable_qty;
         }
         refundQty.value = qty;
     } catch (err) {
