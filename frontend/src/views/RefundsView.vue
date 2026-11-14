@@ -35,16 +35,51 @@
                 icon="i-lucide-circle-alert"
                 :title="error"
             />
-            <UTable
-                v-if="loading || refunds.length"
-                :data="refunds"
-                :columns="columns"
-                :loading="loading"
-                :sticky="true"
-                :ui="{ root: 'max-h-[86vh] overflow-auto' }"
-                loadingColor="primary"
-                class="flex-1"
-            />
+            <template v-if="loading || refunds.length">
+                <div class="hidden md:block">
+                    <UTable
+                        :data="refunds"
+                        :columns="columns"
+                        :loading="loading"
+                        :sticky="true"
+                        :ui="{ root: 'max-h-[86vh] overflow-auto' }"
+                        loadingColor="primary"
+                        class="flex-1"
+                    />
+                </div>
+                <div class="md:hidden max-h-[86vh] overflow-auto">
+                    <UCard
+                        v-for="r in refunds"
+                        :key="r.name"
+                        class="mt-2"
+                    >
+                        <div class="flex justify-between items-start">
+                            <div class="flex flex-col">
+                                <div class="font-semibold">
+                                    {{ r.name }}
+                                </div>
+                                <div class="text-sm text-muted">
+                                    Return against: {{ r.return_against ?? "—" }}
+                                </div>
+                                <div class="text-sm text-muted">
+                                    {{ r.customer_name || r.customer }}
+                                </div>
+                            </div>
+                            <div class="font-bold">
+                                {{
+                                    formatNumber(
+                                        r.grand_total,
+                                        "currency",
+                                    )
+                                }}
+                            </div>
+                        </div>
+                        <div class="text-xs text-muted mt-1">
+                            {{ formatPosted(r) }}
+                        </div>
+                    </UCard>
+                </div>
+            </template>
             <p
                 v-else
                 class="py-8 text-center text-sm text-muted"
@@ -99,6 +134,12 @@ async function loadHistory() {
     } finally {
         if (historyGuard.isCurrent(seq)) loading.value = false;
     }
+}
+
+function formatPosted(r: RefundHistoryItem): string {
+    return moment(`${r.posting_date} ${r.posting_time}`).format(
+        "DD MMM YYYY HH:mm",
+    );
 }
 
 function onRefundSuccess(returnInvoice: string) {
