@@ -135,7 +135,8 @@ GET /companies (now includes features[] per company) ──▶ FeatureStore
       ├──▶ NavStore: items keyed by feature code, filtered by store
       ├──▶ router: meta.feature on gated routes; guard extends authGuard
       │         off ──▶ redirect "/" (Overview)
-      └──▶ cacheSyncWorker: SET_CONFIG carries company→features map;
+      └──▶ cacheSyncWorker: derives company→features from the /companies
+                response it already syncs (no protocol change);
                 expense-mappings fetched only for companies with expenses;
                 expense-types fetched only if ANY synced company has expenses
 ```
