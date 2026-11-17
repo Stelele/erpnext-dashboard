@@ -150,6 +150,7 @@ public class IntegrationTestFactory : WebApplicationFactory<Program>
         db.Sessions.RemoveRange(db.Sessions);
         db.CompanyExpenseMappings.RemoveRange(db.CompanyExpenseMappings);
         db.CompanySettings.RemoveRange(db.CompanySettings);
+        db.CompanyRecipes.RemoveRange(db.CompanyRecipes);
         db.Companies.RemoveRange(db.Companies);
         db.Sites.RemoveRange(db.Sites);
         db.Users.RemoveRange(db.Users);

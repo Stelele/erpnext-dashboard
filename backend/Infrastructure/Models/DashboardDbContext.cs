@@ -3,6 +3,7 @@ using Domain.Companies;
 using Domain.CompanyExpenseMappings;
 using Domain.CompanySettings;
 using Domain.ExpenseTypes;
+using Domain.Features;
 using Domain.Sites;
 using Domain.Users;
 using MediatR;
@@ -20,6 +21,10 @@ public class DashboardDbContext(DbContextOptions<DashboardDbContext> options, IP
     public DbSet<CompanySettings> CompanySettings { get; set; }
     public DbSet<Session> Sessions { get; set; }
     public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+    public DbSet<Feature> Features { get; set; }
+    public DbSet<Recipe> Recipes { get; set; }
+    public DbSet<RecipeFeature> RecipeFeatures { get; set; }
+    public DbSet<CompanyRecipe> CompanyRecipes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -31,6 +36,10 @@ public class DashboardDbContext(DbContextOptions<DashboardDbContext> options, IP
         new CompanySettingsEntity().Configure(modelBuilder.Entity<CompanySettings>());
         new SessionEntity().Configure(modelBuilder.Entity<Session>());
         new PasswordResetTokenEntity().Configure(modelBuilder.Entity<PasswordResetToken>());
+        new FeatureEntity().Configure(modelBuilder.Entity<Feature>());
+        new RecipeEntity().Configure(modelBuilder.Entity<Recipe>());
+        new RecipeFeatureEntity().Configure(modelBuilder.Entity<RecipeFeature>());
+        new CompanyRecipeEntity().Configure(modelBuilder.Entity<CompanyRecipe>());
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
