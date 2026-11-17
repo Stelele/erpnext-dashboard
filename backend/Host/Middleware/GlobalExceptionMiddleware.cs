@@ -82,6 +82,16 @@ public sealed class GlobalExceptionMiddleware
                 }
             ),
 
+            ResourceInUseException riue => (
+                StatusCodes.Status409Conflict,
+                new Problem
+                {
+                    Title = "Resource in use",
+                    Status = 409,
+                    Detail = riue.Message
+                }
+            ),
+
             KeyNotFoundException knf => (
                 StatusCodes.Status404NotFound,
                 new Problem

@@ -21,4 +21,7 @@ public static class Permissions
     public const string CreateExpenses = "create:expenses";
     public const string UpdateExpenses = "update:expenses";
     public const string DeleteExpenses = "delete:expenses";
+
+    public const string ReadFeatures = "read:features";
+    public const string ManageFeatures = "manage:features";
 }

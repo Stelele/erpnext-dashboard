@@ -24,7 +24,7 @@ public class TestAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions
             new Claim(ClaimTypes.Email, "test@example.com"),
             new Claim("user_id", Guid.NewGuid().ToString()),
             // All permissions as a single space-separated 'scope' claim
-            new Claim("scope", "read:users create:users update:users delete:users read:sites create:sites update:sites delete:sites read:companies create:companies update:companies delete:companies read:expenses create:expenses update:expenses delete:expenses"),
+            new Claim("scope", "read:users create:users update:users delete:users read:sites create:sites update:sites delete:sites read:companies create:companies update:companies delete:companies read:expenses create:expenses update:expenses delete:expenses read:features manage:features"),
         };
 
         var identity = new ClaimsIdentity(claims, Scheme.Name);

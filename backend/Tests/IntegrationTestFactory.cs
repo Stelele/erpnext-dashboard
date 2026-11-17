@@ -54,6 +54,7 @@ public class IntegrationTestFactory : WebApplicationFactory<Program>
                     "read:companies", "create:companies", "update:companies", "delete:companies",
                     "read:sites", "create:sites", "update:sites", "delete:sites",
                     "read:expenses", "create:expenses", "update:expenses", "delete:expenses",
+                    "read:features", "manage:features",
                 };
 
                 foreach (var permission in permissions)

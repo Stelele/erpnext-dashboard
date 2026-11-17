@@ -22,6 +22,7 @@ public static class DependancyInjection
             .MapSitesEndpoints()
             .MapUsersEndpoints()
             .MapExpenseEndpoints()
+            .MapFeatureEndpoints()
             .MapThemeEndpoints()
             .MapAuthEndpoints();
 
@@ -54,7 +55,10 @@ public static class DependancyInjection
             .AddPermission(Permissions.ReadExpenses)
             .AddPermission(Permissions.CreateExpenses)
             .AddPermission(Permissions.UpdateExpenses)
-            .AddPermission(Permissions.DeleteExpenses);
+            .AddPermission(Permissions.DeleteExpenses)
+
+            .AddPermission(Permissions.ReadFeatures)
+            .AddPermission(Permissions.ManageFeatures);
 
         builder.Services.AddSingleton<IAuthorizationHandler, HasScopeHandler>();
 

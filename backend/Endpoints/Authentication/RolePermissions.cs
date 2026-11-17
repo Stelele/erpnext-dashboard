@@ -10,6 +10,7 @@ public static class RolePermissions
         Permissions.ReadCompanies, Permissions.CreateCompanies, Permissions.UpdateCompanies, Permissions.DeleteCompanies,
         Permissions.ReadSites, Permissions.CreateSites, Permissions.UpdateSites, Permissions.DeleteSites,
         Permissions.ReadExpenses, Permissions.CreateExpenses, Permissions.UpdateExpenses, Permissions.DeleteExpenses,
+        Permissions.ReadFeatures, Permissions.ManageFeatures,
     ];
 
     private static readonly string[] ViewerPermissions =
