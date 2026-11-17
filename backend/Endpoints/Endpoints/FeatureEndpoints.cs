@@ -63,6 +63,58 @@ public static class FeatureEndpoints
         .Produces(StatusCodes.Status404NotFound)
         .RequireAuthorization(Permissions.ManageFeatures);
 
+        app.MapGet("/recipes", async (IMediator mediator) =>
+        {
+            var query = new GetRecipesQuery();
+            var result = await mediator.Send(query);
+            return Results.Ok(result);
+        })
+        .WithTags(Tags.Features)
+        .WithName("GetRecipes")
+        .WithDescription("Retrieves a list of recipes with their features.")
+        .Produces<List<RecipeResponse>>(StatusCodes.Status200OK)
+        .RequireAuthorization(Permissions.ReadFeatures);
+
+        app.MapPost("/recipes", async (IMediator mediator, CreateRecipeRequest request) =>
+        {
+            var command = new CreateRecipeCommand(request.Name, request.Description, request.FeatureIds);
+            var result = await mediator.Send(command);
+            return Results.Created($"/recipes/{result}", new { id = result });
+        })
+        .WithTags(Tags.Features)
+        .WithName("CreateRecipe")
+        .WithDescription("Creates a new recipe with its feature set.")
+        .Accepts<CreateRecipeRequest>("application/json")
+        .Produces<Guid>(StatusCodes.Status201Created)
+        .RequireAuthorization(Permissions.ManageFeatures);
+
+        app.MapPut("/recipes/{id:guid}", async (IMediator mediator, Guid id, UpdateRecipeRequest request) =>
+        {
+            var command = new UpdateRecipeCommand(id, request.Name, request.Description, request.FeatureIds);
+            await mediator.Send(command);
+            return Results.NoContent();
+        })
+        .WithTags(Tags.Features)
+        .WithName("UpdateRecipe")
+        .WithDescription("Updates a recipe, replacing its feature set.")
+        .Accepts<UpdateRecipeRequest>("application/json")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound)
+        .RequireAuthorization(Permissions.ManageFeatures);
+
+        app.MapDelete("/recipes/{id:guid}", async (IMediator mediator, Guid id) =>
+        {
+            var command = new DeleteRecipeCommand(id);
+            await mediator.Send(command);
+            return Results.NoContent();
+        })
+        .WithTags(Tags.Features)
+        .WithName("DeleteRecipe")
+        .WithDescription("Soft-deletes a recipe that is not assigned to any company.")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status404NotFound)
+        .RequireAuthorization(Permissions.ManageFeatures);
+
         return app;
     }
 }

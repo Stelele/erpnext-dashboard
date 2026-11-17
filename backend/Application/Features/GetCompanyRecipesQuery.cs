@@ -1,0 +1,42 @@
+using Application.Abstractions;
+using Application.DTOs;
+using Infrastructure.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace Application.Features;
+
+public record GetCompanyRecipesQuery(Guid CompanyId) : IQuery<List<RecipeResponse>>;
+
+public class GetCompanyRecipesQueryHandler(DashboardDbContext db) : IQueryHandler<GetCompanyRecipesQuery, List<RecipeResponse>>
+{
+    public async Task<List<RecipeResponse>> Handle(GetCompanyRecipesQuery request, CancellationToken ct)
+    {
+        var recipes = await db.CompanyRecipes
+            .Where(cr => cr.CompanyId == request.CompanyId)
+            .Select(cr => cr.Recipe)
+            .ToListAsync(ct);
+
+        var distinct = recipes.GroupBy(r => r.Id).Select(g => g.First()).ToList();
+
+        var recipeIds = distinct.Select(r => r.Id).ToList();
+        var rows = await db.RecipeFeatures
+            .Where(rf => recipeIds.Contains(rf.RecipeId))
+            .Select(rf => new { rf.RecipeId, Feature = rf.Feature })
+            .ToListAsync(ct);
+
+        var featuresByRecipe = rows
+            .Where(x => x.Feature != null)
+            .GroupBy(x => x.RecipeId)
+            .ToDictionary(
+                g => g.Key,
+                g => g.Select(x => FeatureResponse.FromDomain(x.Feature!)).ToList()
+            );
+
+        return distinct.Select(r => new RecipeResponse(
+            r.Id,
+            r.Name,
+            r.Description,
+            featuresByRecipe.TryGetValue(r.Id, out var features) ? features : []
+        )).ToList();
+    }
+}
