@@ -20,20 +20,27 @@ async function syncAll(): Promise<void> {
   const api = createApi();
   const db = getCacheDB();
 
-  // Fetch reference data (parallel)
-  const results = await Promise.allSettled([
+  // Fetch companies FIRST to derive feature gating for expense-scoped sync
+  try {
+    const { data } = await api.GET("/companies", {});
+    if (data) {
+      await db.companies.clear();
+      await db.companies.bulkPut(data as never);
+    }
+  } catch (err) {
+    self.postMessage({ type: "SYNC_ERROR", context: "reference-data", error: String(err) });
+  }
+
+  const syncedCompanies = await db.companies.toArray();
+  const syncExpenses = syncedCompanies.some((c) => c.features?.includes("expenses"));
+
+  // Fetch remaining reference data (parallel); expense-types only if any company has the feature
+  const referenceTasks: Promise<void>[] = [
       (async () => {
         const { data } = await api.GET("/users", {});
         if (data) {
           await db.users.clear();
           await db.users.bulkPut(data as never);
-        }
-      })(),
-      (async () => {
-        const { data } = await api.GET("/companies", {});
-        if (data) {
-          await db.companies.clear();
-          await db.companies.bulkPut(data as never);
         }
       })(),
       (async () => {
@@ -43,6 +50,9 @@ async function syncAll(): Promise<void> {
           await db.sites.bulkPut(data as never);
         }
       })(),
+    ];
+  if (syncExpenses) {
+    referenceTasks.push(
       (async () => {
         const { data } = await api.GET("/api/expense-types", {});
         if (data) {
@@ -50,7 +60,9 @@ async function syncAll(): Promise<void> {
           await db.expenseTypes.bulkPut(data as never);
         }
       })(),
-    ]);
+    );
+  }
+  const results = await Promise.allSettled(referenceTasks);
 
   // Report errors from reference data fetches
   for (const result of results) {
@@ -62,27 +74,31 @@ async function syncAll(): Promise<void> {
   // Fetch per-company data
   try {
     const companies = await db.companies.toArray();
-    const totalEndpoints = 4 + companies.length;
-    self.postMessage({ type: "SYNC_PROGRESS", current: 4, total: totalEndpoints });
+    const referenceCount = syncExpenses ? 4 : 3;
+    const expenseCompanyCount = companies.filter((c) => c.features?.includes("expenses")).length;
+    const totalEndpoints = referenceCount + companies.length + expenseCompanyCount;
+    self.postMessage({ type: "SYNC_PROGRESS", current: referenceCount, total: totalEndpoints });
 
     await db.expenseMappings.clear();
     await db.companySettings.clear();
 
     for (const company of companies) {
-      try {
-        const { data } = await api.GET("/api/companies/{companyId}/expense-mappings", {
-          params: { path: { companyId: company.id } },
-        });
-        if (data) {
-          const mappings = (Array.isArray(data) ? data : [data]) as CompanyExpenseMappingResponse[];
-          const withCompanyId: CachedExpenseMapping[] = mappings.map((m) => ({
-            ...m,
-            companyId: company.id,
-          }));
-          await db.expenseMappings.bulkPut(withCompanyId);
+      if (company.features?.includes("expenses")) {
+        try {
+          const { data } = await api.GET("/api/companies/{companyId}/expense-mappings", {
+            params: { path: { companyId: company.id } },
+          });
+          if (data) {
+            const mappings = (Array.isArray(data) ? data : [data]) as CompanyExpenseMappingResponse[];
+            const withCompanyId: CachedExpenseMapping[] = mappings.map((m) => ({
+              ...m,
+              companyId: company.id,
+            }));
+            await db.expenseMappings.bulkPut(withCompanyId);
+          }
+        } catch (err) {
+          self.postMessage({ type: "SYNC_ERROR", context: "expense-mappings", companyId: company.id, error: String(err) });
         }
-      } catch (err) {
-        self.postMessage({ type: "SYNC_ERROR", context: "expense-mappings", companyId: company.id, error: String(err) });
       }
       try {
         const { data } = await api.GET("/api/companies/{companyId}/settings", {
