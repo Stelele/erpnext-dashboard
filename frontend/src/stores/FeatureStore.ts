@@ -7,6 +7,7 @@ export const useFeatureStore = defineStore("featureStore", () => {
   const authStore = useAuthStore();
 
   let loadPromise: Promise<void> | null = null;
+  let loaded = false;
 
   const features = computed<string[]>(
     () =>
@@ -19,17 +20,27 @@ export const useFeatureStore = defineStore("featureStore", () => {
   }
 
   async function ensureLoaded(): Promise<void> {
-    if (!authStore.accessToken || loadPromise) return loadPromise ?? undefined;
-    loadPromise = (async () => {
-      authStore.companies =
-        await CachedApiClient.getInstance().getUserCompanies();
-    })();
-    try {
+    // Already have companies (e.g. AuthStore populated them) or a previous
+    // load succeeded (even with an empty list): nothing to fetch.
+    if (loaded || authStore.companies.length > 0 || !authStore.accessToken) {
+      return;
+    }
+    if (!loadPromise) {
+      loadPromise = (async () => {
+        authStore.companies =
+          await CachedApiClient.getInstance().getUserCompanies();
+        // Any completed fetch counts as loaded — including an empty list —
+        // so navigation never refetches in a loop. Only a thrown error
+        // (cache/infra failure) leaves loaded false and allows a retry.
+        loaded = true;
+      })();
+      try {
+        await loadPromise;
+      } finally {
+        loadPromise = null;
+      }
+    } else {
       await loadPromise;
-    } finally {
-      // A genuinely empty company list must not refetch on every navigation,
-      // but a failed load should allow a retry.
-      loadPromise = authStore.companies.length > 0 ? loadPromise : null;
     }
   }
 
