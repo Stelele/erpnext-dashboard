@@ -242,4 +242,61 @@ public class CompanyFeaturesTests : IClassFixture<IntegrationTestFactory>
         Assert.NotNull(coveredFeatures);
         Assert.Equal(["sales"], coveredFeatures.Order().ToArray());
     }
+
+    [Fact]
+    public async Task GetCompanies_IncludesEffectiveFeatures()
+    {
+        await ResetAsync();
+        var salesId = await GetSeededFeatureIdAsync("sales");
+        var stockId = await GetSeededFeatureIdAsync("stock");
+        var recipeId = await CreateRecipeAsync("List Recipe", [salesId, stockId]);
+        var companyId = await CreateCompanyAsync("List Co", [recipeId]);
+        var bareId = await CreateCompanyAsync("Bare List Co");
+
+        var companies = await _client.GetFromJsonAsync<List<CompanyResponse>>("/companies", TestJson.Options);
+        Assert.NotNull(companies);
+        var company = Assert.Single(companies, c => c.Id == companyId);
+        Assert.Equal(["sales", "stock"], company.Features.Order().ToArray());
+        var bare = Assert.Single(companies, c => c.Id == bareId);
+        Assert.Empty(bare.Features);
+    }
+
+    [Fact]
+    public async Task GetCompanyById_IncludesEffectiveFeatures()
+    {
+        await ResetAsync();
+        var salesId = await GetSeededFeatureIdAsync("sales");
+        var recipeId = await CreateRecipeAsync("Single Recipe", [salesId]);
+        var companyId = await CreateCompanyAsync("Single Co", [recipeId]);
+        var bareId = await CreateCompanyAsync("Bare Single Co");
+
+        var company = await _client.GetFromJsonAsync<CompanyResponse>($"/companies/{companyId}", TestJson.Options);
+        Assert.NotNull(company);
+        Assert.Equal(["sales"], company.Features.Order().ToArray());
+
+        var bare = await _client.GetFromJsonAsync<CompanyResponse>($"/companies/{bareId}", TestJson.Options);
+        Assert.NotNull(bare);
+        Assert.Empty(bare.Features);
+    }
+
+    [Fact]
+    public async Task RecipeEdit_InvalidatesCompaniesCache()
+    {
+        await ResetAsync();
+        var salesId = await GetSeededFeatureIdAsync("sales");
+        var expensesId = await GetSeededFeatureIdAsync("expenses");
+        var recipeId = await CreateRecipeAsync("Cache Recipe", [salesId]);
+        var companyId = await CreateCompanyAsync("Cache Co", [recipeId]);
+
+        var before = await _client.GetFromJsonAsync<List<CompanyResponse>>("/companies", TestJson.Options);
+        Assert.NotNull(before);
+        Assert.Equal(["sales"], Assert.Single(before, c => c.Id == companyId).Features.Order().ToArray());
+
+        var update = await _client.PutAsJsonAsync($"/recipes/{recipeId}", new UpdateRecipeRequest("Cache Recipe", "Updated desc", [salesId, expensesId]));
+        Assert.Equal(HttpStatusCode.NoContent, update.StatusCode);
+
+        var after = await _client.GetFromJsonAsync<List<CompanyResponse>>("/companies", TestJson.Options);
+        Assert.NotNull(after);
+        Assert.Equal(["expenses", "sales"], Assert.Single(after, c => c.Id == companyId).Features.Order().ToArray());
+    }
 }

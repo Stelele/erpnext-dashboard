@@ -6,14 +6,16 @@ public record CompanyResponse(
     Guid Id,
     string Name,
     string Description,
-    Guid SiteId
+    Guid SiteId,
+    string[] Features
 )
 {
-    public static CompanyResponse FromDomain(Company company) =>
+    public static CompanyResponse FromDomain(Company company, IEnumerable<string> features) =>
         new(
             company.Id,
             company.Name,
             company.Description,
-            company.SiteId
+            company.SiteId,
+            features.ToArray()
         );
 }

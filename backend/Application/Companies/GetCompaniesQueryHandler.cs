@@ -1,5 +1,6 @@
 ﻿using Application.Abstractions;
 using Application.DTOs;
+using Application.Features;
 using Application.Users;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
@@ -19,6 +20,7 @@ public class GetCompaniesQueryHandler(DashboardDbContext db, IUserContext userCo
             query = query.Where(c => request.CompanyIds.Contains(c.Id));
 
         var companies = await query.ToListAsync(cancellationToken);
-        return [.. companies.Select(CompanyResponse.FromDomain)];
+        var codes = await CompanyFeaturesResolver.GetEffectiveCodesAsync(db, companies.Select(c => c.Id).ToList(), cancellationToken);
+        return [.. companies.Select(c => CompanyResponse.FromDomain(c, codes.TryGetValue(c.Id, out var list) ? list : []))];
     }
 }
