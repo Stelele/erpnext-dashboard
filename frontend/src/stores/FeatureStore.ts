@@ -29,6 +29,18 @@ export const useFeatureStore = defineStore("featureStore", () => {
       loadPromise = (async () => {
         authStore.companies =
           await CachedApiClient.getInstance().getUserCompanies();
+        // Restore the persisted selection BEFORE the router guard resolves
+        // features: on a full page load the guard runs before
+        // AuthStore.update(), and hasFeature() must check the company the
+        // user actually selected, not the list default.
+        const persisted = localStorage.getItem("selectedCompany");
+        if (
+          !authStore.selectedCompany &&
+          persisted &&
+          authStore.companies.some((c) => c.name === persisted)
+        ) {
+          authStore.selectedCompany = persisted;
+        }
         // Any completed fetch counts as loaded — including an empty list —
         // so navigation never refetches in a loop. Only a thrown error
         // (cache/infra failure) leaves loaded false and allows a retry.
