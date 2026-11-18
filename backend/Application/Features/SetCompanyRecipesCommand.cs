@@ -48,9 +48,11 @@ public class SetCompanyRecipesCommandHandler(DashboardDbContext db) : ICommandHa
             .Where(cr => cr.CompanyId == request.CompanyId)
             .ToListAsync(ct);
 
-        db.CompanyRecipes.RemoveRange(current);
+        var toRemove = current.Where(cr => !recipeIds.Contains(cr.RecipeId)).ToList();
+        db.CompanyRecipes.RemoveRange(toRemove);
 
-        foreach (var recipeId in recipeIds)
+        var currentIds = current.Select(cr => cr.RecipeId).ToHashSet();
+        foreach (var recipeId in recipeIds.Where(id => !currentIds.Contains(id)))
         {
             db.CompanyRecipes.Add(new CompanyRecipe
             {

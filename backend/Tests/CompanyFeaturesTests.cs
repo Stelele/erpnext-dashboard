@@ -118,6 +118,26 @@ public class CompanyFeaturesTests : IClassFixture<IntegrationTestFactory>
     }
 
     [Fact]
+    public async Task SetCompanyRecipes_KeepsExistingRows_NoUniqueViolation()
+    {
+        await ResetAsync();
+        var salesId = await GetSeededFeatureIdAsync("sales");
+        var stockId = await GetSeededFeatureIdAsync("stock");
+        var recipeA = await CreateRecipeAsync("Keep Recipe A", [salesId]);
+        var recipeB = await CreateRecipeAsync("Keep Recipe B", [stockId]);
+        var companyId = await CreateCompanyAsync("Keep Co", [recipeA]);
+
+        var set = await _client.PutAsJsonAsync($"/companies/{companyId}/recipes", new SetCompanyRecipesRequest([recipeA, recipeB]));
+        Assert.Equal(HttpStatusCode.NoContent, set.StatusCode);
+
+        var recipes = await _client.GetFromJsonAsync<List<RecipeResponse>>($"/companies/{companyId}/recipes", TestJson.Options);
+        Assert.NotNull(recipes);
+        Assert.Equal(2, recipes.Count);
+        Assert.Contains(recipes, r => r.Id == recipeA);
+        Assert.Contains(recipes, r => r.Id == recipeB);
+    }
+
+    [Fact]
     public async Task SetCompanyRecipes_UnknownRecipeId_Returns400()
     {
         await ResetAsync();
