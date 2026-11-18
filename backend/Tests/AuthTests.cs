@@ -282,6 +282,55 @@ public class AuthTests : IClassFixture<SessionAuthTestFactory>
     }
 
     [Fact]
+    public async Task Viewer_NotMemberOfCompany_CannotSeeCompanyFeaturesOrRecipes()
+    {
+        await ResetAsync();
+        var admin = await LoginAsync();
+
+        var createSite = await admin.PostAsJsonAsync("/sites",
+            new CreateSiteRequest("Site", "https://site.example.com", "", "tok"));
+        var siteId = await createSite.ReadCreatedIdAsync();
+        var createCompany = await admin.PostAsJsonAsync("/companies",
+            new Application.Requests.CreateCompanyRequest(siteId, "Secret Co", ""));
+        var companyId = await createCompany.ReadCreatedIdAsync();
+
+        await SeedUserAsync("viewer@test.com", "TestPass123!", Role.Viewer);
+        var viewer = await _factory.CreateAuthenticatedClientAsync("viewer@test.com", "TestPass123!");
+
+        var features = await viewer.GetAsync($"/companies/{companyId}/features");
+        Assert.Equal(HttpStatusCode.NotFound, features.StatusCode);
+
+        var recipes = await viewer.GetAsync($"/companies/{companyId}/recipes");
+        Assert.Equal(HttpStatusCode.NotFound, recipes.StatusCode);
+    }
+
+    [Fact]
+    public async Task Viewer_MemberOfCompany_CanSeeCompanyFeaturesAndRecipes()
+    {
+        await ResetAsync();
+        var admin = await LoginAsync();
+
+        var createSite = await admin.PostAsJsonAsync("/sites",
+            new CreateSiteRequest("Site", "https://site.example.com", "", "tok"));
+        var siteId = await createSite.ReadCreatedIdAsync();
+        var createCompany = await admin.PostAsJsonAsync("/companies",
+            new Application.Requests.CreateCompanyRequest(siteId, "Member Co", ""));
+        var companyId = await createCompany.ReadCreatedIdAsync();
+
+        var viewerId = await SeedUserAsync("viewer@test.com", "TestPass123!", Role.Viewer);
+        var viewer = await _factory.CreateAuthenticatedClientAsync("viewer@test.com", "TestPass123!");
+
+        var add = await admin.PostAsync($"/users/{viewerId}/companies/{companyId}", null);
+        Assert.Equal(HttpStatusCode.NoContent, add.StatusCode);
+
+        var features = await viewer.GetAsync($"/companies/{companyId}/features");
+        Assert.Equal(HttpStatusCode.OK, features.StatusCode);
+
+        var recipes = await viewer.GetAsync($"/companies/{companyId}/recipes");
+        Assert.Equal(HttpStatusCode.OK, recipes.StatusCode);
+    }
+
+    [Fact]
     public async Task Admin_WithNoCompanies_StillSeesAllSites()
     {
         await ResetAsync();

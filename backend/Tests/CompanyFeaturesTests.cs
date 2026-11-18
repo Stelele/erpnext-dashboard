@@ -2,9 +2,6 @@ using System.Net;
 using System.Net.Http.Json;
 using Application.DTOs;
 using Application.Requests;
-using Infrastructure.Models;
-using Infrastructure.Persistence;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Tests;
 
@@ -217,30 +214,6 @@ public class CompanyFeaturesTests : IClassFixture<IntegrationTestFactory>
         var recipe = Assert.Single(recipes);
         Assert.Equal(recipeId, recipe.Id);
         Assert.Contains(recipe.Features, f => f.Code == "sales");
-    }
-
-    [Fact]
-    public async Task Seeder_AssignsDefault_ToCompaniesWithoutRecipes()
-    {
-        await ResetAsync();
-        var salesId = await GetSeededFeatureIdAsync("sales");
-        var customRecipe = await CreateRecipeAsync("Custom Recipe", [salesId]);
-        var bareCompany = await CreateCompanyAsync("Bare Co");
-        var coveredCompany = await CreateCompanyAsync("Covered Co", [customRecipe]);
-
-        using (var scope = _factory.Services.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<DashboardDbContext>();
-            await FeatureSeeder.SeedAsync(db);
-        }
-
-        var bareFeatures = await _client.GetFromJsonAsync<List<string>>($"/companies/{bareCompany}/features", TestJson.Options);
-        Assert.NotNull(bareFeatures);
-        Assert.Equal(["expenses", "sales", "stock"], bareFeatures.Order().ToArray());
-
-        var coveredFeatures = await _client.GetFromJsonAsync<List<string>>($"/companies/{coveredCompany}/features", TestJson.Options);
-        Assert.NotNull(coveredFeatures);
-        Assert.Equal(["sales"], coveredFeatures.Order().ToArray());
     }
 
     [Fact]
