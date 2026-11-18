@@ -26,6 +26,9 @@ public class DeleteRecipeCommandHandler(DashboardDbContext db) : ICommandHandler
         recipe.IsDeleted = true;
         recipe.UpdatedOn = DateTimeOffset.UtcNow;
 
+        var joinRows = await db.RecipeFeatures.Where(rf => rf.RecipeId == request.Id).ToListAsync(ct);
+        db.RecipeFeatures.RemoveRange(joinRows);
+
         await db.SaveChangesAsync(ct);
     }
 }

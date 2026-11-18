@@ -18,8 +18,7 @@ public static class FeatureGateExtensions
                 return Results.NotFound();
             }
 
-            using var scope = context.HttpContext.RequestServices.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<DashboardDbContext>();
+            var db = context.HttpContext.RequestServices.GetRequiredService<DashboardDbContext>();
             var codes = await CompanyFeaturesResolver.GetEffectiveCodesAsync(db, companyId, context.HttpContext.RequestAborted);
 
             if (!codes.Contains(featureCode))

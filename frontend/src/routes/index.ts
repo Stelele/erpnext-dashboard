@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 
 import { authGuard } from "@/guards/auth";
+import { FEATURES } from "@/constants/features";
 
 const LoginView = () => import("@/views/LoginView.vue");
 const ResetPasswordView = () => import("@/views/ResetPasswordView.vue");
@@ -35,21 +36,21 @@ export const router = createRouter({
       path: "/expenses",
       name: "Expenses",
       beforeEnter: authGuard,
-      meta: { feature: "expenses" },
+      meta: { feature: FEATURES.expenses },
       component: ExpensesView,
     },
     {
       path: "/sales",
       name: "Sales",
       beforeEnter: authGuard,
-      meta: { feature: "sales" },
+      meta: { feature: FEATURES.sales },
       component: SalesView,
     },
     {
       path: "/stock",
       name: "Stock",
       beforeEnter: authGuard,
-      meta: { feature: "stock" },
+      meta: { feature: FEATURES.stock },
       component: StockView,
     },
     {

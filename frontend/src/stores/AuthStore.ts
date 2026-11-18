@@ -168,6 +168,25 @@ export const useAuthStore = defineStore("authStore", () => {
     }
   }
 
+  async function ensureCompaniesLoaded(): Promise<void> {
+    if (!accessToken.value || companies.value.length > 0) {
+      return;
+    }
+    companies.value = await CachedApiClient.getInstance().getUserCompanies();
+    // Restore the persisted selection BEFORE the router guard resolves
+    // features: on a full page load the guard runs before
+    // AuthStore.update(), and hasFeature() must check the company the
+    // user actually selected, not the list default.
+    const persisted = safeGetItem(SELECTED_COMPANY_KEY);
+    if (
+      !selectedCompany.value &&
+      persisted &&
+      companies.value.some((c) => c.name === persisted)
+    ) {
+      selectedCompany.value = persisted;
+    }
+  }
+
   async function triggerLogout() {
     if (_loggingOut) return;
     _loggingOut = true;
@@ -231,6 +250,7 @@ export const useAuthStore = defineStore("authStore", () => {
     accessToken,
     selectedCompany,
     update,
+    ensureCompaniesLoaded,
     switchCompany,
     login,
     triggerLogout,

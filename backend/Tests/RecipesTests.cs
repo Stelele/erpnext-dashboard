@@ -124,6 +124,22 @@ public class RecipesTests : IClassFixture<IntegrationTestFactory>
     }
 
     [Fact]
+    public async Task DeleteFeature_AfterRecipeDeleted_Returns204()
+    {
+        await ResetAsync();
+        var create = await _client.PostAsJsonAsync("/features", new CreateFeatureRequest("temp-feature", "Temp Feature", "referenced then freed"));
+        create.EnsureSuccessStatusCode();
+        var featureId = await create.ReadCreatedIdAsync();
+        var recipeId = await CreateRecipeAsync("Temp Recipe", [featureId]);
+
+        var deleteRecipe = await _client.DeleteAsync($"/recipes/{recipeId}");
+        Assert.Equal(HttpStatusCode.NoContent, deleteRecipe.StatusCode);
+
+        var deleteFeature = await _client.DeleteAsync($"/features/{featureId}");
+        Assert.Equal(HttpStatusCode.NoContent, deleteFeature.StatusCode);
+    }
+
+    [Fact]
     public async Task DeleteRecipe_Unreferenced_Returns204()
     {
         await ResetAsync();

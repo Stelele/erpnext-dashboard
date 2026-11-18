@@ -1,6 +1,7 @@
 import { defineStore } from "pinia";
 import { computed } from "vue";
 import { useFeatureStore } from "@/stores/FeatureStore";
+import { FEATURES } from "@/constants/features";
 
 interface NavRegistryItem {
   label: string;
@@ -11,9 +12,9 @@ interface NavRegistryItem {
 
 const NAV_REGISTRY: NavRegistryItem[] = [
   { label: "Overview", icon: "i-lucide-layout-dashboard", to: "/" },
-  { label: "Sales", icon: "i-lucide-shopping-cart", to: "/sales", feature: "sales" },
-  { label: "Stock", icon: "i-lucide-package", to: "/stock", feature: "stock" },
-  { label: "Expenses", icon: "i-lucide-receipt", to: "/expenses", feature: "expenses" },
+  { label: "Sales", icon: "i-lucide-shopping-cart", to: "/sales", feature: FEATURES.sales },
+  { label: "Stock", icon: "i-lucide-package", to: "/stock", feature: FEATURES.stock },
+  { label: "Expenses", icon: "i-lucide-receipt", to: "/expenses", feature: FEATURES.expenses },
 ];
 
 export const useNavStore = defineStore("navStore", () => {

@@ -1,6 +1,7 @@
 import createClient from "openapi-fetch";
 import type { paths, components } from "@/services/api/schema";
 import { getCacheDB, type CachedExpenseMapping } from "@/services/db";
+import { FEATURES } from "@/constants/features";
 
 type CompanyExpenseMappingResponse = components["schemas"]["CompanyExpenseMappingResponse"];
 type CompanySettingsResponse = components["schemas"]["CompanySettingsResponse"];
@@ -21,18 +22,20 @@ async function syncAll(): Promise<void> {
   const db = getCacheDB();
 
   // Fetch companies FIRST to derive feature gating for expense-scoped sync
+  let companiesFresh = false;
   try {
     const { data } = await api.GET("/companies", {});
     if (data) {
       await db.companies.clear();
       await db.companies.bulkPut(data as never);
+      companiesFresh = true;
     }
   } catch (err) {
     self.postMessage({ type: "SYNC_ERROR", context: "reference-data", error: String(err) });
   }
 
   const syncedCompanies = await db.companies.toArray();
-  const syncExpenses = syncedCompanies.some((c) => c.features?.includes("expenses"));
+  const syncExpenses = companiesFresh && syncedCompanies.some((c) => c.features?.includes(FEATURES.expenses));
 
   // Fetch remaining reference data (parallel); expense-types only if any company has the feature
   const referenceTasks: Promise<void>[] = [
@@ -75,7 +78,7 @@ async function syncAll(): Promise<void> {
   try {
     const companies = await db.companies.toArray();
     const referenceCount = syncExpenses ? 4 : 3;
-    const expenseCompanyCount = companies.filter((c) => c.features?.includes("expenses")).length;
+    const expenseCompanyCount = companiesFresh ? companies.filter((c) => c.features?.includes(FEATURES.expenses)).length : 0;
     const totalEndpoints = referenceCount + companies.length + expenseCompanyCount;
     self.postMessage({ type: "SYNC_PROGRESS", current: referenceCount, total: totalEndpoints });
 
@@ -83,7 +86,7 @@ async function syncAll(): Promise<void> {
     await db.companySettings.clear();
 
     for (const company of companies) {
-      if (company.features?.includes("expenses")) {
+      if (companiesFresh && company.features?.includes(FEATURES.expenses)) {
         try {
           const { data } = await api.GET("/api/companies/{companyId}/expense-mappings", {
             params: { path: { companyId: company.id } },
