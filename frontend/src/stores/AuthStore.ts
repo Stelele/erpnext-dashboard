@@ -187,6 +187,23 @@ export const useAuthStore = defineStore("authStore", () => {
     }
   }
 
+  // Re-fetch companies + their effective features from the server (bypassing
+  // the Dexie cache) and keep the cache warm. Called on company switch so
+  // live recipe edits propagate without a full page reload.
+  async function refreshCompanies(): Promise<void> {
+    if (!accessToken.value) return;
+    const api = await ApiSingleton.getInstance();
+    const { data, error } = await api.GET("/companies", {});
+    if (error || !data) return;
+    companies.value = data as typeof companies.value;
+    try {
+      const db = getCacheDB();
+      await db.companies.clear();
+      await db.companies.bulkPut(data as never);
+    } catch {
+    }
+  }
+
   async function triggerLogout() {
     if (_loggingOut) return;
     _loggingOut = true;
@@ -227,6 +244,10 @@ export const useAuthStore = defineStore("authStore", () => {
       ]);
     }
 
+    // Pick up live recipe edits: re-derive each company's effective features
+    // before the per-company data refresh renders.
+    await refreshCompanies();
+
     try {
       await onDataRefresh();
     } catch (error) {
@@ -251,6 +272,7 @@ export const useAuthStore = defineStore("authStore", () => {
     selectedCompany,
     update,
     ensureCompaniesLoaded,
+    refreshCompanies,
     switchCompany,
     login,
     triggerLogout,
