@@ -19,18 +19,7 @@ public class GetCompanyRecipesQueryHandler(DashboardDbContext db) : IQueryHandle
         var distinct = recipes.GroupBy(r => r.Id).Select(g => g.First()).ToList();
 
         var recipeIds = distinct.Select(r => r.Id).ToList();
-        var rows = await db.RecipeFeatures
-            .Where(rf => recipeIds.Contains(rf.RecipeId))
-            .Select(rf => new { rf.RecipeId, Feature = rf.Feature })
-            .ToListAsync(ct);
-
-        var featuresByRecipe = rows
-            .Where(x => x.Feature != null)
-            .GroupBy(x => x.RecipeId)
-            .ToDictionary(
-                g => g.Key,
-                g => g.Select(x => FeatureResponse.FromDomain(x.Feature!)).ToList()
-            );
+        var featuresByRecipe = await RecipeFeatureQueries.LoadFeaturesByRecipeAsync(db, recipeIds, ct);
 
         return distinct.Select(r => new RecipeResponse(
             r.Id,

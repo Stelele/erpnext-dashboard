@@ -13,7 +13,7 @@ public class GetRecipesQueryHandler(DashboardDbContext db) : IQueryHandler<GetRe
     {
         var recipes = await db.Recipes.OrderBy(r => r.Name).ToListAsync(ct);
 
-        var featuresByRecipe = await LoadFeaturesByRecipeAsync(recipes.Select(r => r.Id).ToList(), ct);
+        var featuresByRecipe = await RecipeFeatureQueries.LoadFeaturesByRecipeAsync(db, recipes.Select(r => r.Id).ToList(), ct);
 
         return recipes.Select(r => new RecipeResponse(
             r.Id,
@@ -21,21 +21,5 @@ public class GetRecipesQueryHandler(DashboardDbContext db) : IQueryHandler<GetRe
             r.Description,
             featuresByRecipe.TryGetValue(r.Id, out var features) ? features : []
         )).ToList();
-    }
-
-    internal async Task<Dictionary<Guid, List<FeatureResponse>>> LoadFeaturesByRecipeAsync(List<Guid> recipeIds, CancellationToken ct)
-    {
-        var rows = await db.RecipeFeatures
-            .Where(rf => recipeIds.Contains(rf.RecipeId))
-            .Select(rf => new { rf.RecipeId, Feature = rf.Feature })
-            .ToListAsync(ct);
-
-        return rows
-            .Where(x => x.Feature != null)
-            .GroupBy(x => x.RecipeId)
-            .ToDictionary(
-                g => g.Key,
-                g => g.Select(x => FeatureResponse.FromDomain(x.Feature!)).ToList()
-            );
     }
 }

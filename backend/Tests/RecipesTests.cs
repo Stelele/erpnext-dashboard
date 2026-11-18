@@ -63,6 +63,34 @@ public class RecipesTests : IClassFixture<IntegrationTestFactory>
     }
 
     [Fact]
+    public async Task CreateRecipe_NullFeatureIds_Returns400()
+    {
+        await ResetAsync();
+
+        var response = await _client.PostAsJsonAsync("/recipes", new CreateRecipeRequest("Null Ids Recipe", "No feature ids", null!));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateRecipe_OmittedDescription_DefaultsEmpty()
+    {
+        await ResetAsync();
+        var salesId = await GetSeededFeatureIdAsync("sales");
+
+        var response = await _client.PostAsJsonAsync("/recipes", new { name = "No Desc Recipe", featureIds = new[] { salesId } });
+
+        Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+        var id = await response.ReadCreatedIdAsync();
+
+        var list = await _client.GetFromJsonAsync<List<RecipeResponse>>("/recipes", TestJson.Options);
+        Assert.NotNull(list);
+        var recipe = Assert.Single(list, r => r.Id == id);
+        Assert.Equal("", recipe.Description);
+        Assert.Contains(recipe.Features, f => f.Code == "sales");
+    }
+
+    [Fact]
     public async Task UpdateRecipe_ReplacesFeatureSet()
     {
         await ResetAsync();

@@ -27,6 +27,9 @@ public class UpdateRecipeValidator : AbstractValidator<UpdateRecipeCommand>
 
         RuleFor(x => x.Description)
             .MaximumLength(255);
+
+        RuleFor(x => x.FeatureIds)
+            .NotNull();
     }
 }
 
@@ -58,7 +61,7 @@ public class UpdateRecipeCommandHandler(DashboardDbContext db) : ICommandHandler
             throw new ValidationException($"Unknown feature ids: {string.Join(", ", unknown)}");
 
         recipe.Name = request.Name;
-        recipe.Description = request.Description;
+        recipe.Description = request.Description ?? "";
         recipe.UpdatedOn = DateTimeOffset.UtcNow;
 
         var current = await db.RecipeFeatures

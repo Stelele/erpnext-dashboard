@@ -26,6 +26,9 @@ public class CreateRecipeValidator : AbstractValidator<CreateRecipeCommand>
 
         RuleFor(x => x.Description)
             .MaximumLength(255);
+
+        RuleFor(x => x.FeatureIds)
+            .NotNull();
     }
 }
 
@@ -55,7 +58,7 @@ public class CreateRecipeCommandHandler(DashboardDbContext db) : ICommandHandler
         var recipe = new Recipe
         {
             Name = request.Name,
-            Description = request.Description,
+            Description = request.Description ?? "",
         };
 
         db.Recipes.Add(recipe);
