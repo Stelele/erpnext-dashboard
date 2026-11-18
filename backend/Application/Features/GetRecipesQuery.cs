@@ -11,7 +11,7 @@ public class GetRecipesQueryHandler(DashboardDbContext db) : IQueryHandler<GetRe
 {
     public async Task<List<RecipeResponse>> Handle(GetRecipesQuery request, CancellationToken ct)
     {
-        var recipes = await db.Recipes.OrderBy(r => r.Name).ToListAsync(ct);
+        var recipes = await db.Recipes.AsNoTracking().OrderBy(r => r.Name).ToListAsync(ct);
 
         var featuresByRecipe = await RecipeFeatureQueries.LoadFeaturesByRecipeAsync(db, recipes.Select(r => r.Id).ToList(), ct);
 

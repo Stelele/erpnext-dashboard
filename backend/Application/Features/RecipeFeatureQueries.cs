@@ -12,6 +12,7 @@ public static class RecipeFeatureQueries
         CancellationToken ct)
     {
         var rows = await db.RecipeFeatures
+            .AsNoTracking()
             .Where(rf => recipeIds.Contains(rf.RecipeId))
             .Select(rf => new { rf.RecipeId, Feature = rf.Feature })
             .ToListAsync(ct);

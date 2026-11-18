@@ -37,8 +37,9 @@ async function syncAll(): Promise<void> {
     self.postMessage({ type: "SYNC_ERROR", context: "reference-data", error: String(err) });
   }
 
-  const syncedCompanies = companiesFresh ? freshCompanies : await db.companies.toArray();
-  const syncExpenses = companiesFresh && syncedCompanies.some((c) => c.features?.includes(FEATURES.expenses));
+  // Single source of truth: expense-scoped sync only runs off a fresh fetch.
+  // When the fetch failed there is nothing fresh to gate on, so skip it.
+  const syncExpenses = companiesFresh && freshCompanies.some((c) => c.features?.includes(FEATURES.expenses));
 
   // Fetch remaining reference data (parallel); expense-types only if any company has the feature
   const referenceTasks: Promise<void>[] = [

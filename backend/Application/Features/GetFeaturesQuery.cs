@@ -11,7 +11,7 @@ public class GetFeaturesQueryHandler(DashboardDbContext db) : IQueryHandler<GetF
 {
     public async Task<List<FeatureResponse>> Handle(GetFeaturesQuery request, CancellationToken ct)
     {
-        var features = await db.Features.OrderBy(f => f.Code).ToListAsync(ct);
+        var features = await db.Features.AsNoTracking().OrderBy(f => f.Code).ToListAsync(ct);
 
         return features.Select(FeatureResponse.FromDomain).ToList();
     }

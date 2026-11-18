@@ -27,7 +27,8 @@ public class RecipesTests : IClassFixture<IntegrationTestFactory>
 
     private async Task<Guid> CreateRecipeAsync(string name, Guid[] featureIds)
     {
-        var response = await _client.PostAsJsonAsync("/recipes", new CreateRecipeRequest(name, $"{name} desc", featureIds));
+        var uniqueName = $"{name} {Guid.NewGuid():N}";
+        var response = await _client.PostAsJsonAsync("/recipes", new CreateRecipeRequest(uniqueName, $"{uniqueName} desc", featureIds));
         response.EnsureSuccessStatusCode();
         return await response.ReadCreatedIdAsync();
     }
