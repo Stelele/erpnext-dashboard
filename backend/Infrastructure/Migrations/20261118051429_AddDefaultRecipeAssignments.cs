@@ -11,7 +11,7 @@ namespace Infrastructure.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             // One-time rollout seeding: every company present at migration
-            // time gets the seeded "Default" recipe (feature gating is new,
+            // time gets the seeded "Retail" recipe (feature gating is new,
             // so no strips or custom sets exist at rollout). INSERT OR IGNORE
             // makes this idempotent against databases that already hold
             // runtime-seeded rows.

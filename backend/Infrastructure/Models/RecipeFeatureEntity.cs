@@ -48,12 +48,17 @@ public class RecipeFeatureEntity : IEntityTypeConfiguration<RecipeFeature>
             .OnDelete(DeleteBehavior.Restrict);
 
         var seedDate = new DateTimeOffset(2026, 6, 6, 0, 0, 0, TimeSpan.Zero);
-        var defaultRecipeId = Guid.Parse("00000000-0000-0000-0002-000000000100");
+        var retailRecipeId = Guid.Parse("00000000-0000-0000-0002-000000000100");
+        var refundRecipeId = Guid.Parse("00000000-0000-0000-0002-000000000101");
+        var serviceRecipeId = Guid.Parse("00000000-0000-0000-0002-000000000102");
 
         builder.HasData(
-            new RecipeFeature { Id = Guid.Parse("00000000-0000-0000-0002-000000000200"), RecipeId = defaultRecipeId, FeatureId = Guid.Parse("00000000-0000-0000-0002-000000000001"), CreatedOn = seedDate, UpdatedOn = seedDate },
-            new RecipeFeature { Id = Guid.Parse("00000000-0000-0000-0002-000000000201"), RecipeId = defaultRecipeId, FeatureId = Guid.Parse("00000000-0000-0000-0002-000000000002"), CreatedOn = seedDate, UpdatedOn = seedDate },
-            new RecipeFeature { Id = Guid.Parse("00000000-0000-0000-0002-000000000202"), RecipeId = defaultRecipeId, FeatureId = Guid.Parse("00000000-0000-0000-0002-000000000003"), CreatedOn = seedDate, UpdatedOn = seedDate }
+            new RecipeFeature { Id = Guid.Parse("00000000-0000-0000-0002-000000000200"), RecipeId = retailRecipeId, FeatureId = Guid.Parse("00000000-0000-0000-0002-000000000001"), CreatedOn = seedDate, UpdatedOn = seedDate },
+            new RecipeFeature { Id = Guid.Parse("00000000-0000-0000-0002-000000000201"), RecipeId = retailRecipeId, FeatureId = Guid.Parse("00000000-0000-0000-0002-000000000002"), CreatedOn = seedDate, UpdatedOn = seedDate },
+            new RecipeFeature { Id = Guid.Parse("00000000-0000-0000-0002-000000000202"), RecipeId = retailRecipeId, FeatureId = Guid.Parse("00000000-0000-0000-0002-000000000003"), CreatedOn = seedDate, UpdatedOn = seedDate },
+            new RecipeFeature { Id = Guid.Parse("00000000-0000-0000-0002-000000000203"), RecipeId = refundRecipeId, FeatureId = Guid.Parse("00000000-0000-0000-0002-000000000004"), CreatedOn = seedDate, UpdatedOn = seedDate },
+            new RecipeFeature { Id = Guid.Parse("00000000-0000-0000-0002-000000000204"), RecipeId = serviceRecipeId, FeatureId = Guid.Parse("00000000-0000-0000-0002-000000000001"), CreatedOn = seedDate, UpdatedOn = seedDate },
+            new RecipeFeature { Id = Guid.Parse("00000000-0000-0000-0002-000000000205"), RecipeId = serviceRecipeId, FeatureId = Guid.Parse("00000000-0000-0000-0002-000000000003"), CreatedOn = seedDate, UpdatedOn = seedDate }
         );
     }
 }

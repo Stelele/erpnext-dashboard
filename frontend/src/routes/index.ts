@@ -36,7 +36,7 @@ export const router = createRouter({
       path: "/expenses",
       name: "Expenses",
       beforeEnter: authGuard,
-      meta: { feature: FEATURES.expenses },
+      meta: { feature: FEATURES.expense },
       component: ExpensesView,
     },
     {

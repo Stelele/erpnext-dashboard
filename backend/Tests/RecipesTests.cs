@@ -97,17 +97,17 @@ public class RecipesTests : IClassFixture<IntegrationTestFactory>
         await ResetAsync();
         var salesId = await GetSeededFeatureIdAsync("sales");
         var stockId = await GetSeededFeatureIdAsync("stock");
-        var expensesId = await GetSeededFeatureIdAsync("expenses");
+        var expenseId = await GetSeededFeatureIdAsync("expense");
         var id = await CreateRecipeAsync("Swap Recipe", [salesId]);
 
-        var update = await _client.PutAsJsonAsync($"/recipes/{id}", new UpdateRecipeRequest("Swap Recipe", "Updated desc", [stockId, expensesId]));
+        var update = await _client.PutAsJsonAsync($"/recipes/{id}", new UpdateRecipeRequest("Swap Recipe", "Updated desc", [stockId, expenseId]));
 
         Assert.Equal(HttpStatusCode.NoContent, update.StatusCode);
 
         var list = await _client.GetFromJsonAsync<List<RecipeResponse>>("/recipes", TestJson.Options);
         Assert.NotNull(list);
         var recipe = Assert.Single(list, r => r.Id == id);
-        Assert.Equal(["expenses", "stock"], recipe.Features.Select(f => f.Code).Order().ToArray());
+        Assert.Equal(["expense", "stock"], recipe.Features.Select(f => f.Code).Order().ToArray());
     }
 
     [Fact]

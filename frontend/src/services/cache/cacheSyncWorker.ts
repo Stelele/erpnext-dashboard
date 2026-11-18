@@ -39,7 +39,7 @@ async function syncAll(): Promise<void> {
 
   // Single source of truth: expense-scoped sync only runs off a fresh fetch.
   // When the fetch failed there is nothing fresh to gate on, so skip it.
-  const syncExpenses = companiesFresh && freshCompanies.some((c) => c.features?.includes(FEATURES.expenses));
+  const syncExpenses = companiesFresh && freshCompanies.some((c) => c.features?.includes(FEATURES.expense));
 
   // Fetch remaining reference data (parallel); expense-types only if any company has the feature
   const referenceTasks: Promise<void>[] = [
@@ -82,7 +82,7 @@ async function syncAll(): Promise<void> {
   try {
     const companies = await db.companies.toArray();
     const referenceCount = syncExpenses ? 4 : 3;
-    const expenseCompanyCount = companiesFresh ? companies.filter((c) => c.features?.includes(FEATURES.expenses)).length : 0;
+    const expenseCompanyCount = companiesFresh ? companies.filter((c) => c.features?.includes(FEATURES.expense)).length : 0;
     const totalEndpoints = referenceCount + companies.length + expenseCompanyCount;
     self.postMessage({ type: "SYNC_PROGRESS", current: referenceCount, total: totalEndpoints });
 
@@ -92,7 +92,7 @@ async function syncAll(): Promise<void> {
     await db.companySettings.clear();
 
     for (const company of companies) {
-      if (companiesFresh && company.features?.includes(FEATURES.expenses)) {
+      if (companiesFresh && company.features?.includes(FEATURES.expense)) {
         try {
           const { data } = await api.GET("/api/companies/{companyId}/expense-mappings", {
             params: { path: { companyId: company.id } },

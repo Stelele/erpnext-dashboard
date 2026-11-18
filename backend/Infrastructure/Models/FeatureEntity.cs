@@ -44,7 +44,8 @@ public class FeatureEntity : IEntityTypeConfiguration<Feature>
         builder.HasData(
             new Feature { Id = Guid.Parse("00000000-0000-0000-0002-000000000001"), Code = "sales", Name = "Sales", Description = "Sales pages", CreatedOn = seedDate, UpdatedOn = seedDate },
             new Feature { Id = Guid.Parse("00000000-0000-0000-0002-000000000002"), Code = "stock", Name = "Stock", Description = "Stock pages", CreatedOn = seedDate, UpdatedOn = seedDate },
-            new Feature { Id = Guid.Parse("00000000-0000-0000-0002-000000000003"), Code = "expenses", Name = "Expenses", Description = "Expenses pages", CreatedOn = seedDate, UpdatedOn = seedDate }
+            new Feature { Id = Guid.Parse("00000000-0000-0000-0002-000000000003"), Code = "expense", Name = "Expense", Description = "Expense pages", CreatedOn = seedDate, UpdatedOn = seedDate },
+            new Feature { Id = Guid.Parse("00000000-0000-0000-0002-000000000004"), Code = "refund", Name = "Refund", Description = "Refund pages", CreatedOn = seedDate, UpdatedOn = seedDate }
         );
     }
 }

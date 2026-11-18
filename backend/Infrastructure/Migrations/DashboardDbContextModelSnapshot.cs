@@ -370,11 +370,21 @@ namespace Infrastructure.Migrations
                         new
                         {
                             Id = "00000000-0000-0000-0002-000000000003",
-                            Code = "expenses",
+                            Code = "expense",
                             CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "Expenses pages",
+                            Description = "Expense pages",
                             IsDeleted = false,
-                            Name = "Expenses",
+                            Name = "Expense",
+                            UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = "00000000-0000-0000-0002-000000000004",
+                            Code = "refund",
+                            CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "Refund pages",
+                            IsDeleted = false,
+                            Name = "Refund",
                             UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
                 });
@@ -416,9 +426,27 @@ namespace Infrastructure.Migrations
                         {
                             Id = "00000000-0000-0000-0002-000000000100",
                             CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
-                            Description = "Default recipe",
+                            Description = "Retail pages bundle",
                             IsDeleted = false,
-                            Name = "Default",
+                            Name = "Retail",
+                            UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = "00000000-0000-0000-0002-000000000101",
+                            CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "Refund pages",
+                            IsDeleted = false,
+                            Name = "Refund",
+                            UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = "00000000-0000-0000-0002-000000000102",
+                            CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            Description = "Service pages bundle",
+                            IsDeleted = false,
+                            Name = "Service",
                             UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
                 });
@@ -475,6 +503,30 @@ namespace Infrastructure.Migrations
                             CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
                             FeatureId = "00000000-0000-0000-0002-000000000003",
                             RecipeId = "00000000-0000-0000-0002-000000000100",
+                            UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = "00000000-0000-0000-0002-000000000203",
+                            CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            FeatureId = "00000000-0000-0000-0002-000000000004",
+                            RecipeId = "00000000-0000-0000-0002-000000000101",
+                            UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = "00000000-0000-0000-0002-000000000204",
+                            CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            FeatureId = "00000000-0000-0000-0002-000000000001",
+                            RecipeId = "00000000-0000-0000-0002-000000000102",
+                            UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
+                        },
+                        new
+                        {
+                            Id = "00000000-0000-0000-0002-000000000205",
+                            CreatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0)),
+                            FeatureId = "00000000-0000-0000-0002-000000000003",
+                            RecipeId = "00000000-0000-0000-0002-000000000102",
                             UpdatedOn = new DateTimeOffset(new DateTime(2026, 6, 6, 0, 0, 0, 0, DateTimeKind.Unspecified), new TimeSpan(0, 0, 0, 0, 0))
                         });
                 });

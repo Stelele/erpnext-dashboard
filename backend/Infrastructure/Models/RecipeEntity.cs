@@ -37,7 +37,9 @@ public class RecipeEntity : IEntityTypeConfiguration<Recipe>
         var seedDate = new DateTimeOffset(2026, 6, 6, 0, 0, 0, TimeSpan.Zero);
 
         builder.HasData(
-            new Recipe { Id = Guid.Parse("00000000-0000-0000-0002-000000000100"), Name = "Default", Description = "Default recipe", CreatedOn = seedDate, UpdatedOn = seedDate }
+            new Recipe { Id = Guid.Parse("00000000-0000-0000-0002-000000000100"), Name = "Retail", Description = "Retail pages bundle", CreatedOn = seedDate, UpdatedOn = seedDate },
+            new Recipe { Id = Guid.Parse("00000000-0000-0000-0002-000000000101"), Name = "Refund", Description = "Refund pages", CreatedOn = seedDate, UpdatedOn = seedDate },
+            new Recipe { Id = Guid.Parse("00000000-0000-0000-0002-000000000102"), Name = "Service", Description = "Service pages bundle", CreatedOn = seedDate, UpdatedOn = seedDate }
         );
     }
 }

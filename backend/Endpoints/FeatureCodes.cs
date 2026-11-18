@@ -4,5 +4,6 @@ public static class FeatureCodes
 {
     public const string Sales = "sales";
     public const string Stock = "stock";
-    public const string Expenses = "expenses";
+    public const string Expense = "expense";
+    public const string Refund = "refund";
 }

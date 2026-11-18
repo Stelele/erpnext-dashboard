@@ -73,19 +73,19 @@ public class CompanyFeaturesTests : IClassFixture<IntegrationTestFactory>
     {
         await ResetAsync();
         var salesId = await GetSeededFeatureIdAsync("sales");
-        var expensesId = await GetSeededFeatureIdAsync("expenses");
+        var expenseId = await GetSeededFeatureIdAsync("expense");
         var recipeId = await CreateRecipeAsync("Live Recipe", [salesId]);
         var companyId = await CreateCompanyAsync("Live Co");
 
         var set = await _client.PutAsJsonAsync($"/companies/{companyId}/recipes", new SetCompanyRecipesRequest([recipeId]));
         Assert.Equal(HttpStatusCode.NoContent, set.StatusCode);
 
-        var update = await _client.PutAsJsonAsync($"/recipes/{recipeId}", new UpdateRecipeRequest("Live Recipe", "Updated desc", [salesId, expensesId]));
+        var update = await _client.PutAsJsonAsync($"/recipes/{recipeId}", new UpdateRecipeRequest("Live Recipe", "Updated desc", [salesId, expenseId]));
         Assert.Equal(HttpStatusCode.NoContent, update.StatusCode);
 
         var features = await _client.GetFromJsonAsync<List<string>>($"/companies/{companyId}/features", TestJson.Options);
         Assert.NotNull(features);
-        Assert.Equal(["expenses", "sales"], features.Order().ToArray());
+        Assert.Equal(["expense", "sales"], features.Order().ToArray());
     }
 
     [Fact]
@@ -277,7 +277,7 @@ public class CompanyFeaturesTests : IClassFixture<IntegrationTestFactory>
     {
         await ResetAsync();
         var salesId = await GetSeededFeatureIdAsync("sales");
-        var expensesId = await GetSeededFeatureIdAsync("expenses");
+        var expenseId = await GetSeededFeatureIdAsync("expense");
         var recipeId = await CreateRecipeAsync("Cache Recipe", [salesId]);
         var companyId = await CreateCompanyAsync("Cache Co", [recipeId]);
 
@@ -285,11 +285,11 @@ public class CompanyFeaturesTests : IClassFixture<IntegrationTestFactory>
         Assert.NotNull(before);
         Assert.Equal(["sales"], Assert.Single(before, c => c.Id == companyId).Features.Order().ToArray());
 
-        var update = await _client.PutAsJsonAsync($"/recipes/{recipeId}", new UpdateRecipeRequest("Cache Recipe", "Updated desc", [salesId, expensesId]));
+        var update = await _client.PutAsJsonAsync($"/recipes/{recipeId}", new UpdateRecipeRequest("Cache Recipe", "Updated desc", [salesId, expenseId]));
         Assert.Equal(HttpStatusCode.NoContent, update.StatusCode);
 
         var after = await _client.GetFromJsonAsync<List<CompanyResponse>>("/companies", TestJson.Options);
         Assert.NotNull(after);
-        Assert.Equal(["expenses", "sales"], Assert.Single(after, c => c.Id == companyId).Features.Order().ToArray());
+        Assert.Equal(["expense", "sales"], Assert.Single(after, c => c.Id == companyId).Features.Order().ToArray());
     }
 }

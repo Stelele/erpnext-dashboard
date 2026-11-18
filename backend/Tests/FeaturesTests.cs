@@ -28,18 +28,24 @@ public class FeaturesTests : IClassFixture<IntegrationTestFactory>
 
         Assert.Contains(db.Features, f => f.Code == "sales");
         Assert.Contains(db.Features, f => f.Code == "stock");
-        Assert.Contains(db.Features, f => f.Code == "expenses");
-        Assert.Contains(db.Recipes, r => r.Name == "Default");
-        var defaultRecipeId = db.Recipes.Single(r => r.Name == "Default").Id;
-        var seededFeatureIds = db.Features
-            .Where(f => f.Code == "sales" || f.Code == "stock" || f.Code == "expenses")
-            .Select(f => f.Id)
-            .ToList();
-        Assert.Equal(3, seededFeatureIds.Count);
-        foreach (var featureId in seededFeatureIds)
-        {
-            Assert.True(db.RecipeFeatures.Any(rf => rf.RecipeId == defaultRecipeId && rf.FeatureId == featureId));
-        }
+        Assert.Contains(db.Features, f => f.Code == "expense");
+        Assert.Contains(db.Features, f => f.Code == "refund");
+        Assert.Contains(db.Recipes, r => r.Name == "Retail");
+        Assert.Contains(db.Recipes, r => r.Name == "Refund");
+        Assert.Contains(db.Recipes, r => r.Name == "Service");
+        var retailRecipeId = db.Recipes.Single(r => r.Name == "Retail").Id;
+        var refundRecipeId = db.Recipes.Single(r => r.Name == "Refund").Id;
+        var serviceRecipeId = db.Recipes.Single(r => r.Name == "Service").Id;
+        var salesId = db.Features.Single(f => f.Code == "sales").Id;
+        var stockId = db.Features.Single(f => f.Code == "stock").Id;
+        var expenseId = db.Features.Single(f => f.Code == "expense").Id;
+        var refundId = db.Features.Single(f => f.Code == "refund").Id;
+        Assert.True(db.RecipeFeatures.Any(rf => rf.RecipeId == retailRecipeId && rf.FeatureId == salesId));
+        Assert.True(db.RecipeFeatures.Any(rf => rf.RecipeId == retailRecipeId && rf.FeatureId == stockId));
+        Assert.True(db.RecipeFeatures.Any(rf => rf.RecipeId == retailRecipeId && rf.FeatureId == expenseId));
+        Assert.True(db.RecipeFeatures.Any(rf => rf.RecipeId == refundRecipeId && rf.FeatureId == refundId));
+        Assert.True(db.RecipeFeatures.Any(rf => rf.RecipeId == serviceRecipeId && rf.FeatureId == salesId));
+        Assert.True(db.RecipeFeatures.Any(rf => rf.RecipeId == serviceRecipeId && rf.FeatureId == expenseId));
     }
 
     [Fact]
