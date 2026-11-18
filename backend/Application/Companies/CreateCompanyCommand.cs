@@ -9,7 +9,8 @@ namespace Application.Companies;
 public record CreateCompanyCommand(
     Guid SiteId,
     string Name,
-    string Description
+    string Description,
+    Guid[]? RecipeIds = null
 ) : ICommand<Guid>;
 
 public class CreateCompanyValidator : AbstractValidator<CreateCompanyCommand>

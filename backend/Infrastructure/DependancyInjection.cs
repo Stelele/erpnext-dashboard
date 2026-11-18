@@ -44,6 +44,16 @@ public static class DependancyInjection
             app.Logger.LogError(ex, "An error occurred while seeding trusted admins.");
         }
 
+        // Assign the seeded "Default" recipe to companies without recipes.
+        try
+        {
+            await FeatureSeeder.SeedAsync(db, app.Lifetime.ApplicationStopping);
+        }
+        catch (Exception ex)
+        {
+            app.Logger.LogError(ex, "An error occurred while seeding company feature recipes.");
+        }
+
         // Pre-warm EF Core to avoid cold-start penalty on first request
         try
         {

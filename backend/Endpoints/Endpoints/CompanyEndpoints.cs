@@ -52,7 +52,7 @@ public static class CompanyEndpoints
 
         app.MapPost("/companies", async (IMediator mediator, CreateCompanyRequest request) =>
         {
-            var command = new CreateCompanyCommand(request.SiteId, request.Name, request.Description);
+            var command = new CreateCompanyCommand(request.SiteId, request.Name, request.Description, request.RecipeIds);
             var result = await mediator.Send(command);
             return Results.Created($"/companies/{result}", new { id = result });
         })

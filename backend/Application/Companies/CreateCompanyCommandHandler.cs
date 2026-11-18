@@ -3,6 +3,8 @@ using Domain.CompanyExpenseMappings;
 using CompanySettingsEntity = Domain.CompanySettings.CompanySettings;
 using Domain.Companies;
 using Domain.Exceptions;
+using Domain.Features;
+using FluentValidation;
 using Infrastructure.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -30,8 +32,38 @@ public class CreateCompanyCommandHandler(
 
         await SeedDefaultExpenseMappings(company.Id, cancellationToken);
         await SeedDefaultCompanySettings(company.Id, cancellationToken);
+        await AssignRecipesAsync(company.Id, request.RecipeIds, cancellationToken);
 
         return company.Id;
+    }
+
+    private async Task AssignRecipesAsync(Guid companyId, Guid[]? recipeIds, CancellationToken ct)
+    {
+        if (recipeIds is null || recipeIds.Length == 0)
+            return;
+
+        var distinct = recipeIds.Distinct().ToArray();
+
+        var existing = await db.Recipes
+            .Where(r => distinct.Contains(r.Id))
+            .Select(r => r.Id)
+            .ToListAsync(ct);
+
+        var unknown = distinct.Except(existing).ToArray();
+
+        if (unknown.Length > 0)
+            throw new ValidationException($"Unknown recipe ids: {string.Join(", ", unknown)}");
+
+        foreach (var recipeId in distinct)
+        {
+            db.CompanyRecipes.Add(new CompanyRecipe
+            {
+                CompanyId = companyId,
+                RecipeId = recipeId,
+            });
+        }
+
+        await db.SaveChangesAsync(ct);
     }
 
     private async Task SeedDefaultExpenseMappings(Guid companyId, CancellationToken ct)

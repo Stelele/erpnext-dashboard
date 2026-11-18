@@ -11,3 +11,5 @@ public record UpdateRecipeRequest(
     string Description,
     Guid[] FeatureIds
 );
+
+public record SetCompanyRecipesRequest(Guid[] RecipeIds);

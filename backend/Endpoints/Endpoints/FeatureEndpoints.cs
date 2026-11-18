@@ -115,6 +115,44 @@ public static class FeatureEndpoints
         .Produces(StatusCodes.Status404NotFound)
         .RequireAuthorization(Permissions.ManageFeatures);
 
+        app.MapGet("/companies/{companyId:guid}/features", async (IMediator mediator, Guid companyId) =>
+        {
+            var query = new GetCompanyFeaturesQuery(companyId);
+            var result = await mediator.Send(query);
+            return Results.Ok(result);
+        })
+        .WithTags(Tags.Features)
+        .WithName("GetCompanyFeatures")
+        .WithDescription("Retrieves the effective feature codes for a company (union across its recipes).")
+        .Produces<List<string>>(StatusCodes.Status200OK)
+        .RequireAuthorization(Permissions.ReadCompanies);
+
+        app.MapGet("/companies/{companyId:guid}/recipes", async (IMediator mediator, Guid companyId) =>
+        {
+            var query = new GetCompanyRecipesQuery(companyId);
+            var result = await mediator.Send(query);
+            return Results.Ok(result);
+        })
+        .WithTags(Tags.Features)
+        .WithName("GetCompanyRecipes")
+        .WithDescription("Retrieves the recipes assigned to a company with their features.")
+        .Produces<List<RecipeResponse>>(StatusCodes.Status200OK)
+        .RequireAuthorization(Permissions.ReadCompanies);
+
+        app.MapPut("/companies/{companyId:guid}/recipes", async (IMediator mediator, Guid companyId, SetCompanyRecipesRequest request) =>
+        {
+            var command = new SetCompanyRecipesCommand(companyId, request.RecipeIds);
+            await mediator.Send(command);
+            return Results.NoContent();
+        })
+        .WithTags(Tags.Features)
+        .WithName("SetCompanyRecipes")
+        .WithDescription("Replaces the set of recipes assigned to a company.")
+        .Accepts<SetCompanyRecipesRequest>("application/json")
+        .Produces(StatusCodes.Status204NoContent)
+        .Produces(StatusCodes.Status400BadRequest)
+        .RequireAuthorization(Permissions.UpdateCompanies);
+
         return app;
     }
 }
