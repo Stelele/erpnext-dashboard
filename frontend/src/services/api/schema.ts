@@ -321,6 +321,7 @@ export interface components {
             description: string;
             /** Format: uuid */
             siteId: string;
+            features: string[];
         };
         CompanySettingsResponse: {
             /** Format: uuid */
