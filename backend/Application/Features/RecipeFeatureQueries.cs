@@ -21,7 +21,7 @@ public static class RecipeFeatureQueries
             .GroupBy(x => x.RecipeId)
             .ToDictionary(
                 g => g.Key,
-                g => g.Select(x => FeatureResponse.FromDomain(x.Feature!)).ToList()
+                g => g.Select(x => FeatureResponse.FromDomain(x.Feature!)).OrderBy(x => x.Code).ToList()
             );
     }
 }

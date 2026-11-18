@@ -3,6 +3,7 @@ import type { paths, components } from "@/services/api/schema";
 import { getCacheDB, type CachedExpenseMapping } from "@/services/db";
 import { FEATURES } from "@/constants/features";
 
+type CompanyResponse = components["schemas"]["CompanyResponse"];
 type CompanyExpenseMappingResponse = components["schemas"]["CompanyExpenseMappingResponse"];
 type CompanySettingsResponse = components["schemas"]["CompanySettingsResponse"];
 
@@ -23,18 +24,20 @@ async function syncAll(): Promise<void> {
 
   // Fetch companies FIRST to derive feature gating for expense-scoped sync
   let companiesFresh = false;
+  let freshCompanies: CompanyResponse[] = [];
   try {
     const { data } = await api.GET("/companies", {});
     if (data) {
       await db.companies.clear();
       await db.companies.bulkPut(data as never);
+      freshCompanies = data as CompanyResponse[];
       companiesFresh = true;
     }
   } catch (err) {
     self.postMessage({ type: "SYNC_ERROR", context: "reference-data", error: String(err) });
   }
 
-  const syncedCompanies = await db.companies.toArray();
+  const syncedCompanies = companiesFresh ? freshCompanies : await db.companies.toArray();
   const syncExpenses = companiesFresh && syncedCompanies.some((c) => c.features?.includes(FEATURES.expenses));
 
   // Fetch remaining reference data (parallel); expense-types only if any company has the feature
@@ -82,7 +85,9 @@ async function syncAll(): Promise<void> {
     const totalEndpoints = referenceCount + companies.length + expenseCompanyCount;
     self.postMessage({ type: "SYNC_PROGRESS", current: referenceCount, total: totalEndpoints });
 
-    await db.expenseMappings.clear();
+    if (companiesFresh) {
+      await db.expenseMappings.clear();
+    }
     await db.companySettings.clear();
 
     for (const company of companies) {

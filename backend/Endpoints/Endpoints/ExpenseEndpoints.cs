@@ -26,7 +26,7 @@ public static class ExpenseEndpoints
             .Produces<List<CompanyExpenseMappingResponse>>(StatusCodes.Status200OK)
             .WithName("GetCompanyExpenseMappings")
             .RequireAuthorization(Permissions.ReadExpenses)
-            .RequireFeature("expenses");
+            .RequireFeature(FeatureCodes.Expenses);
 
         group.MapPut("/companies/{companyId:guid}/expense-mappings", async (Guid companyId, UpsertCompanyExpenseMappingsRequest request, IMediator mediator) =>
             {
@@ -40,7 +40,7 @@ public static class ExpenseEndpoints
             .Produces(StatusCodes.Status400BadRequest)
             .WithName("UpsertCompanyExpenseMappings")
             .RequireAuthorization(Permissions.UpdateExpenses)
-            .RequireFeature("expenses");
+            .RequireFeature(FeatureCodes.Expenses);
 
         group.MapPost("/expense-types", async (IMediator mediator, CreateExpenseTypeRequest request) =>
             {

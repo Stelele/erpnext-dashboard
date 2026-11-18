@@ -37,7 +37,7 @@ public class UpdateFeatureCommandHandler(DashboardDbContext db) : ICommandHandle
             ?? throw new NotFoundException($"Feature not found: {request.Id}");
 
         feature.Name = request.Name;
-        feature.Description = request.Description;
+        feature.Description = request.Description ?? "";
         feature.UpdatedOn = DateTimeOffset.UtcNow;
 
         await db.SaveChangesAsync(ct);

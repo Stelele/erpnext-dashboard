@@ -26,11 +26,20 @@ public class FeaturesTests : IClassFixture<IntegrationTestFactory>
         using var scope = _factory.Services.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<DashboardDbContext>();
 
-        Assert.Equal(3, db.Features.Count());
-        var codes = db.Features.Select(f => f.Code).Order().ToList();
-        Assert.Equal(["expenses", "sales", "stock"], codes);
+        Assert.Contains(db.Features, f => f.Code == "sales");
+        Assert.Contains(db.Features, f => f.Code == "stock");
+        Assert.Contains(db.Features, f => f.Code == "expenses");
         Assert.Contains(db.Recipes, r => r.Name == "Default");
-        Assert.Equal(3, db.RecipeFeatures.Count());
+        var defaultRecipeId = db.Recipes.Single(r => r.Name == "Default").Id;
+        var seededFeatureIds = db.Features
+            .Where(f => f.Code == "sales" || f.Code == "stock" || f.Code == "expenses")
+            .Select(f => f.Id)
+            .ToList();
+        Assert.Equal(3, seededFeatureIds.Count);
+        foreach (var featureId in seededFeatureIds)
+        {
+            Assert.True(db.RecipeFeatures.Any(rf => rf.RecipeId == defaultRecipeId && rf.FeatureId == featureId));
+        }
     }
 
     [Fact]

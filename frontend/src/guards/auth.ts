@@ -24,7 +24,7 @@ export async function authGuard(to: RouteLocationNormalized) {
       console.error("Feature load failed during navigation:", error);
       return true;
     }
-    if (!featureStore.hasFeature(to.meta.feature as string)) {
+    if (!featureStore.hasFeature(to.meta.feature)) {
       return { path: "/" };
     }
   }

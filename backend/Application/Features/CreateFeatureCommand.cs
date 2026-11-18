@@ -49,7 +49,7 @@ public class CreateFeatureCommandHandler(DashboardDbContext db) : ICommandHandle
         {
             Code = request.Code,
             Name = request.Name,
-            Description = request.Description,
+            Description = request.Description ?? "",
         };
 
         db.Features.Add(feature);
