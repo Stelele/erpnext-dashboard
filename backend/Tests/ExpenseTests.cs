@@ -185,7 +185,8 @@ public class ExpenseTests : IClassFixture<IntegrationTestFactory>
         siteResponse.EnsureSuccessStatusCode();
         var siteId = await siteResponse.ReadCreatedIdAsync();
 
-        var companyRequest = new CreateCompanyRequest(siteId, $"Company-{Guid.NewGuid():N}", "");
+        var defaultRecipeId = Guid.Parse("00000000-0000-0000-0002-000000000100");
+        var companyRequest = new CreateCompanyRequest(siteId, $"Company-{Guid.NewGuid():N}", "", [defaultRecipeId]);
         var companyResponse = await _client.PostAsJsonAsync("/companies", companyRequest);
         companyResponse.EnsureSuccessStatusCode();
         return await companyResponse.ReadCreatedIdAsync();
