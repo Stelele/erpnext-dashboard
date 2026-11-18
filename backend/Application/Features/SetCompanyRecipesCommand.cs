@@ -14,10 +14,24 @@ public record SetCompanyRecipesCommand(
     Guid[] RecipeIds
 ) : ICommand;
 
+public class SetCompanyRecipesValidator : AbstractValidator<SetCompanyRecipesCommand>
+{
+    public SetCompanyRecipesValidator()
+    {
+        RuleFor(x => x.RecipeIds)
+            .NotNull();
+    }
+}
+
 public class SetCompanyRecipesCommandHandler(DashboardDbContext db) : ICommandHandler<SetCompanyRecipesCommand>
 {
     public async Task Handle(SetCompanyRecipesCommand request, CancellationToken ct)
     {
+        var companyExists = await db.Companies.AnyAsync(c => c.Id == request.CompanyId, ct);
+
+        if (!companyExists)
+            throw new ValidationException($"Unknown company id: {request.CompanyId}");
+
         var recipeIds = request.RecipeIds.Distinct().ToArray();
 
         var existing = await db.Recipes

@@ -132,6 +132,45 @@ public class CompanyFeaturesTests : IClassFixture<IntegrationTestFactory>
     }
 
     [Fact]
+    public async Task SetCompanyRecipes_UnknownCompanyId_Returns400()
+    {
+        await ResetAsync();
+        var salesId = await GetSeededFeatureIdAsync("sales");
+        var recipeId = await CreateRecipeAsync("Orphan Recipe", [salesId]);
+
+        var response = await _client.PutAsJsonAsync($"/companies/{Guid.NewGuid()}/recipes", new SetCompanyRecipesRequest([recipeId]));
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task SetCompanyRecipes_NullRecipeIds_Returns400()
+    {
+        await ResetAsync();
+        var companyId = await CreateCompanyAsync("Null Ids Co");
+
+        var response = await _client.PutAsJsonAsync($"/companies/{companyId}/recipes", new { });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateCompany_UnknownRecipeIds_Returns400_AndLeavesNoPartialCompany()
+    {
+        await ResetAsync();
+        var siteId = await CreateSiteAsync();
+        var request = new CreateCompanyRequest(siteId, "Partial Co", "", [Guid.NewGuid()]);
+
+        var response = await _client.PostAsJsonAsync("/companies", request);
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        var companies = await _client.GetFromJsonAsync<List<CompanyResponse>>("/companies", TestJson.Options);
+        Assert.NotNull(companies);
+        Assert.DoesNotContain(companies, c => c.Name == "Partial Co");
+    }
+
+    [Fact]
     public async Task CreateCompany_WithRecipeIds_AssignsThem()
     {
         await ResetAsync();

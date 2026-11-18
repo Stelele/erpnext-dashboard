@@ -25,6 +25,8 @@ public class CreateCompanyCommandHandler(
         var site = await db.Sites.FirstOrDefaultAsync(s => s.Id == request.SiteId, cancellationToken)
             ?? throw new KeyNotFoundException($"The Site referenced does not exist: {request.SiteId}");
 
+        var recipeIds = await ResolveRecipeIdsAsync(request.RecipeIds, cancellationToken);
+
         var company = Company.Create(site, request.Name, request.Description);
 
         await db.Companies.AddAsync(company, cancellationToken);
@@ -32,15 +34,15 @@ public class CreateCompanyCommandHandler(
 
         await SeedDefaultExpenseMappings(company.Id, cancellationToken);
         await SeedDefaultCompanySettings(company.Id, cancellationToken);
-        await AssignRecipesAsync(company.Id, request.RecipeIds, cancellationToken);
+        await AssignRecipesAsync(company.Id, recipeIds, cancellationToken);
 
         return company.Id;
     }
 
-    private async Task AssignRecipesAsync(Guid companyId, Guid[]? recipeIds, CancellationToken ct)
+    private async Task<Guid[]> ResolveRecipeIdsAsync(Guid[]? recipeIds, CancellationToken ct)
     {
         if (recipeIds is null || recipeIds.Length == 0)
-            return;
+            return [];
 
         var distinct = recipeIds.Distinct().ToArray();
 
@@ -54,7 +56,15 @@ public class CreateCompanyCommandHandler(
         if (unknown.Length > 0)
             throw new ValidationException($"Unknown recipe ids: {string.Join(", ", unknown)}");
 
-        foreach (var recipeId in distinct)
+        return distinct;
+    }
+
+    private async Task AssignRecipesAsync(Guid companyId, Guid[] recipeIds, CancellationToken ct)
+    {
+        if (recipeIds.Length == 0)
+            return;
+
+        foreach (var recipeId in recipeIds)
         {
             db.CompanyRecipes.Add(new CompanyRecipe
             {
