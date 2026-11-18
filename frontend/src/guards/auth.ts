@@ -15,7 +15,15 @@ export async function authGuard(to: RouteLocationNormalized) {
 
   if (to.meta.feature) {
     const featureStore = useFeatureStore();
-    await featureStore.ensureLoaded();
+    try {
+      await featureStore.ensureLoaded();
+    } catch (error) {
+      // Fail open: the backend still gates feature-scoped data; a broken
+      // cache/API must not strand navigation. Matches AuthStore's
+      // catch-and-continue style.
+      console.error("Feature load failed during navigation:", error);
+      return true;
+    }
     if (!featureStore.hasFeature(to.meta.feature as string)) {
       return { path: "/" };
     }
